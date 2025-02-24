@@ -1,0 +1,39 @@
+jadi ada 5 perbedaan antara Golang dan JavaScript:
+
+1. Cara Kerja & Filosofi
+
+JavaScript: Fleksibel nian, bisa buat frontend dan backend
+
+Golang: Lebih kaku tapi bertenaga. Dibuat karena efisien, cepat, dan scalable. Sering dipake buat backend yang butuh performa tinggi.
+
+2. Tipe Data & Variabel
+
+JavaScript: Santai nian kalau soal tipe data, bisa berubah-ubah sesuka hati (dynamic typing). enak memang, tapi bisa bikin bug ngeselin. wkwkwkkw.
+
+Golang: Ketat! Semua variabel harus jelas tipe datanya dari awal (static typing). Agak ribet di awal, tapi bikin kode lebih aman.
+
+3. Eksekusi Kode
+
+JavaScript: Diinterpretasi langsung sama browser atau Node.js. Dak perlu compile, tinggal jalan.
+
+Golang: Harus dikompilasi dulu jadi binary sebelum bisa dijalankan.
+
+4. Handling Banyak Proses (Concurrency)
+
+JavaScript: Pake event loop sama async/await buat handle banyak proses tanpa nge-freeze.
+
+Golang: Punya fitur goroutines yang ringan dan gampang buat multitasking. Performa lebih gacor dibanding threading biasa.
+
+5. Ekosistem & Penggunaan
+
+JavaScript: King of the Kings di dunia web ni bosss!, banyak framework keren kayak React, Vue, Express, dll.
+
+Golang: Biasanya dipakai buat backend kuat, cloud computing, microservices, dan aplikasi skala besar yang butuh kecepatan tinggi.
+
+
+ya intinya gitulah. 😊
+
+dah dulu yah, aku nak tidur, do'ain aku biar dapat nilai bagus semester ni. 😁
+
+Thx kakak-kakak sekalian!!
+
