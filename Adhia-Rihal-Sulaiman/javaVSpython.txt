@@ -1,1 +1,9 @@
-x
+Assalamualaikum warahmatullahi wabarakatuh
+
+Jadi saya disini mau membambandingkan antara bahasa pemrograman java vs python:
+
+1. Untuk poin pertama bahasa yang digunakan di java itu relatif panjang dikarenakan bahasa java harus memperjelas tipe variabel yang mau kita gunakan, dan untuk di bagian python itu tidak perlu untuk memperjelas tipe variabel ( karena python itu tipenya dinamis guys).
+2. Untuk poin kedua untuk bahasa python itu sendiri mudah untuk dipahami(dibaca) dan masih mudah digunakan karena masih mendekati bahasa manusia dan bahasa inggris, dan untuk bahasa java itu sendiri masih terbilang mudah dibaca (dipahami) dibandingkan dengan bahasa python, java masih menggunakan sedikit bahasa mesin, tapi jika dibandingkan masih mudahlah python.
+3. Untuk poin ketiga ini mungkin ini pendapat pribadi karna juga masih blm expert dengan bahasa nya, jujur untuk kedua bahasa ini masih terbilang populer pada bidang masing masing dan tujuan penggunaan yang berbeda dan spesifik, dan untuk bahasa java itu lebih populer dan direkomendasikan di kalangan pembuat aplikasi desktop dan mobile, dan untuk bahasa python lebih populer dan direkomenasikan pada kalangan pembuat data science dan mechine learning.
+4. Untuk poin keempat untuk platform komputer untuk bahasa java itu mudah digunakan karna menggunakan JVM sebagai perantara antara code dan sistem operasi, jadi mudah untuk mengkompiler code nya mudah, mungkin karna code yang saya gunakan masih belum terlalu kompleks, tapi untuk python sih masih tergolong susah dan masih banyak yang harus di install.
+5. Untuk poin kelima ini sih tidak terlalu kelihatan, untuk bahasa java biasanya lebih cepat dibandingkan dengan python dalam waktu hal eksekusi, tapi biasanya perbedaan ini tidak terlalu kelihatan jika ada proyek-proyek yang tidak membutuhkan kecepatan yang tinggi.
