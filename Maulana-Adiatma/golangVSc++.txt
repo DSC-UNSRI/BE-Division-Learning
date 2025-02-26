@@ -1,0 +1,13 @@
+Kali ini Maulana mencari 5 Perbedaan dari Bahasa Golang dan C++
+
+1. Menurut Maul Golang memiliki tipe data number yang lebih spesifik dan bervariasi dibandingkan C++ contoh nya pada Golong itu penyebutan tipe datanya dibagi lagi diantaranya ada int8, int16, int 32, int 64 yang memiliki batasan nilai minimum dan nilai maksimumnya masing-masing daripada C++ yang cuman hanya ada 2 tipe saja setau maul cuman int yang nilai minimum nya kalau gk salah -2147483648 hingga 2147483647 dan long long.
+
+2. Selanjutnya Golang memiliki tingkat kecepatan eksekusi lebih cepat dibandingkan C++ dimana Maul sudah mencoba menjalankan looping dengan menggunakan for sebanyak 1 miliar kali dan hasilnya Golang lebih cepat yaitu dengan waktu pengeksekusian hanya  0.401845235 detik dengan menggunakan tipe data int64 daripada C++ mencapai 2.379 detik dengan menggunakan tipe data long long.
+
+3. Lalu Golang lebih variatif dan memiliki kemampuan dibandingkan c++ kayak contohnya untuk pendeklarasian boleh tanpa menggunakan var dengan alternatif menggunakan := lalu (walau tidak bisa membuat ulang jika kita sudah mendeklarasi variabel dengan nama yang sama dan menggunakan :=) dan di tipe data string juga memiliki function tambahan yang memiliki fungsi untuk menghitung jumlah karakter dengan (len"apa isi").
+
+4. Golang lebih sulit untuk dipahami bagi maul, karna selama maulana lihat penggunaan golang itu banyak sekali menggunakan kata/kalimat pada saat program berlangsung, sehingga bagi maulana sendiri pasti susah untuk mengingatnya, beda dengan c++ yang lebih mudah untuk maulana ingat.
+
+5. yang paling maul setuju di Golang ini sangat tidak mewajibkan penggunaan titik koma, beda dengan C++ yang kalau lupa titik koma itu bisa buat kode salah/error dan untuk titik koma ini opsional jadi kalau mau dimasukin boleh kalau enggak pun juga gak buat kode programnya error/salah. 
+
+Sudah sih, itu aja menurut maul.
