@@ -11,3 +11,4 @@ Kali ini Maulana mencari 5 Perbedaan dari Bahasa Golang dan C++
 5. yang paling maul setuju di Golang ini sangat tidak mewajibkan penggunaan titik koma, beda dengan C++ yang kalau lupa titik koma itu bisa buat kode salah/error dan untuk titik koma ini opsional jadi kalau mau dimasukin boleh kalau enggak pun juga gak buat kode programnya error/salah. 
 
 Sudah sih, itu aja menurut maul.
+Semoga diterima
