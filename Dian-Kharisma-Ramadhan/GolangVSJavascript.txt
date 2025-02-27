@@ -1,0 +1,24 @@
+Perbandingan javascript vs golang
+
+1. Resource Pembelajaran
+JavaScript: Karena mostly pembelajaran awalnya dari javascript untuk web, jadi banyak tutorial dan dokumentasinya di youtube
+Golang: so far belum banyak ngeliat tutorial di yt terkait golang (inggris semua mff agak males)
+
+2. Penggunaan 
+JavaScript: kalo js ni sangat versatile. bisa digunakan di FE, BE, Mobile dll
+Golang: Kebanyakan dipake khusus untuk Backend dalam skala besar terutama yang membutuhkan efisiensi
+
+3. Deklarasi Variabel
+JavaScript: ga perlu langsung nentuin data type diawal (Ga strict)
+Golang: sangat strict jadi harus dideklarasi data type dari awal supaya kode lebih aman dan mudah dikelola dalam proyek besar.
+
+4. Performa Eksekusi
+JavaScript: kalau dioptimasiin lagi bisa cepat, tapi karena single-threaded kadang bottleneck kalau workloadnya berat.
+Golang: Kompilasi langsung ke binary dan goroutines bikin multitasking lebih efisien
+
+5. Kesederhanaan Bahasa
+JavaScript: Banyak cara buat ngoding hal yang sama, kadang malah bikin bingung sendiri.
+Golang: Simple dan minimalis, jadi lebih gampang dibaca dan dipelajari.
+
+
+
