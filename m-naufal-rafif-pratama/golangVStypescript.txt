@@ -1,0 +1,21 @@
+Perbandingan Golang vs Typescript
+
+1. Performa
+Typescript: karena ts berbasis js jadi performanya lebih lambat dibanding golang
+Golang: lebih cepat dan efisien karena tidak perlu di compile
+
+2. Penggunaan
+Typescript: variabelnya static jadi buat kode lebih aman
+Golang: type static juga tetapi lebih simpel
+
+3. Web Dev
+Typescript: lebih populer buat web modern bisa juga fullstack
+Golang: kurang populer di frontend tapi kencang buat di backend
+
+4. Ekosistem dan library
+Typescript: library sekarang sangat banyak karena sangat populer untuk frontend dan backend
+Golang: masih berkembang tapi kuat di bagian backendnya
+
+4. Kemudahan Belajar
+Typescript: kalo udah ngerti js mudah buat belajar cuma tambah safety
+Golang: butuh adaptasi karena ada syntax yang beda dari bahasa yang lain
