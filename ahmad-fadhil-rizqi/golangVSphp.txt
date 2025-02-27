@@ -1,0 +1,35 @@
+Perbandingan antara Golang dan PHP
+
+1. Variabel:
+Di Golang, kita bisa mendeklarasikan tipe data variabelnya. Kalau kita mau menyertakan
+tipe data, misalnya var x int = 10, itu harus menyebutkan tipe datanya terlebih dahulu.
+Tapi kita juga bisa pakai cara lain, contohnya x := 10, Golang bakalan otomatis 
+negbaca variabel sebagai integer. Sedangkan kalau di PHP, kita tidak perlu mendeklarasikan 
+tipe data variabel. Jadi tipe data bisa berubah ubah tergantung pada nilai dari variabelnya.
+
+2. Aturan end syntax:
+Dari yang saya ketahui, di Golang kita tidak wajib menambahkan titik koma 
+setelah setiap perintah kecuali dalam beberapa kasus tertentu. Sedangkan itu di PHP 
+titik koma wajib ada pada setiap akhir perintah. Jadi dalam perbadingan ini Golang lebih 
+fleksibel daripada PHP.
+
+3. Library:
+Di Golang , misalnya kita mau melakukan print kita perlu mengimport library nya terlebihd dahulu.
+Contohnya kita mau menggunakan fmt.Println("Hello World") maka kita harus mengimport library fmt. 
+Sedangkan di PHP kita bisa langsung print menggunakan echo tanpa perlu mengimport library.
+
+4. Kemudahan dalam mempelajari bahasa pemrograman:
+Dari sepengalaman saya, PHP lebih mudah dipelajari bagi pemula, karena syntaxnya lebih simpel dan 
+tidak terlalu banyak aturan yang harus diikuti. Sedangkan di Golang lebih ketat dan perlu pemahaman lebih dalam.
+Tapi mungkin setiap orang berbeda beda, karena ini hanya berdasarkan pengalaman saya menggunakan bahasa pemrograman 
+tersebut.
+
+5. Kecepatan Eksekusi:
+Dari yang saya ketahui, Golang lebih cepat daripada PHP. Golang cocok untuk aplikasi yang membutuhkan performa tinggi, 
+sementara PHP lebih lambat kalau digunakan untuk aplikasi besar. Jadi soal kecepatan eksekusi, Golang lebih baik.
+
+
+
+
+
+
