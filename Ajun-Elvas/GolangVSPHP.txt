@@ -1,0 +1,16 @@
+Golang VS PHP
+dari php dulu yang pernah kupake
+PHP
+1. php lebih mudah, karena perintah perintah dalam php tuh cukup mudah. apalagi bisa make html juga
+2. untuk buat web lumayan mudah, tapi cuma bisa yang sederhana bukan yang berat
+3. kurang bisa menangani banyak pengguna tanpa nambah tools
+4. saat menggunakan varibel, biasanya gk perlu dijelasin tipe datanya
+5. tidak ada fungsi khusus dalam penggunaannya
+
+golang belum pernah make, sejauh pemahamanku ngeyoutube
+GO
+1. golang gk ramah pemula, perlu ada pengalaman dulu atau gak belajar lebih dalam
+2. memori yang dipake kecil, jadi bisa dipake buat beberapa kerjaan
+3. bisa menangani banyak pengguna atau akun
+4. penggunaan variabelnya perlu ditambahkan tipe datanya apa
+5. fungsi khusus contohnya perlu make 'func main'
