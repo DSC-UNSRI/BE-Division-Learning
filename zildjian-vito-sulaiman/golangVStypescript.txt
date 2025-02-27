@@ -10,5 +10,4 @@ GO:
 2. Simplicity, selalu include binary file saat dibuild, dan static typing
 3. Concurrency dan Defer
 4. Garbage Collection easy to understand dan simple (bisa jadi kekurangan jika membuat apps yg tolerance to millisecond contohnya web3 based webs,atau yang menghandle trx di blockchain)
-Fast compile time, functional programming,dan Microservice ecosystem
 5. Mudah untuk di scale secara vertikal dan sangat sangat kencang
