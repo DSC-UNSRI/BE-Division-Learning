@@ -10,7 +10,7 @@ func reverseInt(num int) int {
 
 	// Check if the current num higher than 0 (this will process all the 'individual integer' of each index within num until it reaches 0)
 	// If its not and its in the middle of the 'integer string', it will simply return the 0
-	// If its a consetuive last zeros in the og integer, it'll simply multiply with itself and add itself with another 0, resulting in just one 0 being in rev even if there are multiple 0s in the end of the og integer
+	// If its a consecutive last zeros in the og integer, it'll simply multiply with itself and add itself with another 0, resulting in not a single 0 being in the beginning of the rev integer (unless the input is just consesutive 0s) even if there are multiple 0s in the end of the og integer
 	for num > 0 { 					
 		rev = rev * 10 + num % 10
 		num /= 10
