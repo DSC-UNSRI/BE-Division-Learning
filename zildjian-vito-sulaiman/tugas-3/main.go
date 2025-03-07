@@ -5,4 +5,5 @@ func main() {
 	// B. MainReverseNumber()
 	// C. MainReverseSum()
 	// D. MainFindMissingNumbers()
+	// E. MainSumMultiples()
 }
