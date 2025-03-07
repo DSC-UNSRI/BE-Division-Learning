@@ -1,74 +1,84 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"os"
-	"sort"
-	"strconv"
-	"strings"
 )
 
-// Fungsi untuk mengecek apakah tebakan skor memungkinkan
-func fact(n int, nilai []int) bool {
-	// Jumlah total skor harus kelipatan dari 3
-	jumlahnilai := 0
-	for _, score := range nilai {
-		jumlahnilai += score
-	}
-	if jumlahnilai%3 != 0 {
-		return false
-	}
+type pair struct {
+	first, second int
+}
 
-	// Sort skor dari terbesar ke terkecil
-	sort.Sort(sort.Reverse(sort.IntSlice(nilai)))
-
-	// Cek apakah mungkin mendistribusikan kemenangan secara adil
-	for i := 0; i < n; i++ {
-		if nilai[i] > (n - 1) { // Tim tidak bisa menang lebih dari jumlah lawannya
-			return false
-		}
-
-		// Kurangi kemenangan dari tim-tim berikutnya
-		for j := i + 1; j < i+1+nilai[i] && j < n; j++ {
-			nilai[j]--
-			if nilai[j] < 0 {
+func backtrack(matches [][2]int, current []int, idx int, target []int) bool {
+	if idx == len(matches) {
+		for i := 0; i < len(current); i++ {
+			if current[i] != target[i] {
 				return false
 			}
 		}
+		return true
 	}
 
-	return true
+	i := matches[idx][0]
+	j := matches[idx][1]
+
+	// Tim i menang
+	current[i] += 3
+	if current[i] <= target[i] {
+		if backtrack(matches, current, idx+1, target) {
+			return true
+		}
+	}
+	current[i] -= 3
+
+	// Tim j menang
+	current[j] += 3
+	if current[j] <= target[j] {
+		if backtrack(matches, current, idx+1, target) {
+			return true
+		}
+	}
+	current[j] -= 3
+
+	// Seri
+	current[i]++
+	current[j]++
+	if current[i] <= target[i] && current[j] <= target[j] {
+		if backtrack(matches, current, idx+1, target) {
+			return true
+		}
+	}
+	current[i]--
+	current[j]--
+
+	return false
 }
 
 func main() {
-	reader := bufio.NewReader(os.Stdin)
-	writer := bufio.NewWriter(os.Stdout)
-	defer writer.Flush()
+	var T int
+	fmt.Scan(&T)
 
-	// Baca jumlah tebakan
-	tStr, _ := reader.ReadString('\n')
-	T, _ := strconv.Atoi(strings.TrimSpace(tStr))
+	for testCase := 0; testCase < T; testCase++ {
+		var N int
+		fmt.Scan(&N)
 
-	// Proses tiap tebakan
-	for i := 0; i < T; i++ {
-		line, _ := reader.ReadString('\n')
-		parts := strings.Fields(line)
-
-		// Ambil jumlah tim
-		N, _ := strconv.Atoi(parts[0])
-		nilai := make([]int, N)
-
-		// Ambil skor-skor tim
-		for j := 0; j < N; j++ {
-			nilai[j], _ = strconv.Atoi(parts[j+1])
+		target := make([]int, N)
+		for i := 0; i < N; i++ {
+			fmt.Scan(&target[i])
 		}
 
-		// Cek kemungkinan skor dan print hasilnya
-		if fact(N, nilai) {
-			fmt.Fprintln(writer, "YES")
+		var matches [][2]int
+		for i := 0; i < N; i++ {
+			for j := i + 1; j < N; j++ {
+				matches = append(matches, [2]int{i, j})
+			}
+		}
+
+		current := make([]int, N)
+
+		if backtrack(matches, current, 0, target) {
+			fmt.Println("YES")
 		} else {
-			fmt.Fprintln(writer, "NO")
+			fmt.Println("NO")
 		}
 	}
 }
