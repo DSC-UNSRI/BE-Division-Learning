@@ -6,4 +6,6 @@ func main() {
 	// C. MainReverseSum()
 	// D. MainFindMissingNumbers()
 	// E. MainSumMultiples()
+	// F.
+	MainWorldCupGroup()
 }
