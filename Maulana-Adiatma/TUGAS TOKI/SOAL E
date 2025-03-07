@@ -1,0 +1,24 @@
+package main
+
+import "fmt"
+
+func main() {
+	var T int
+  var N int
+	fmt.Scan(&T)
+
+	for i := 0; i < T; i++ {
+		fmt.Scan(&N)
+
+		var kelipatan4 int = N / 4
+		var hasil4 = 4 * kelipatan4 * (kelipatan4 + 1) / 2
+
+		var kelipatan7 int = N / 7
+		var hasil7 int = 7 * kelipatan7 * (kelipatan7 + 1) / 2
+
+		var kelipatan28 int = N / 28
+		var hasil28 int = 28 * kelipatan28 * (kelipatan28 + 1) / 2
+
+		fmt.Println(hasil4 + hasil7 - hasil28)
+	}
+}
