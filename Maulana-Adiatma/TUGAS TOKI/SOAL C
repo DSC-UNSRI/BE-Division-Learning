@@ -1,0 +1,25 @@
+package main
+
+import "fmt"
+
+func reverse(a int) int {
+	var temp int = a
+	var reversed int = 0
+	for temp > 0 {
+		reversed = (reversed * 10) + (temp % 10)
+		temp = temp / 10
+	}
+	return reversed
+}
+
+func main() {
+	var a int
+	var b int
+	fmt.Scan(&a, &b)
+
+	c := reverse(a)
+	d := reverse(b)
+	e := reverse(c + d)
+
+	fmt.Println(e)
+}
