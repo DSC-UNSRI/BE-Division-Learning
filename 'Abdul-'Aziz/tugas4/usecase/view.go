@@ -12,7 +12,6 @@ type ViewUseCase struct {
 }
 
 func NewViewUseCase(repo repository.UserRepository) *ViewUseCase {
-	
     return &ViewUseCase{repo: repo}
 }
 
@@ -25,26 +24,27 @@ func (uc *ViewUseCase) GetFormattedData() (string, error) {
     if err != nil {
         return "", err
     }
-    
+
     var sb strings.Builder
     sb.WriteString("\n=== DATA PENDAFTARAN IFTAR ===\n")
     sb.WriteString(fmt.Sprintf("Nama: %s\n", user.Name))
+    sb.WriteString(fmt.Sprintf("Email: %s\n", user.Email))
     sb.WriteString(fmt.Sprintf("Kendaraan: %s\n", user.Vehicle))
-    
+
     sb.WriteString("\nPeralatan:\n")
     for i, item := range user.Equipment {
         sb.WriteString(fmt.Sprintf("%d. %s\n", i+1, item))
     }
-    
+
     sb.WriteString("\nRekomendasi:\n")
     for i, rec := range user.Recommendations {
-        sb.WriteString(fmt.Sprintf("%d. %s - %s\n", i+1, rec.Category, rec.Content))
+        sb.WriteString(fmt.Sprintf("%d. [%s] %s\n", i+1, rec.Category, rec.Content))
     }
-    
-    sb.WriteString("\nTeman:\n")
+
+    sb.WriteString("\nDaftar Teman:\n")
     for i, friend := range user.Friends {
-        sb.WriteString(fmt.Sprintf("%d. %s (%s)\n", i+1, friend.Name, friend.Division))
+        sb.WriteString(fmt.Sprintf("%d. %s - %s\n", i+1, friend.Name, friend.Division))
     }
-    
+
     return sb.String(), nil
 }

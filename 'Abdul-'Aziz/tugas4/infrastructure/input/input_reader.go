@@ -24,9 +24,10 @@ func (r *InputReader) ReadInt(min, max int) int {
     for {
         input := r.ReadLine()
         num, err := strconv.Atoi(input)
-        if err == nil && num >= min && num <= max {
-            return num
+        if err != nil || num < min || num > max {
+            fmt.Printf("Input harus angka antara %d-%d: ", min, max)
+            continue
         }
-        fmt.Printf("Input harus angka %d-%d: ", min, max)
+        return num
     }
 }
