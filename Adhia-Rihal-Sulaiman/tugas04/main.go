@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"dashboard/controllers"
-	"dashboard/models"
+	"tugas04/controllers"
+	"tugas04/models"
 )
 
 func createExplanationFile() {
