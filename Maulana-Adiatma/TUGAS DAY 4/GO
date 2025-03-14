@@ -8,6 +8,7 @@ import (
 func main() {
 	var pilihan int
 	var kendaraan1, kendaraan2 string
+	var barang string
 
 	for {
 		fmt.Println("\n--- Dashboard Iftar ---")
@@ -55,6 +56,10 @@ func main() {
 				continue
 			}
 			fmt.Println("Kendaraan yang dipilih:", kendaraan1, "dan", kendaraan2)
+
+		case 2:
+			fmt.Print("Barang apa yang akan kamu bawa: ")
+			fmt.Scanln(&barang)
 
 		case 3:
 			fmt.Println("Thank you dah regist")
