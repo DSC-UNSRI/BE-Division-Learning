@@ -10,28 +10,37 @@ import (
 )
 
 func SelectVehicle(data *models.Data) {
-	fmt.Println("Pilih kendaraan:")
-	fmt.Println("1. Kendaraan Pribadi")
-	fmt.Println("2. Bus Kaleng")
-	fmt.Println("3. Nebeng")
-	fmt.Println("4. Travel")
-	fmt.Print("Masukkan pilihan (1/2/3/4): ")
+	for {
+		fmt.Println("Pilih kendaraan:")
+		fmt.Println("1. Kendaraan Pribadi")
+		fmt.Println("2. Bus Kaleng")
+		fmt.Println("3. Nebeng")
+		fmt.Println("4. Travel")
+		fmt.Print("Masukkan pilihan (1/2/3/4): ")
 
-	var choice int
-	fmt.Scanln(&choice)
+		var choice int
+		_, err := fmt.Scanln(&choice)
 
-	switch choice {
-	case 1:
-		data.VehicleChoice = "Kendaraan Pribadi"
-	case 2:
-		data.VehicleChoice = "Bus Kaleng"
-	case 3:
-		data.VehicleChoice = "Nebeng"
-	case 4:
-		data.VehicleChoice = "Travel"
-	default:
-		fmt.Println("Pilihan tidak valid.")
+		if err != nil {
+			fmt.Println("Input tidak valid! Masukkan angka 1-4.")
+			continue
+		}
+		switch choice {
+		case 1:
+			data.VehicleChoice = "Kendaraan Pribadi"
+		case 2:
+			data.VehicleChoice = "Bus Kaleng"
+		case 3:
+			data.VehicleChoice = "Nebeng"
+		case 4:
+			data.VehicleChoice = "Travel"
+		default:
+			fmt.Println("Pilihan tidak valid! Silakan pilih kembali.")
+			continue
+		}
+		break
 	}
+	fmt.Println("Kendaraan yang dipilih:", data.VehicleChoice)
 }
 func AddItem(data *models.Data) {
 	scanner := bufio.NewScanner(os.Stdin)
