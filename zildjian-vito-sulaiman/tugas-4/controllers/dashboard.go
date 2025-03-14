@@ -53,11 +53,11 @@ func StartDashboard(user models.User) {
 
 		case 4:
 
-			fmt.Println("Enter friend's name: ")
+			fmt.Println("Masukkan nama teman: ")
 			scanner.Scan()
 			friendName := scanner.Text()
 
-			fmt.Println("Enter friend's division: ")
+			fmt.Println("Masukkan divisi teman: ")
 			scanner.Scan()
 			friendDivision := scanner.Text()
 
