@@ -44,19 +44,20 @@ func ManageTransportation(dash *models.Dashboard) {
 		fmt.Println("1. Kendaraan Pribadi")
 		fmt.Println("2. Bus Keliling")
 		fmt.Println("3. Nebeng")
-		fmt.Println("4. Kembali ke Menu Utama")
+		fmt.Println("4. Travel")
+		fmt.Println("5. Kembali ke Menu Utama")
 		
 		var choice int
-		fmt.Print("Pilih opsi (1-4): ")
+		fmt.Print("Pilih opsi (1-5): ")
 		_, err := fmt.Scanln(&choice)
-		if err != nil || choice < 1 || choice > 4 {
+		if err != nil || choice < 1 || choice > 5 {
 			fmt.Println("Input tidak valid, coba lagi.")
 			var discard string
 			fmt.Scanln(&discard)
 			continue
 		}
 		
-		if choice == 4 {
+		if choice == 5 {
 			break
 		}
 		
