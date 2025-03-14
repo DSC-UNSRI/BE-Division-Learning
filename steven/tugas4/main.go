@@ -1,17 +1,24 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+	"tugas4/controller/authController"
+)
 
 func main() {
-	var email string;
-	var password string;
+	fmt.Println("=== WELCOME TO IFTAR GDGoC ===")
+	fmt.Println("1. Login")
+	fmt.Println("2. EXIT")
 
-	fmt.Println("Login Dashboard Iftar GDGoC")
-	fmt.Print("EMAIL: ")
-	fmt.Scan(&email)
-	fmt.Print("PASSWORD: ")
-	fmt.Scan(&password)
+	var pilihan int;
+	fmt.Scan(&pilihan)
 
-	fmt.Println(email)
-	fmt.Println(password)
+	switch pilihan {
+	case 1:
+		authController.Auth()
+	case 2:
+		fmt.Println("Keluar dari program...")
+		os.Exit(0)
+	}
 }
