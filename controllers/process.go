@@ -35,7 +35,7 @@ func SelectVehicle(data *models.Data) {
 		case 4:
 			data.VehicleChoice = "Travel"
 		default:
-			fmt.Println("Pilihan tidak valid! Silakan pilih kembali.")
+			fmt.Println("Pilihan tidak valid Silakan pilih kembali.")
 			continue
 		}
 		break
