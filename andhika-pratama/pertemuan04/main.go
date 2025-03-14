@@ -6,7 +6,6 @@ import (
     "os"
     "strings"
     "pertemuan04/controllers"
-    "pertemuan04/models"
     "github.com/joho/godotenv"
 )
 
