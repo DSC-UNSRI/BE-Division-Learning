@@ -13,7 +13,8 @@ func main() {
 		fmt.Println("\n--- Dashboard Iftar ---")
 		fmt.Println("1. Pilih Kendaraan")
 		fmt.Println("2. Tambah Barang Bawaan")
-		fmt.Println("3. Keluar")
+		fmt.Println("3. Lihat Semua Datamu ")
+		fmt.Println("4. Keluar")
 		fmt.Print("Silahkan Input: ")
 		fmt.Scanln(&pilihan)
 
@@ -54,13 +55,17 @@ func main() {
 				fmt.Println("tidak valid")
 				continue
 			}
-			fmt.Println("Kendaraan yang dipilih:", kendaraan1, "dan", kendaraan2)
 
 		case 2:
-			fmt.Print("Barang apa yang akan kamu bawa: ")
+			fmt.Println("Barang apa yang akan kamu bawa: ")
 			fmt.Scanln(&barang)
-
+		
 		case 3:
+			fmt.Println("\n--- Data yang Sudah Diinput ---")
+			fmt.Println("Kendaraan:", kendaraan1, "dan", kendaraan2)
+			fmt.Println("Barang yang dibawa:", barang)
+
+		case 4:
 			fmt.Println("Thank you dah regist")
 			return
 			
