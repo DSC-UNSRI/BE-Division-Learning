@@ -14,7 +14,8 @@ func SelectVehicle(data *models.Data) {
 	fmt.Println("1. Kendaraan Pribadi")
 	fmt.Println("2. Bus Kaleng")
 	fmt.Println("3. Nebeng")
-	fmt.Print("Masukkan pilihan (1/2/3): ")
+	fmt.Println("4. Travel")
+	fmt.Print("Masukkan pilihan (1/2/3/4): ")
 
 	var choice int
 	fmt.Scanln(&choice)
@@ -26,6 +27,8 @@ func SelectVehicle(data *models.Data) {
 		data.VehicleChoice = "Bus Kaleng"
 	case 3:
 		data.VehicleChoice = "Nebeng"
+	case 4:
+		data.VehicleChoice = "Travel"
 	default:
 		fmt.Println("Pilihan tidak valid.")
 	}
@@ -74,7 +77,7 @@ func AddFriend(data *models.Data) {
 }
 
 func ShowData(data models.Data) {
-	fmt.Println("\n===== DATA PENGGUNA =====")
+	fmt.Println("\nDATA PENGGUNA")
 	fmt.Println("Kendaraan yang dipilih:", data.VehicleChoice)
 	fmt.Println("\nBarang yang dibawa:")
 	for _, item := range data.Items {
