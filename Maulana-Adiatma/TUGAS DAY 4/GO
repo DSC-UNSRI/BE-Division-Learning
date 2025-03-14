@@ -7,17 +7,61 @@ import (
 
 func main() {
 	var pilihan int
-	var kendaraan string
+	var kendaraan1, kendaraan2 string
 
 	for {
 		fmt.Println("\n--- Dashboard Iftar ---")
 		fmt.Println("1. Pilih Kendaraan")
 		fmt.Println("2. Tambah Barang Bawaan")
 		fmt.Println("3. Keluar")
-		fmt.Print("Pilih bang: ")
+		fmt.Print("Silahkan Input: ")
 		fmt.Scanln(&pilihan)
 
 		switch pilihan {
+		case 1:
+			fmt.Println("Pilih Kendaraan (pilih dua):")
+			fmt.Println("1. Kendaraan Pribadi")
+			fmt.Println("2. Bus Kaleng")
+			fmt.Println("3. Nebeng")
+			fmt.Println("4. Travel")
+
+			fmt.Print("Masukkan pilihan pertama: ")
+			fmt.Scanln(&pilihan)
+			if pilihan == 1 {
+				kendaraan1 = "Kendaraan Pribadi"
+			} else if pilihan == 2 {
+				kendaraan1 = "Bus Kaleng"
+			} else if pilihan == 3 {
+				kendaraan1 = "Nebeng"
+			} else if pilihan == 4 {
+				kendaraan1 = "Travel"
+			} else {
+				fmt.Println("tidak valid")
+				continue
+			}
+
+			fmt.Print("Masukkan pilihan kedua: ")
+			fmt.Scanln(&pilihan)
+			if pilihan == 1 {
+				kendaraan2 = "Kendaraan Pribadi"
+			} else if pilihan == 2 {
+				kendaraan2 = "Bus Kaleng"
+			} else if pilihan == 3 {
+				kendaraan2 = "Nebeng"
+			} else if pilihan == 4 {
+				kendaraan2 = "Travel"
+			} else {
+				fmt.Println("tidak valid")
+				continue
+			}
+			fmt.Println("Kendaraan yang dipilih:", kendaraan1, "dan", kendaraan2)
+
+		case 3:
+			fmt.Println("Thank you dah regist")
+			return
+			
+		default:
+			fmt.Println("inputan mu salah")
 		}
 	}
 }
