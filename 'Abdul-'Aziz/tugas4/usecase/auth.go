@@ -5,10 +5,10 @@ import (
 )
 
 type AuthUseCase struct {
-    repo repository.UserRepository
+    repo repository.InMemoryUserRepo
 }
 
-func NewAuthUseCase(repo repository.UserRepository) *AuthUseCase {
+func NewAuthUseCase(repo repository.InMemoryUserRepo) *AuthUseCase {
     return &AuthUseCase{repo: repo}
 }
 

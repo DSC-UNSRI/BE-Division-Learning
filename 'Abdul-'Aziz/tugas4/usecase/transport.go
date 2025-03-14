@@ -5,10 +5,10 @@ import (
 )
 
 type TransportUseCase struct {
-    repo repository.UserRepository
+    repo repository.InMemoryUserRepo
 }
 
-func NewTransportUseCase(repo repository.UserRepository) *TransportUseCase {
+func NewTransportUseCase(repo repository.InMemoryUserRepo) *TransportUseCase {
     return &TransportUseCase{repo: repo}
 }
 

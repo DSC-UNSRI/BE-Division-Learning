@@ -8,10 +8,11 @@ import (
 )
 
 type RecommendationUseCase struct {
-    repo repository.UserRepository
+    repo repository.InMemoryUserRepo
 }
 
-func NewRecommendationUseCase(repo repository.UserRepository) *RecommendationUseCase {
+func NewRecommendationUseCase(repo repository.InMemoryUserRepo) *RecommendationUseCase {
+
     return &RecommendationUseCase{repo: repo}
 }
 

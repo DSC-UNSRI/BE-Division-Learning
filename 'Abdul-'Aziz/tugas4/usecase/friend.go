@@ -8,10 +8,10 @@ import (
 )
 
 type FriendUseCase struct {
-    repo repository.UserRepository
+    repo repository.InMemoryUserRepo
 }
 
-func NewFriendUseCase(repo repository.UserRepository) *FriendUseCase {
+func NewFriendUseCase(repo repository.InMemoryUserRepo) *FriendUseCase {
     return &FriendUseCase{repo: repo}
 }
 
