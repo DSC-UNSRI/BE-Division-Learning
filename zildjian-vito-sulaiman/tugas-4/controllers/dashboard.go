@@ -29,7 +29,7 @@ func StartDashboard(user models.User) {
 
 		switch choice {
 		case 1:
-			fmt.Println("Pilih kendaraan (Kendaraan Pribadi, Bus Kaleng, Nebeng): ")
+			fmt.Println("Pilih kendaraan (Private, Public, Carpool, Travel): ")
 			scanner.Scan()
 			dashboard.VehicleChoice = scanner.Text()
 
