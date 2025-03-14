@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"fmt"
 	"tugas/tugas4/repository"
 )
 
@@ -13,6 +14,17 @@ func NewTransportUseCase(repo repository.InMemoryUserRepo) *TransportUseCase {
 }
 
 func (uc *TransportUseCase) UpdateVehicle(vehicle string) error {
+    validVehicles := map[string]bool{
+        "Kendaraan Pribadi": true,
+        "Bus Kaleng":        true,
+        "Nebeng":            true,
+        "Travel":            true,
+    }
+    
+    if !validVehicles[vehicle] {
+        return fmt.Errorf("kendaraan tidak valid: %s", vehicle)
+    }
+    
     user, err := uc.repo.GetUser()
     if err != nil {
         return err

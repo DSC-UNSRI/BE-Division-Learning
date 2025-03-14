@@ -10,43 +10,45 @@ import (
 )
 
 func main() {
-	envLoader := env.NewEnvLoader()
-	if err := envLoader.Load(); err != nil {
-		fmt.Println("Gagal memuat environment:", err)
-		return
-	}
+    envLoader := env.NewEnvLoader()
+    if err := envLoader.Load(); err != nil {
+        fmt.Println("Gagal memuat environment:", err)
+        return
+    }
 
-	inputReader := input.NewInputReader()
-	userRepo := repository.NewInMemoryUserRepo(envLoader)
+    inputReader := input.NewInputReader()
+    
+    // Inisialisasi repository
+    userRepo := repository.NewInMemoryUserRepo(envLoader)
+    
+    // Inisialisasi use case dengan interface
+    authUC := usecase.NewAuthUseCase(userRepo)
+    transportUC := usecase.NewTransportUseCase(userRepo)
+    equipmentUC := usecase.NewEquipmentUseCase(userRepo)
+    recommendationUC := usecase.NewRecommendationUseCase(userRepo)
+    friendUC := usecase.NewFriendUseCase(userRepo)
+    viewUC := usecase.NewViewUseCase(userRepo)
 
-	// Initialize all use cases
-	authUC := usecase.NewAuthUseCase(userRepo)
-	transportUC := usecase.NewTransportUseCase(userRepo)
-	equipmentUC := usecase.NewEquipmentUseCase(userRepo)
-	recommendationUC := usecase.NewRecommendationUseCase(userRepo)
-	friendUC := usecase.NewFriendUseCase(userRepo)
-	viewUC := usecase.NewViewUseCase(userRepo)
+    menuController := controller.NewMenuController(
+        authUC,
+        transportUC,
+        equipmentUC,
+        recommendationUC,
+        friendUC,
+        viewUC,
+        *inputReader,
+    )
 
-	menuController := controller.NewMenuController(
-		authUC,
-		transportUC,
-		equipmentUC,
-		recommendationUC,
-		friendUC,
-		viewUC,
-		inputReader,
-	)
+    // Autentikasi
+    fmt.Print("Email: ")
+    email := inputReader.ReadLine()
+    fmt.Print("Password: ")
+    password := inputReader.ReadLine()
 
-	// Authentication flow
-	fmt.Print("Email: ")
-	email := inputReader.ReadLine()
-	fmt.Print("Password: ")
-	password := inputReader.ReadLine()
+    if ok, _ := authUC.Authenticate(email, password); !ok {
+        fmt.Println("Autentikasi gagal")
+        return
+    }
 
-	if ok, _ := authUC.Authenticate(email, password); !ok {
-		fmt.Println("Autentikasi gagal")
-		return
-	}
-
-	menuController.ShowMainMenu()
+    menuController.ShowMainMenu()
 }

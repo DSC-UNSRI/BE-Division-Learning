@@ -7,10 +7,10 @@ import (
 )
 
 type EquipmentUseCase struct {
-    repo repository.InMemoryUserRepo
+    repo repository.UserRepository
 }
 
-func NewEquipmentUseCase(repo repository.InMemoryUserRepo) *EquipmentUseCase {
+func NewEquipmentUseCase(repo repository.UserRepository) *EquipmentUseCase {
     return &EquipmentUseCase{repo: repo}
 }
 

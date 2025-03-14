@@ -2,10 +2,14 @@ package repository
 
 import (
 	"errors"
-
 	"tugas/tugas4/infrastructure/env"
 	"tugas/tugas4/models"
 )
+
+type UserRepository interface {
+    GetUser() (*models.User, error)
+    SaveUser(user *models.User) error
+}
 
 type InMemoryUserRepo struct {
     user *models.User
@@ -14,12 +18,13 @@ type InMemoryUserRepo struct {
 func NewInMemoryUserRepo(env *env.EnvLoader) *InMemoryUserRepo {
     return &InMemoryUserRepo{
         user: &models.User{
-            Name:         env.Get("NAMA"),
-            Email:        env.Get("EMAIL"),
-            Password:     env.Get("PASSWORD"),
-            Equipment:    []string{},
+            Name:            env.Get("NAMA"),
+            Email:           env.Get("EMAIL"),
+            Password:        env.Get("PASSWORD"),
+            Vehicle:         "",
+            Equipment:       []string{},
             Recommendations: []models.Recommendation{},
-            Friends:      []models.Friend{},
+            Friends:         []models.Friend{},
         },
     }
 }
