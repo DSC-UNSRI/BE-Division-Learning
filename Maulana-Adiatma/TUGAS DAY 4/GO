@@ -1,7 +1,23 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/joho/godotenv"
+)
 
 func main() {
-	fmt.Println("Tes")
+	var pilihan int
+	var kendaraan string
+
+	for {
+		fmt.Println("\n--- Dashboard Iftar ---")
+		fmt.Println("1. Pilih Kendaraan")
+		fmt.Println("2. Tambah Barang Bawaan")
+		fmt.Println("3. Keluar")
+		fmt.Print("Pilih bang: ")
+		fmt.Scanln(&pilihan)
+
+		switch pilihan {
+		}
+	}
 }
