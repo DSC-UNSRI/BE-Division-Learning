@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"dashboard/models"
+	"tugas04/models"
 )
 
 func DisplayMenu() int {
@@ -70,8 +70,8 @@ func ManageTransportation(dash *models.Dashboard) {
 			transType = "Travel"
 		}
 		
-		if len(dash.Transportation) >= 2 {
-			fmt.Println("Anda sudah memilih 2 kendaraan. Hapus salah satu untuk menambah yang baru.")
+		if len(dash.Transportation) >= 1 {
+			fmt.Println("Anda sudah memilih 1 kendaraan. Hapus salah satu untuk menambah yang baru.")
 			fmt.Println("Kendaraan saat ini:")
 			for i, t := range dash.Transportation {
 				fmt.Printf("%d. %s\n", i+1, t.Type)
