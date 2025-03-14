@@ -6,8 +6,3 @@ type Dashboard struct {
 	Recommendations map[string]string
 	Friends         []Friend
 }
-
-type Friend struct {
-	Name     string
-	Division string
-}

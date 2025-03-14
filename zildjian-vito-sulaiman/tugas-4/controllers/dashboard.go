@@ -19,7 +19,7 @@ func StartDashboard(user models.User) {
 		fmt.Println("\n1. Pilih Kendaraan")
 		fmt.Println("2. Tambahkan barang")
 		fmt.Println("3. Tambahkan Rekomendasi")
-		fmt.Println("4. Tambah teman yang ikut iftar")
+		fmt.Println("4. Kelola Teman")
 		fmt.Println("5. Lihat data")
 		fmt.Println("6. Exit")
 		fmt.Print("Pilih Opsi: ")
@@ -53,19 +53,7 @@ func StartDashboard(user models.User) {
 
 		case 4:
 
-			fmt.Println("Masukkan nama teman: ")
-			scanner.Scan()
-			friendName := scanner.Text()
-
-			fmt.Println("Masukkan divisi teman: ")
-			scanner.Scan()
-			friendDivision := scanner.Text()
-
-			newFriend := models.Friend{
-				Name:     friendName,
-				Division: friendDivision,
-			}
-			dashboard.Friends = append(dashboard.Friends, newFriend)
+			ManageFriends(&dashboard, scanner)
 
 		case 5:
 			fmt.Println("\n--- Dashboard Data ---")
