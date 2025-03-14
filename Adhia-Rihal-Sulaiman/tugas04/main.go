@@ -1,10 +1,8 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"os"
-	"strings"
 
 	"tugas04/controllers"
 	"tugas04/models"
