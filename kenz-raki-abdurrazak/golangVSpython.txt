@@ -1,0 +1,5 @@
+1. Sepenangkapan saya Python merupakan bahasa yang bertitik berat di orientasi objek sementara golang adalah bahasa yang tidak terlalu bertitik berat di orientasi objek.
+2. Golang lebih cepat untuk di jalankan karena python memanggil library terlebih dahulu sehingga python lebih lama dibandingkan dengan bahasa golang
+3. Python memerlukan lebih sedikit baris kode dikarenakan menggunakan library library yang ada sementara golang memerlukan baris yang dapat dibilang lebih panjang
+4. Python lebih baik jika ingin digunakan untuk keperluan machine learning sejenisnya, sementara golang enak digunakan untuk programming sistem, web programming dan sejenisnya
+5. Bahasa Golang tidak mendukung pewarisan kelas atau inheritance seperti di bahasa OOP lain sementara python mendukung pewarisan kelas alias inheritance
