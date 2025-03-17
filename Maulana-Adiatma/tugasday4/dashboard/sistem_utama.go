@@ -2,6 +2,7 @@ package dashboard
 
 import (
 	"fmt"
+	"tugasday4/dashboard/function"
 )
 
 func MenuDashboard() {
@@ -17,5 +18,15 @@ func MenuDashboard() {
 
 		var pilihan int
 		fmt.Scan(&pilihan)
+
+		switch pilihan {
+		case 1:
+			dashboard.Pilihkendaraan()
+		case 6:
+			fmt.Println("Keluar dari dashboard...")
+			return
+		default:
+			fmt.Println("Pilihan mu tidak sesuai silahkan input 1 - 6")
+		}
 	}
 }
