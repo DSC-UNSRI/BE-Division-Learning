@@ -2,8 +2,13 @@ package main
 
 import(
 	"fmt"
+	"tugasday4/autentikasi"
 )
 
 func main(){
-	fmt.Println("hello world")
+	if autentikasi.Login() {
+		dashboard.MenuDashboard()
+	} else {
+		fmt.Println("Gagal login. Program berhenti.")
+	}
 }
