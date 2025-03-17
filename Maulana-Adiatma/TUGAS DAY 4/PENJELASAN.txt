@@ -1,7 +1,0 @@
-Didalam Program Sederhana ini ada 4 Fitur
-1. Fitur menambahkan kendaraan yang harus diisi 2 kendaraan 
-2. Fitur menambahkan barang bawaan yang dimana bisa diinput berkali kali 
-3. Fitur untuk melihat semua data dari kedua fitur yang udah diinput sebelumnya
-4. Fitur exit misal kita input akan menyelesaikan program
-
-Program itu akan berulang-ulang sampai kita input itu angka 4
