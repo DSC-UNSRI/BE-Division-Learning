@@ -28,6 +28,8 @@ func MenuDashboard() {
 			dashboard.Menambahrekomendasi()
 		case 4:
 			dashboard.Menambahteman()
+		case 5:
+			dashboard.LihatData()
 		case 6:
 			fmt.Println("Keluar dari dashboard...")
 			return
