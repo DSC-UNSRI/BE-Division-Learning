@@ -13,15 +13,13 @@ func Login() bool {
 		return false
 	}
 
-	var userName, email, password string
-	fmt.Print("Masukkan username: ")
-	fmt.Scan(&userName)
+	var email, password string
 	fmt.Print("Masukkan email: ")
 	fmt.Scan(&email)
 	fmt.Print("Masukkan password: ")
 	fmt.Scan(&password)
 
-	if email == os.Getenv("EMAIL") && password == os.Getenv("PASSWORD") {
+	if  email == os.Getenv("EMAIL") && password == os.Getenv("PASSWORD") {
 		fmt.Println("Login berhasil!")
 		return true
 	} else {
