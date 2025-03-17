@@ -24,6 +24,8 @@ func MenuDashboard() {
 			dashboard.Pilihkendaraan()
 		case 2:
 			dashboard.Menambahbarang()
+		case 3:
+			dashboard.Menambahrekomendasi()
 		case 6:
 			fmt.Println("Keluar dari dashboard...")
 			return
