@@ -1,7 +1,6 @@
 package models
 
 import (
-	"backend-iftar-gdgoc/data"
 	"fmt"
 )
 
@@ -20,7 +19,6 @@ func CRUDBarang(barang *[]Barang) {
 		}
 
 		*barang = append(*barang, Barang{Nama: input})
-		data.CatatLog("Barang ditambahkan: " + input)
 		fmt.Println("Barang ditambahkan:", input)
 	}
 }
