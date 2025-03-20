@@ -1,7 +1,6 @@
 package models
 
 import (
-	"backend-iftar-gdgoc/data"
 	"fmt"
 )
 
@@ -20,6 +19,5 @@ func CRUDTeman(teman *[]Teman) {
 	fmt.Scanln(&divisi)
 
 	*teman = append(*teman, Teman{Nama: nama, Divisi: divisi})
-	data.CatatLog("Teman ditambahkan: " + nama + " - " + divisi)
 	fmt.Println("Teman ditambahkan:", nama, "-", divisi)
 }
