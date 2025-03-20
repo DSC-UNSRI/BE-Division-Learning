@@ -13,7 +13,7 @@ func main() {
 		log.Fatal("Gagal memuat konfigurasi")
 	}
 
-	if !controllers.CekAutentikasi() {
+	if !controllers.AuthenticateUser() {
 		fmt.Println("Autentikasi gagal. Cek kembali email dan password.")
 		return
 	}
