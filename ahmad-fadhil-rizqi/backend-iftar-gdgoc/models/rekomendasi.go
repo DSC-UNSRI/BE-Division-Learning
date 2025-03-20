@@ -1,7 +1,6 @@
 package models
 
 import (
-	"backend-iftar-gdgoc/data"
 	"fmt"
 )
 
@@ -20,6 +19,5 @@ func CRUDRekomendasi(rekomendasi *[]Rekomendasi) {
 	fmt.Scanln(&isi)
 
 	*rekomendasi = append(*rekomendasi, Rekomendasi{Kategori: kategori, Isi: isi})
-	data.CatatLog("Rekomendasi ditambahkan: " + kategori + " - " + isi)
 	fmt.Println("Rekomendasi ditambahkan:", kategori, "-", isi)
 }
