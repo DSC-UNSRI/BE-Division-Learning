@@ -1,6 +1,0 @@
-2025-03-14 17:00:24 - Kendaraan dipilih: Bus Kaleng
-2025-03-14 17:00:30 - Barang ditambahkan: Botol_Minum
-2025-03-14 17:00:48 - Rekomendasi ditambahkan: Film - Marvel
-2025-03-14 17:01:33 - Teman ditambahkan: Edo-Wicaksono - UI/UX
-2025-03-14 17:01:40 - User melihat semua data
-2025-03-14 17:01:58 - User keluar dari sistem
