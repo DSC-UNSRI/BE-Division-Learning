@@ -1,15 +1,21 @@
 package config
 
 import (
+	"log"
 	"os"
 
 	"github.com/joho/godotenv"
 )
 
 func LoadEnv() error {
-	return godotenv.Load()
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("⚠️  Warning: Gagal memuat file .env. Pastikan file tersebut ada di root direktori.")
+		return err
+	}
+	return nil
 }
 
-func AmbilVariabel(kunci string) string {
-	return os.Getenv(kunci)
+func AmbilVariabel(key string) string {
+	return os.Getenv(key)
 }
