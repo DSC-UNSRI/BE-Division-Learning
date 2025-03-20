@@ -33,7 +33,12 @@ func Dashboard(dashboard *models.Dashboard) {
 	switch opsi {
 	case 1: 
 		PilihKendaraan(dashboard)
-
+	case 2: 
+		BarangController(dashboard)
+	case 3:
+		RekomendasiController(dashboard)
+	case 4 :
+		TemanController(dashboard)
 	case 5:
 		fmt.Println("===== Data Dashboard =====")
 		fmt.Println("Kendaraan:", dashboard.Kendaraan)
