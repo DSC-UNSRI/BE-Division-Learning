@@ -34,7 +34,6 @@ func SelectVehicle(vehicle *[]Vehicle) {
 		return
 	}
 
-	// Hanya boleh memilih satu kendaraan (overwrite data lama)
 	*vehicle = []Vehicle{{Name: selectedVehicle}}
 	fmt.Println("Vehicle successfully selected:", selectedVehicle)
 }
