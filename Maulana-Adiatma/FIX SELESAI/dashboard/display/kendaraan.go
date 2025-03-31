@@ -11,9 +11,9 @@ func TampilkanKendaraan() {
 
 		
 		if selected == "" {
-			fmt.Println("kamu belum memilih kendaraan! Silakan pilih kendaraan:")
+			fmt.Println("\nkamu belum memilih kendaraan! Silakan pilih kendaraan:")
 		} else {
-			fmt.Println("kamu sudah memilih:", selected)
+			fmt.Println("\nkamu sudah memilih:", selected)
 			fmt.Print("kamu ingin memperbarui kendaraan? (y/n): ")
 
 			var updateChoice string
@@ -25,7 +25,7 @@ func TampilkanKendaraan() {
 			}
 		}
 
-		fmt.Println("Pilih kendaraan untuk pergi ke iftar:")
+		fmt.Println("\nPilih kendaraan untuk pergi ke iftar:")
 		fmt.Println("1. Kendaraan Pribadi")
 		fmt.Println("2. Bus Kaleng")
 		fmt.Println("3. Nebeng")
