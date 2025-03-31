@@ -55,7 +55,7 @@ func HapusBarang() {
 
 func ViewBarang() {
 	if len(daftarBarang) == 0 {
-		fmt.Println("\nKamu belum input barang.")
+		fmt.Println("Kamu belum input barang.")
 		return
 	}
 
