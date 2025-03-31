@@ -7,12 +7,6 @@ import (
 )
 
 func LihatSemuaData() {
-	selected := controllers.GetKendaraan()
-
 	fmt.Println("\n===== Data Kendaraan =====")
-	if selected == "" {
-		fmt.Println("Kendaraan kamu belum dipilih.")
-	} else {
-		fmt.Println("Kendaraan yang kamu pilih adalah:", selected)
-	}
+	controllers.PrintKendaraan()
 }
