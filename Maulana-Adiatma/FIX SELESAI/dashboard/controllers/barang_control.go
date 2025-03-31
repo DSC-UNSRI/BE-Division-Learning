@@ -13,7 +13,7 @@ var historyBarang []string
 func InputBarang() {
 	scanner := bufio.NewScanner(os.Stdin)
 
-	fmt.Println("Masukkan barang yang akan dibawa (ketik 'selesai' untuk mengakhiri):")
+	fmt.Println("\nMasukkan barang yang akan dibawa (ketik 'selesai' untuk mengakhiri):")
 
 	for {
 		fmt.Print("- ")
@@ -32,7 +32,7 @@ func InputBarang() {
 }
 
 func HapusBarang() {
-	fmt.Print("Masukkan nama barang yang ingin dihapus: ")
+	fmt.Print("\nMasukkan nama barang yang ingin dihapus: ")
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
 	item := scanner.Text()
@@ -47,19 +47,19 @@ func HapusBarang() {
 
 	if index != -1 {
 		daftarBarang = append(daftarBarang[:index], daftarBarang[index+1:]...)
-		fmt.Println("Barang berhasil dihapus!")
+		fmt.Println("\nBarang berhasil dihapus!")
 	} else {
-		fmt.Println("Barang tidak ditemukan.")
+		fmt.Println("\nBarang tidak ditemukan.")
 	}
 }
 
 func ViewBarang() {
 	if len(daftarBarang) == 0 {
-		fmt.Println("Kamu belum input barang.")
+		fmt.Println("\nKamu belum input barang.")
 		return
 	}
 
-	fmt.Println("Daftar barang untuk iftar:")
+	fmt.Println("\nDaftar barang untuk iftar:")
 	for i, item := range daftarBarang {
 		fmt.Printf("%d. %s\n", i+1, item)
 	}
