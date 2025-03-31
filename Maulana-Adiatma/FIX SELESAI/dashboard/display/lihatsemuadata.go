@@ -9,4 +9,7 @@ import (
 func LihatSemuaData() {
 	fmt.Println("\n===== Data Kendaraan =====")
 	controllers.PrintKendaraan()
+
+	fmt.Println("\n====== Data Barang =======")
+	controllers.ViewBarang()
 }
