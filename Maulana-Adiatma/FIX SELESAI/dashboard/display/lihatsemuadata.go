@@ -7,9 +7,12 @@ import (
 )
 
 func LihatSemuaData() {
-	fmt.Println("\n===== Data Kendaraan =====")
+	fmt.Println("\n========= Data Kendaraan ========")
 	controllers.PrintKendaraan()
 
-	fmt.Println("\n====== Data Barang =======")
+	fmt.Println("\n========= Data Barang ===========")
 	controllers.ViewBarang()
+
+	fmt.Println("\n======= Data Rekomendasi ========")
+	controllers.LihatRekomendasi(daftarRekomendasi)
 }
