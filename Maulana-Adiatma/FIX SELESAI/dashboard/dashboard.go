@@ -18,6 +18,7 @@ func Dashboard() {
 
 		var menu int
 		fmt.Scan(&menu)
+		fmt.Scanln() 
 
 		switch menu {
 		case 1:
