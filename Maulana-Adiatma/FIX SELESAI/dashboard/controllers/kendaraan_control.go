@@ -1,5 +1,7 @@
 package controllers
 
+import "fmt"
+
 var kendaraanTerpilih string
 
 func Kendaraan(pilihan int) {
@@ -17,7 +19,15 @@ func Kendaraan(pilihan int) {
 	}
 }
 
-
 func GetKendaraan() string {
 	return kendaraanTerpilih
+}
+
+func PrintKendaraan() {
+	selected := GetKendaraan()
+	if selected == "" {
+		fmt.Println("Kendaraan belum dipilih.")
+	} else {
+		fmt.Println("Kendaraan yang kamu pilih adalah:", selected)
+	}
 }
