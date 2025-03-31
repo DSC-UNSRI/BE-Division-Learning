@@ -22,7 +22,7 @@ func Dashboard() {
 		case 1:
 			display.TampilkanKendaraan()
 		case 2:
-
+			display.TampilkanBarang()
 		case 3:
 			display.LihatSemuaData()
 		case 4:
