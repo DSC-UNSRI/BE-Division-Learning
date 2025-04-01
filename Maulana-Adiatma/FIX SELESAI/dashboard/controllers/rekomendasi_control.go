@@ -8,9 +8,9 @@ import (
 
 func TambahRekomendasi(daftarRekomendasi *[]models.Rekomendasi) {
 	var kategori, isi string
-	fmt.Print("Masukkan kategori: ")
+	fmt.Print("Masukkan kategori (hanya satu kata): ")
 	fmt.Scan(&kategori)
-	fmt.Print("Masukkan isi rekomendasi: ")
+	fmt.Print("Masukkan isi rekomendasi (hanya satu kata): ")
 	fmt.Scan(&isi)
 
 	*daftarRekomendasi = append(*daftarRekomendasi, models.Rekomendasi{Kategori: kategori, Isi: isi})
@@ -33,12 +33,14 @@ func HapusRekomendasi(daftarRekomendasi *[]models.Rekomendasi) {
 }
 
 func PerbaruiRekomendasi(daftarRekomendasi *[]models.Rekomendasi) {
-	var isiLama, kategoriBaru, isiBaru string
-	fmt.Print("Masukkan isi rekomendasi yang ingin diperbarui: ")
+	var kategoriLama, isiLama, kategoriBaru, isiBaru string
+	fmt.Print("Masukkan kategori : ")
+	fmt.Scan(&kategoriLama)
+	fmt.Print("Masukkan isi : ")
 	fmt.Scan(&isiLama)
 
 	for i, r := range *daftarRekomendasi {
-		if r.Isi == isiLama {
+		if r.Isi == isiLama && r.Kategori == kategoriLama {
 			fmt.Println("Rekomendasi ditemukan:", r.Kategori, "-", r.Isi)
 			fmt.Print("Masukkan kategori baru: ")
 			fmt.Scan(&kategoriBaru)
@@ -53,9 +55,9 @@ func PerbaruiRekomendasi(daftarRekomendasi *[]models.Rekomendasi) {
 	fmt.Println("Rekomendasi tidak ditemukan.")
 }
 
-func LihatRekomendasi(daftarRekomendasi []models.Rekomendasi) {
+func ViewRekomendasi(daftarRekomendasi []models.Rekomendasi) {
 	if len(daftarRekomendasi) == 0 {
-		fmt.Println("Belum ada rekomendasi.")
+		fmt.Println("Kamu belum input rekomendasi.")
 		return
 	}
 
