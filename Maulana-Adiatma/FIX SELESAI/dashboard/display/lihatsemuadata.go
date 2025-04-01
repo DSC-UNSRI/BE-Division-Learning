@@ -8,11 +8,11 @@ import (
 
 func LihatSemuaData() {
 	fmt.Println("\n========= Data Kendaraan ========")
-	controllers.PrintKendaraan()
+	controllers.ViewKendaraan()
 
 	fmt.Println("\n========= Data Barang ===========")
 	controllers.ViewBarang()
 
 	fmt.Println("\n======= Data Rekomendasi ========")
-	controllers.LihatRekomendasi(daftarRekomendasi)
+	controllers.ViewRekomendasi(daftarRekomendasi)
 }
