@@ -25,16 +25,16 @@ func TampilkanRekomendasi() {
 		case 1:
 			controllers.TambahRekomendasi(&daftarRekomendasi)
 		case 2:
-			controllers.LihatRekomendasi(daftarRekomendasi)
+			controllers.ViewRekomendasi(daftarRekomendasi)
 			controllers.HapusRekomendasi(&daftarRekomendasi)
 		case 3:
-			controllers.LihatRekomendasi(daftarRekomendasi)
+			controllers.ViewRekomendasi(daftarRekomendasi)
 			controllers.PerbaruiRekomendasi(&daftarRekomendasi)
 		case 4:
 			fmt.Println("Keluar")
 			return
 		default:
-			fmt.Println("Pilihan tidak valid, silakan coba lagi.")
+			fmt.Println("Pilihan tidak valid, coba lagi")
 		}
 	}
 }
