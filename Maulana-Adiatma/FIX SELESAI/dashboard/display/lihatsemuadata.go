@@ -15,4 +15,7 @@ func LihatSemuaData() {
 
 	fmt.Println("\n======= Data Rekomendasi ========")
 	controllers.ViewRekomendasi(daftarRekomendasi)
+
+	fmt.Println("\n========== Data Teman ===========")
+	controllers.ViewTeman(daftarTeman)
 }
