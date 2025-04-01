@@ -7,8 +7,6 @@ import (
 )
 
 var daftarBarang []string  
-var historyBarang []string
-
 
 func InputBarang() {
 	scanner := bufio.NewScanner(os.Stdin)
@@ -25,7 +23,6 @@ func InputBarang() {
 		}
 
 		daftarBarang = append(daftarBarang, item)
-		historyBarang = append(historyBarang, item) 
 	}
 
 	fmt.Println("\nBarang telah ditambahkan!")
