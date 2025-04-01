@@ -23,10 +23,10 @@ func GetKendaraan() string {
 	return kendaraanTerpilih
 }
 
-func PrintKendaraan() {
+func ViewKendaraan() {
 	selected := GetKendaraan()
 	if selected == "" {
-		fmt.Println("Kendaraan belum dipilih.")
+		fmt.Println("Kamu belum input kendaraan.")
 	} else {
 		fmt.Println("Kendaraan yang kamu pilih adalah:", selected)
 	}
