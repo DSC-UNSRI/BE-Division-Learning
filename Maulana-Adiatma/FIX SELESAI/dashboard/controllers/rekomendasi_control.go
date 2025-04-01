@@ -18,12 +18,14 @@ func TambahRekomendasi(daftarRekomendasi *[]models.Rekomendasi) {
 }
 
 func HapusRekomendasi(daftarRekomendasi *[]models.Rekomendasi) {
-	var isi string
-	fmt.Print("Masukkan isi rekomendasi yang ingin dihapus: ")
+	var kategori, isi string
+	fmt.Print("Masukkan kategori (hanya satu kata): ")
+	fmt.Scan(&kategori)
+	fmt.Print("Masukkan isi rekomendasi (hanya satu kata): ")
 	fmt.Scan(&isi)
 
 	for i, r := range *daftarRekomendasi {
-		if r.Isi == isi {
+		if r.Kategori == kategori && r.Isi == isi {
 			*daftarRekomendasi = append((*daftarRekomendasi)[:i], (*daftarRekomendasi)[i+1:]...)
 			fmt.Println("Rekomendasi berhasil dihapus!")
 			return
@@ -41,7 +43,6 @@ func PerbaruiRekomendasi(daftarRekomendasi *[]models.Rekomendasi) {
 
 	for i, r := range *daftarRekomendasi {
 		if r.Isi == isiLama && r.Kategori == kategoriLama {
-			fmt.Println("Rekomendasi ditemukan:", r.Kategori, "-", r.Isi)
 			fmt.Print("Masukkan kategori baru: ")
 			fmt.Scan(&kategoriBaru)
 			fmt.Print("Masukkan isi baru: ")
