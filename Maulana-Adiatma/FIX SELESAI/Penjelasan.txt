@@ -18,5 +18,6 @@ kekurangan:
 1. mudah diakses karna nama, email dan password diberitahukan di laman login :D
 2. ketergantungan pada huruf besar dan kecil (soalnya semua fitur aku disini harus sesuai huruf besar dan huruf kecilnya)
 3. di fitur rekomendasi dan teman hanya bisa input dengan satu kata
+4. belum menerapkan Error handling dan validasi input karena masih belum tahu :D
 
-kalau tidak paham bisa chat wa 083162013902 (kalau ada saran dan kritik ingfokan ya teman dan kak, baru pertama klai buat ginian)
+kalau tidak paham bisa chat wa 083162013902 (kalau ada saran dan kritik ingfokan ya teman dan kak, baru pertama kali buat ginian)
