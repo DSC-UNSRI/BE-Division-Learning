@@ -1,0 +1,24 @@
+package main
+
+import "fmt"
+
+func main() {
+	var n int
+	fmt.Print("Masukkan 1 Angka: ")
+	fmt.Scan(&n)
+	arr := make([]bool, n+1)
+
+	for i := 0; i < n-2; i++ {
+		var x int
+		fmt.Printf("angka ke-%d: ", i+1) //sebelumnya maul gk make %d, dipake karena kaalau gk digunakan itu i+1 jadi gk ke trigger
+		fmt.Scan(&x)
+		arr[x] = true
+	}
+
+	fmt.Println()
+	for i := 1; i <= n; i++ {
+		if !arr[i] {
+			fmt.Printf("angka yang hilang: %d\n", i)
+		}
+	}
+}

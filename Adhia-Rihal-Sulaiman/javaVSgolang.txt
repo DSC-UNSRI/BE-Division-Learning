@@ -1,0 +1,9 @@
+Assalamualaikum warahmatullahi wabarakatuh
+
+Jadi saya disini mau membambandingkan antara bahasa pemrograman java vs python:
+
+1. Untuk poin pertama bahasa Java harus selalu menyebutkan tipe variabelnya secara jelas, karna hal itu jadi code yang dibuat terlihat lebih panjang dan formal, sedangkan bahasa Golang meskipun bahasa tipe data statis, bahasa ini dapat langusung ngeh dengan tipe data yang telah kita kasih, jadi tidak susah lagi untuk menulis tipe variabelnya.
+2. Untuk poin kedua untuk bahasa Golang itu yang digunakan sangat simple, dan menggunakan kata manusia sehar-hari, sintaks minimalis, tidak ribet, bahkan untuk para pemula. Java juga mudah, tapi karna banyaknya OOP yang digunakan kadang membuat user pusing untuk kalau baru mau belajar.
+3. Untuk poin ketiga ini mungkin ini pendapat pribadi karna juga masih blm expert dengan bahasa nya, jujur untuk kedua bahasa ini masih terbilang populer pada bidang masing masing dan tujuan penggunaan yang berbeda dan spesifik, dan untuk bahasa Java itu sendiri lebih ke pemrograman yang berfokus ke aplikasi mobile atau desktop, sedangkan untuk Golang itu lebih ke pemrograman yang fokus ke backend modern atau cloud.
+4. Untuk poin keempat untuk platform komputer untuk bahasa Java itu mudah digunakan karna menggunakan JVM sebagai perantara antara code dan sistem operasi, jadi mudah untuk mengkompiler code nya mudah, mungkin karna code yang saya gunakan masih belum terlalu kompleks, tapi untuk golang sih masih tergolong susah dan masih banyak yang harus dipelajari bagi pemula, tetepi jika telah expert Golang sangat mudah dilakukan.
+5. Untuk poin kelima ini untuk bahasa Golang  biasanya lebih gesit dari Java karena langsung dikompilasi jadi binary native, sementara bahasa sementara Java harus jalan di atas JVM yang butuh proses interpretasi dan optimasi tambahan..
