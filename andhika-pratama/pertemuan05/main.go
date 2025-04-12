@@ -13,6 +13,7 @@ func main() {
 	config.ENVLoad()
 	database.InitDB()
 	defer database.DB.Close()
+	database.Migrate()
 
 	fmt.Println("Server running at http://localhost:8080/")
 	log.Fatal(http.ListenAndServe(":8080", nil))
