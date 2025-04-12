@@ -23,7 +23,7 @@ func Login() bool {
 	fmt.Scanln(&nama)
 	fmt.Print("Email: ")
 	fmt.Scanln(&email)
-	fmt.Print("Password: ")
+	fmt.Print("Pas sword: ")
 	fmt.Scanln(&password)
 
 	if nama == envNama && email == envEmail && password == envPassword {
