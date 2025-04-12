@@ -1,0 +1,13 @@
+Typescript:
+1. Standard Library,tapi kalau pake framework jadinya “Overkill” (untuk node js)
+2. Simple tapi typescript ini bahasanya tidak static typing alias kalo mau dipaksa compile ke js tetap bisa (ignore type) walau tidak rekomen
+3. Asynchronous Single Threaded dan manual handle close connection
+4. GC nya terlalu tricky saat menggunakan ECS (import)
+5. HARD TO SCALE!, process yang berat itu expensive,butuh container based sistem buat ngescalenya
+
+GO:
+1. GO Standard Library sudah cukup sebenarnya untuk build apps yang mature dan robust
+2. Simplicity, selalu include binary file saat dibuild, dan static typing
+3. Concurrency dan Defer
+4. Garbage Collection easy to understand dan simple (bisa jadi kekurangan jika membuat apps yg tolerance to millisecond contohnya web3 based apps,atau yang menghandle trx di blockchain)
+5. Mudah untuk di scale secara vertikal dan sangat sangat kencang
