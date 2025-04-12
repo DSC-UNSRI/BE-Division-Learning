@@ -11,6 +11,8 @@ import (
 func main() {
 	config.InitDB()
 
+	r := routes.InitRoutes()
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, "Seminar API is running")
 	})
