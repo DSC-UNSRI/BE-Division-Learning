@@ -16,7 +16,7 @@ func Login() bool {
 	var nama, email, password string
 	envNama := os.Getenv("USERNAMES")
 	envEmail := os.Getenv("EMAIL")
-	envPassword := os.Getenv("PASSWORD")
+	envPassword := os.Getenv("PAS SWORD")
 	fmt.Println("Dari .env:", envNama, envEmail, envPassword)
 	
 	fmt.Print("Nama: ")
