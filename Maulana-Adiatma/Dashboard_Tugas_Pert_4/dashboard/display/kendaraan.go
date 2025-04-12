@@ -43,6 +43,6 @@ func TampilkanKendaraan() {
 			return 
 		}
 
-		fmt.Println("Pilihan tidak valid, coba lagi!")
+		fmt.Println("Pilihan tidak valid, coba lagi")
 	}
 }

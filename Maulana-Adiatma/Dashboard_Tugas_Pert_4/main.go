@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"cobafix.go/autentikasi"
+	"cobafix.go/dashboard"
 )
 
 func main() {

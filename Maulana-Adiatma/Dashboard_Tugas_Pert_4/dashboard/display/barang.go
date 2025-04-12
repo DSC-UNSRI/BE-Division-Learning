@@ -8,11 +8,11 @@ import (
 func TampilkanBarang() {
 	var pilihan int
 	for {
-		fmt.Println("\nMenu Iftar:")
+		fmt.Println("\nMenu Barang:")
 		fmt.Println("1. Tambah Barang")
 		fmt.Println("2. Hapus Barang")
 		fmt.Println("3. Keluar")
-		fmt.Print("Pilih: ")
+		fmt.Print("Masukkan pilihan (1-3): ")
 		fmt.Scanln(&pilihan)
 
 		switch pilihan {
@@ -25,7 +25,7 @@ func TampilkanBarang() {
 			fmt.Println("Keluar")
 			return
 		default:
-			fmt.Println("Pilihan tidak valid.")
+			fmt.Println("Pilihan tidak valid, coba lagi")
 		}
 	}
 }
