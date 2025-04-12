@@ -105,3 +105,71 @@ func DeleteEvent(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Event deleted"})
 }
+
+func GetEventsBySpeakerID(w http.ResponseWriter, r *http.Request) {
+	speakerID := mux.Vars(r)["id"]
+
+	rows, err := config.DB.Query("SELECT id, title, description, speaker_id FROM events WHERE speaker_id = ?", speakerID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var events []models.Event
+	for rows.Next() {
+		var e models.Event
+		rows.Scan(&e.ID, &e.Title, &e.Description, &e.SpeakerID)
+		events = append(events, e)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(events)
+}
+
+type FullEventRequest struct {
+	Speaker models.Speaker `json:"speaker"`
+	Event   models.Event   `json:"event"`
+}
+
+func CreateFullEvent(w http.ResponseWriter, r *http.Request) {
+	var req FullEventRequest
+	json.NewDecoder(r.Body).Decode(&req)
+
+	tx, err := config.DB.Begin()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var speakerID int
+	err = tx.QueryRow("SELECT id FROM speakers WHERE name=? AND auth_key=?", req.Speaker.Name, req.Speaker.AuthKey).Scan(&speakerID)
+
+	if err != nil {
+		res, err := tx.Exec("INSERT INTO speakers(name, expertise, auth_key) VALUES (?, ?, ?)",
+			req.Speaker.Name, req.Speaker.Expertise, req.Speaker.AuthKey)
+
+		if err != nil {
+			tx.Rollback()
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		lastID, _ := res.LastInsertId()
+		speakerID = int(lastID)
+	}
+
+	_, err = tx.Exec("INSERT INTO events(title, description, speaker_id) VALUES (?, ?, ?)",
+		req.Event.Title, req.Event.Description, speakerID)
+
+	if err != nil {
+		tx.Rollback()
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	tx.Commit()
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": "Speaker and Event saved successfully"})
+}
