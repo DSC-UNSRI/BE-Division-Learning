@@ -1,0 +1,9 @@
+1. Pada golang wajib menuliskan directory induk dari letak filenya diawal penulisan kode(package "main") dibandingkan javascript yang tidak diperlukan dan langsung penulisan kode saja.
+
+2. Pada golang untuk menampilkan tulisan atau output perlu mengimport library package "fmt" terlebih dahulu dibandingkan javascript yang hanya tinggal console.log dan tidak perlu mengimport apapun.
+
+3. Pada golang kode tidak bisa berjalan jika tanpa func main sebagai default awal kode golang di jalankan(golang langsung mencari func main sebagai permulaan) berbeda dengan javascript yang bisa langsung dijalankan tanpa function utama.
+
+4. Golang bahasa compiler yang wajib melakukan compile dengan perintah go build dan harus melakukan compile ulang setiap melakukan perubahan kode tetapi bisa menjalankan satu file saja tanpa di compile keseluruhan dengan perintah go run (nama file) untuk mengecek program dalam debugging. Dalam javascript bisa langsung tanpa compile tetapi pada node js perlu mematikan dan menghidupkan kembali server terlebih dahulu atau menggunakan nodemon jika ingin tanpa ribet merestart server pada saat merubah kode.
+
+5. Pendeklarisasi variabel pada golang berbeda dengan javascript. Pada golang wajib menereapkan tipe data dengan struktur: var nama_variabel tipe_data atau bisa juga dengan nama_variabel := nilai_variabel dengan golang langsung mendeklarasikan variabel dan ditentukan tipe datanya. Sedangkan pada javascript tidak perlu mendeklarasikan tipe data hanya perlu var, let, const yang digunakan sesuai dengan kondisi variabel nantinya. 
