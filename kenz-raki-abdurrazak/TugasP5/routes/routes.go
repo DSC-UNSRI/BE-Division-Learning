@@ -14,6 +14,11 @@ func InitRoutes() *mux.Router {
 	r.HandleFunc("/speakers", controllers.CreateSpeaker).Methods("POST")
 	r.HandleFunc("/speakers/{id}", controllers.UpdateSpeaker).Methods("PUT")
 	r.HandleFunc("/speakers/{id}", controllers.DeleteSpeaker).Methods("DELETE")
+	r.HandleFunc("/events", controllers.GetAllEvents).Methods("GET")
+	r.HandleFunc("/events/{id}", controllers.GetEventByID).Methods("GET")
+	r.HandleFunc("/events", controllers.CreateEvent).Methods("POST")
+	r.HandleFunc("/events/{id}", controllers.UpdateEvent).Methods("PUT")
+	r.HandleFunc("/events/{id}", controllers.DeleteEvent).Methods("DELETE")
 
 	return r
 }
