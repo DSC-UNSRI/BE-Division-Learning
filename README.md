@@ -23,18 +23,18 @@ Divisi Backend bertanggung jawab dalam membangun pondasi logika dan infrastruktu
 
 | Nama                         | Foto |
 |------------------------------|------|
-| Maulana Adiatma              | ![Maulana](member/maulana.png) |
 | Abdul 'Aziz                  | ![Aziz](member/abdul.png) |
-| M. Naufal Rafif Pratama      | ![Naufal](member/naufal.png) |
 | Adhia Rihal Sulaiman         | ![Adhia](member/rihal.png) |
 | Ahmad Fadhil Rizqi           | ![Fadhil](member/fadhil.png) |
 | Andhika Pratama              | ![Andhika](member/andhika.png) |
-| Kenz Raki Abdurrazak         | ![Kenz](member/raki.png) |
-| Dian Kharisma Ramadhan       | ![Dian](member/rama.png) |
-| Depo Sadrila Hadi            | ![Depo](member/depo.png) |
 | Arjun Elvas Janggiara        | ![Arjun](member/arjun.png) |
-| Zildjian Vito Sulaiman       | ![Zildjian](member/vito.png) |
+| Depo Sadrila Hadi            | ![Depo](member/depo.png) |
+| Dian Kharisma Ramadhan       | ![Dian](member/rama.png) |
+| Kenz Raki Abdurrazak         | ![Kenz](member/raki.png) |
+| Maulana Adiatma              | ![Maulana](member/maulana.png) |
+| M. Naufal Rafif Pratama      | ![Naufal](member/naufal.png) |
 | Steven                       | ![Steven](member/steven.png) |
+| Zildjian Vito Sulaiman       | ![Zildjian](member/vito.png) |
 
 
 ---
