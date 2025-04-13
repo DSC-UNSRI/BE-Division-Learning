@@ -164,3 +164,43 @@ func DeleteLecturer(w http.ResponseWriter, r *http.Request, id string) {
 		"id":      id,
 	})
 }
+
+
+func GetLecturersByCity(w http.ResponseWriter, r *http.Request, city string) {
+	rows, err := database.DB.Query(`
+		SELECT l.lecturer_id, l.lecturer_name, l.password
+		FROM lecturers l
+		JOIN addresses a ON l.lecturer_id = a.lecturer_id
+		WHERE a.city = ? AND a.deleted_at IS NULL AND l.deleted_at IS NULL`, city)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	lecturers := []models.Lecturer{} 
+	for rows.Next() {
+		lecturer := models.Lecturer{}
+		if err := rows.Scan(&lecturer.LecturerID, &lecturer.LecturerName, &lecturer.Password); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		lecturers = append(lecturers, lecturer)
+	}
+
+	if err := rows.Err(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if len(lecturers) == 0 {
+		http.Error(w, "There are no lecturers in this city", http.StatusOK)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"lecturers": lecturers,
+	})
+}	
