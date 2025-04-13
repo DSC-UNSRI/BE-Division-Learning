@@ -15,6 +15,7 @@ func RoutesHandlers() {
 	http.HandleFunc("/lecturers/", lecturersHandlerWithID)
 	http.HandleFunc("/courses", coursesHandler)
 	http.HandleFunc("/courses/", coursesHandlerWithID)
+	http.HandleFunc("/coursesbylecturer/", coursesByLecturerHandler)
 }
 
 func lecturersHandler(w http.ResponseWriter, r *http.Request) {
@@ -70,6 +71,21 @@ func coursesHandlerWithID(w http.ResponseWriter, r *http.Request) {
 		controllers.UpdateCourse(w, r, id)
 	case http.MethodDelete:
 		controllers.DeleteCourse(w, r, id)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func coursesByLecturerHandler(w http.ResponseWriter, r *http.Request) {
+	parts, err := utils.SplitPath(r.URL.Path)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	lecturerID := parts[2]
+	switch r.Method {
+	case http.MethodGet:
+		controllers.GetCoursesByLecturer(w, r, lecturerID)
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
