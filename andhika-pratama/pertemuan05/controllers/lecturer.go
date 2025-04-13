@@ -141,14 +141,14 @@ func DeleteLecturer(w http.ResponseWriter, r *http.Request, id string) {
 	}
 
 	var exists bool
-	err := database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM lecturers WHERE lecturer_id = ? AND deleted_at IS NULL)", id).Scan(&exists)
+	err := database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM courses WHERE lecturer_id = ? AND deleted_at IS NULL)", id).Scan(&exists)
 	if err != nil {
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
 
-	if !exists {
-		http.Error(w, "Lecturer not found", http.StatusNotFound)
+	if exists {
+		http.Error(w, "Cannot delete lecturer: assigned to a course", http.StatusBadRequest)
 		return
 	}
 
