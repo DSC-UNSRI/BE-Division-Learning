@@ -3,10 +3,10 @@ package models
 import "time"
 
 type Lecturer struct {
-	LecturerID        int        `json:"lecturer_id"`
-	LecturerName      string     `json:"lecturer_name"`
-	Password  string     `json:"password"`
-	DeletedAt *time.Time `json:"deleted_at"`
+	LecturerID   string     `json:"lecturer_id"`
+	LecturerName string     `json:"lecturer_name"`
+	Password     string     `json:"password"`
+	DeletedAt    *time.Time `json:"deleted_at"`
 }
 
 var LecturerQuery = `
