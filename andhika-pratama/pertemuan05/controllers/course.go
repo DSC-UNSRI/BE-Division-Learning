@@ -208,3 +208,47 @@ func DeleteCourse(w http.ResponseWriter, r *http.Request, id string) {
 		"id":      id,
 	})
 }
+
+func GetCoursesByLecturer(w http.ResponseWriter, r *http.Request, lecturerID string) {
+	var exists bool
+	err := database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM lecturers WHERE lecturer_id = ? AND deleted_at IS NULL)", lecturerID).Scan(&exists)
+	if err != nil {
+		http.Error(w, "Database error while validating lecturer", http.StatusInternalServerError)
+		return
+	}
+	if !exists {
+		http.Error(w, "Lecturer not found", http.StatusNotFound)
+		return
+	}
+
+	rows, err := database.DB.Query(`
+		SELECT course_id, course_name, lecturer_id, semester, credit 
+		FROM courses 
+		WHERE lecturer_id = ? AND deleted_at IS NULL`, lecturerID)
+	if err != nil {
+		http.Error(w, "Database error while retrieving courses", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	courses := []models.Course{}
+	for rows.Next() {
+		course := models.Course{}
+		err := rows.Scan(&course.CourseID, &course.CourseName, &course.LecturerID, &course.Semester, &course.Credit)
+		if err != nil {
+			http.Error(w, "Failed to scan course data", http.StatusInternalServerError)
+			return
+		}
+		courses = append(courses, course)
+	}
+
+	if len(courses) == 0 {
+		http.Error(w, "Lecturer has no assigned courses", http.StatusOK)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"courses":     courses,
+	})
+}
