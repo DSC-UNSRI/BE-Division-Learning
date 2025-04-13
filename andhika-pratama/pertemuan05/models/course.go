@@ -15,7 +15,7 @@ var CourseQuery = `
 	CREATE TABLE IF NOT EXISTS courses (
 		course_id VARCHAR(6) PRIMARY KEY,
 		course_name VARCHAR(40) NOT NULL,
-		lecturer_id VARCHAR(6) NOT NULL,
+		lecturer_id VARCHAR(3) NOT NULL,
 		semester INT NOT NULL,
 		credit INT NOT NULL,
 		deleted_at TIMESTAMP NULL DEFAULT NULL,
