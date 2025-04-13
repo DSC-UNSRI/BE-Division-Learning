@@ -5,7 +5,7 @@ import "time"
 type Course struct {
 	CourseID   string     `json:"course_id"`
 	CourseName string     `json:"course_name"`
-	LecturerID int        `json:"lecturer_id"`
+	LecturerID string       `json:"lecturer_id"`
 	Semester   int        `json:"semester"`
 	Credit     int        `json:"credit"`
 	DeletedAt  *time.Time `json:"deleted_at"`
