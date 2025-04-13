@@ -11,7 +11,7 @@ type Address struct {
 }
 
 var AddressQuery = `
-	CREATE TABLE addresses (
+	CREATE TABLE IF NOT EXISTS addresses (
 		address_id INT AUTO_INCREMENT PRIMARY KEY,
 		lecturer_id VARCHAR(3) NOT NULL,
 		street VARCHAR(60),
