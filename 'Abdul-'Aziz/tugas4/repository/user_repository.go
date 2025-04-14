@@ -9,13 +9,15 @@ import (
 type UserRepository interface {
     GetUser() (*models.User, error)
     SaveUser(user *models.User) error
+    UpdateUser(user *models.User) error
+    DeleteUser() error
 }
 
 type InMemoryUserRepo struct {
     user *models.User
 }
 
-func NewInMemoryUserRepo(env *env.EnvLoader) *InMemoryUserRepo {
+func NewInMemoryUserRepo(env *env.EnvLoader) UserRepository {
     return &InMemoryUserRepo{
         user: &models.User{
             Name:            env.Get("NAMA"),
@@ -38,5 +40,15 @@ func (r *InMemoryUserRepo) GetUser() (*models.User, error) {
 
 func (r *InMemoryUserRepo) SaveUser(user *models.User) error {
     r.user = user
+    return nil
+}
+
+func (r *InMemoryUserRepo) UpdateUser (user * models.User) error {
+    r.user = user
+    return nil
+}
+
+func (r *InMemoryUserRepo) DeleteUser() error {
+    r.user = nil
     return nil
 }
