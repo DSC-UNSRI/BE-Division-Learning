@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"tugas/todolist/models"
-	"tugas/todolist/repository"
+	"tugas/todolist/usecase"
 
 	"github.com/gorilla/mux"
 )
@@ -14,9 +14,9 @@ func CreateTask(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	var task models.Task
 	json.NewDecoder(r.Body).Decode(&task)
 
-	err := repository.InsertTask(db, task)
+	err := usecase.CreateTask(db, task)
 	if err != nil {
-		http.Error(w, "Failed to create task", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -25,7 +25,8 @@ func CreateTask(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 }
 
 func GetAllTasks(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-	tasks, err := repository.SelectAllTasks(db)
+	// ini bisa tetap pakai repository langsung kalau gak ada logic khusus
+	tasks, err := usecase.GetAllTasks(db) // bisa dibungkus juga kalau mau
 	if err != nil {
 		http.Error(w, "Failed to get tasks", http.StatusInternalServerError)
 		return
@@ -36,9 +37,9 @@ func GetAllTasks(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 func GetTaskByID(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 
-	task, err := repository.SelectTaskByID(db, id)
+	task, err := usecase.GetTaskByID(db, id)
 	if err != nil {
-		http.Error(w, "Task not found", http.StatusNotFound)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -51,9 +52,9 @@ func UpdateTask(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	var task models.Task
 	json.NewDecoder(r.Body).Decode(&task)
 
-	err := repository.UpdateTaskByID(db, id, task)
+	err := usecase.UpdateTask(db, id, task)
 	if err != nil {
-		http.Error(w, "Failed to update task", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -63,9 +64,9 @@ func UpdateTask(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 func DeleteTask(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 
-	err := repository.DeleteTaskByID(db, id)
+	err := usecase.DeleteTask(db, id)
 	if err != nil {
-		http.Error(w, "Failed to delete task", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
