@@ -14,7 +14,7 @@ func main() {
 		var num int
 		fmt.Scan(&num)
 		counts[num]++ // Menambah frekuensi kemunculan bilangan
-		
+
 		if counts[num] > maxCount {
 			maxCount = counts[num]
 			modusTerbesar = num

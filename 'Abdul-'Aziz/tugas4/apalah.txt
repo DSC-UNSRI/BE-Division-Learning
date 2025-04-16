@@ -1,0 +1,115 @@
+==========================================
+SISTEM DASHBOARD PENDAFTARAN IFTAR GDGoC
+==========================================
+
+1. OVERVIEW
+Sistem ini merupakan dashboard untuk pendataan peserta iftar GDGoC dengan fitur:
+- Autentikasi pengguna berbasis .env
+- Manajemen pilihan kendaraan
+- Manajemen peralatan yang dibawa
+- Manajemen rekomendasi kegiatan
+- Manajemen data teman
+- Tampilan data terintegrasi
+
+2. FITUR UTAMA
+----------------
+2.1 Autentikasi
+- Menggunakan file .env dengan variabel wajib:
+  * NAMA
+  * EMAIL
+  * PASSWORD
+- Validasi credential saat login
+
+2.2 Pilihan Kendaraan
+- 4 opsi transportasi:
+  1. Kendaraan Pribadi
+  2. Bus Kaleng
+  3. Nebeng
+  4. Travel
+- Hanya bisa memilih 1 kendaraan
+
+2.3 Manajemen Peralatan
+- Tambah banyak peralatan sekaligus (dipisah koma)
+- Update peralatan berdasarkan nomor urut
+- Contoh input: "Tikar, Sajadah, Tisu Basah"
+
+2.4 Manajemen Rekomendasi
+- Input dalam format Kategori dan Isi
+- Contoh:
+  Kategori: Film
+  Isi: Avatar, Naruto
+
+2.5 Manajemen Teman
+- Menyimpan data teman dengan:
+  * Nama
+  * Divisi
+- Bisa update data teman
+
+2.6 Tampilan Data
+- Menampilkan semua data dalam format terstruktur
+- Menampilkan:
+  * Data pribadi
+  * Kendaraan terpilih
+  * Daftar peralatan
+  * Rekomendasi
+  * Daftar teman
+
+3. TEKNIS
+----------
+3.1 Arsitektur
+Menggunakan Clean Architecture dengan struktur:
+- Domain Layer:
+  * Model data (User, Recommendation, Friend)
+  * Repository interface
+  
+- Use Case Layer:
+  * Business logic untuk semua operasi
+  * Validasi input
+  
+- Controller Layer:
+  * Menangani alur aplikasi
+  * Input/output pengguna
+  
+- Infrastructure Layer:
+  * Env loader
+  * Input reader
+
+3.2 Validasi dan Error Handling
+- Validasi tipe data input
+- Validasi range angka (menu dan index)
+- Penanganan error untuk operasi database
+- Pencegahan panic dengan recovery system
+
+4. CARA MENGGUNAKAN
+--------------------
+1. Login dengan email dan password dari .env
+2. Pilih menu dari 1-6
+3. Untuk operasi CRUD:
+   - Create: Pilih menu tambah
+   - Read: Menu lihat data
+   - Update: Pilih menu update + nomor index
+   - Delete: Tidak tersedia (tidak diperlukan)
+4. Input data sesuai format yang diminta
+5. Data otomatis tersimpan di memori selama aplikasi berjalan
+
+5. INSTALASI
+------------
+1. Pastikan Go terinstall (min v1.16)
+2. Install dependency:
+   > go get github.com/joho/godotenv
+3. Buat file .env di root project dengan format:
+   NAMA="Nama User"
+   EMAIL="user@example.com"
+   PASSWORD="password123"
+4. Jalankan aplikasi:
+   > go run main.go
+
+6. CATATAN
+----------
+- Data disimpan dalam memori (in-memory) 
+- Tidak ada persistensi ke database/file
+- Khusus untuk single user
+- Test case sudah termasuk validasi input
+- Error handling mencakup semua operasi kritis
+
+==========================================

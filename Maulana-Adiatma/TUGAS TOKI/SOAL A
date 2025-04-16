@@ -1,0 +1,26 @@
+package main
+
+import "fmt"
+
+func main() {
+	var n int 
+	var data int
+	arr := make([]int, 1001)
+
+	fmt.Scan(&n)
+	for i := 0; i < n; i++ {
+		fmt.Scan(&data)
+		arr[data]++
+	}
+
+	var simpen = 0
+	var modus = 0
+	for i := 0; i <= 1000; i++ {
+		if arr[i] >= simpen {
+			simpen = arr[i]
+			modus = i
+		}
+	}
+
+	fmt.Println(modus)
+}

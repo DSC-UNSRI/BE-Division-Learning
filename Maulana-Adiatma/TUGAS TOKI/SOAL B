@@ -1,0 +1,26 @@
+package main
+
+import "fmt"
+
+func main() {
+	var n int 
+	var m int
+	fmt.Scan(&n)
+
+	arr := make([]int, n)
+	for i := 0; i < n; i++ {
+		fmt.Scan(&m)
+		var temp int = m
+		var tuker int  = 0
+
+		for temp > 0 { //itu for temp !!bentukan while di Golang!!
+			tuker = (tuker * 10) + (temp % 10)
+			temp = temp / 10
+		}
+		arr[i] = tuker
+	}
+
+	for i := 0; i < n; i++ {
+		fmt.Println(arr[i])
+	}
+}
