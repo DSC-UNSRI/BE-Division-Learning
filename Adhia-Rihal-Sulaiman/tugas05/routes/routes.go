@@ -2,8 +2,8 @@ package routes
 
 import (
 	"database/sql"
-	"restaurant-backend/controllers"
-	"restaurant-backend/middleware"
+	"tugas05/controllers"
+	"tugas05/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,11 +12,6 @@ func SetupRoutes(r *gin.Engine, db *sql.DB) {
 	// Inisialisasi controller
 	chefController := controllers.NewChefController(db)
 	menuController := controllers.NewMenuController(db)
-
-	// Menggunakan middleware untuk autentikasi di seluruh aplikasi
-	r.Use(middleware.LoggerMiddleware())      // Logging setiap request
-	r.Use(middleware.CORSMiddleware())       // CORS
-	r.Use(middleware.RateLimitMiddleware(100, 60)) // Rate limiting: 100 requests per 60 seconds
 
 	// Group untuk chef
 	chefRoutes := r.Group("/chefs")
