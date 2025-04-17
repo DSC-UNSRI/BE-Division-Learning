@@ -1,70 +1,69 @@
-package routes  
+package routes
 
-import (  
-	"database/sql"  
+import (
+	"database/sql"
+	"restaurant-backend/controllers"
+	"restaurant-backend/middleware"
 
-	"restaurant-backend/controllers"  
+	"github.com/gin-gonic/gin"
+)
 
-	"github.com/gin-gonic/gin"  
-)  
+func SetupRoutes(r *gin.Engine, db *sql.DB) {
+	// Inisialisasi controller
+	chefController := controllers.NewChefController(db)
+	menuController := controllers.NewMenuController(db)
 
-func SetupRoutes(r *gin.Engine, db *sql.DB) {  
-	// Inisialisasi controller  
-	chefController := controllers.NewChefController(db)  
-	menuController := controllers.NewMenuController(db)  
+	// Menggunakan middleware untuk autentikasi di seluruh aplikasi
+	r.Use(middleware.LoggerMiddleware())      // Logging setiap request
+	r.Use(middleware.CORSMiddleware())       // CORS
+	r.Use(middleware.RateLimitMiddleware(100, 60)) // Rate limiting: 100 requests per 60 seconds
 
-	// Group untuk chef  
-	chefRoutes := r.Group("/chefs")  
-	{  
-		// Endpoint registrasi chef  
-		chefRoutes.POST("/register", chefController.Create)  
-		  
-		// Endpoint login  
-		chefRoutes.POST("/login", chefController.Login)  
-		  
-		// Endpoint mendapatkan semua chef  
-		chefRoutes.GET("", chefController.GetAll)  
-		  
-		// Endpoint mendapatkan chef berdasarkan ID  
-		chefRoutes.GET("/:id", chefController.GetByID)  
-		  
-		// Endpoint update chef  
-		chefRoutes.PUT("/:id", chefController.Update)  
-		  
-		// Endpoint hapus chef  
-		chefRoutes.DELETE("/:id", chefController.Delete)  
-	}  
+	// Group untuk chef
+	chefRoutes := r.Group("/chefs")
+	{
+		// Endpoint registrasi chef
+		chefRoutes.POST("/register", chefController.Create)
 
-	// Group untuk menu  
-	menuRoutes := r.Group("/menus")  
-	{  
-		// Endpoint membuat menu baru  
-		menuRoutes.POST("", menuController.Create)  
-		  
-		// Endpoint mendapatkan semua menu  
-		menuRoutes.GET("", menuController.GetAll)  
-		  
-		// Endpoint pencarian menu  
-		menuRoutes.GET("/search", menuController.SearchMenus)  
-		  
-		// Endpoint mendapatkan menu berdasarkan ID  
-		menuRoutes.GET("/:id", menuController.GetByID)  
-		  
-		// Endpoint update menu  
-		menuRoutes.PUT("/:id", menuController.Update)  
-		  
-		// Endpoint hapus menu  
-		menuRoutes.DELETE("/:id", menuController.Delete)  
-		  
-		// Endpoint mendapatkan menu berdasarkan chef  
-		menuRoutes.GET("/chef/:chefId", menuController.GetMenusByChef)  
-	}  
+		// Endpoint login
+		chefRoutes.POST("/login", chefController.Login)
 
-	// Contoh route kustom atau tambahan  
-	r.GET("/health", func(ctx *gin.Context) {  
-		ctx.JSON(200, gin.H{  
-			"status":  "healthy",  
-			"message": "Restaurant Backend Service is running",  
-		})  
-	})  
+		// Gunakan AuthMiddleware untuk rute yang memerlukan autentikasi
+		chefRoutes.GET("", middleware.AuthMiddleware(), chefController.GetAll)
+		chefRoutes.GET("/:id", middleware.AuthMiddleware(), chefController.GetByID)
+		chefRoutes.PUT("/:id", middleware.AuthMiddleware(), chefController.Update)
+		chefRoutes.DELETE("/:id", middleware.AuthMiddleware(), chefController.Delete)
+	}
+
+	// Group untuk menu
+	menuRoutes := r.Group("/menus")
+	{
+		// Endpoint membuat menu baru
+		menuRoutes.POST("", menuController.Create)
+
+		// Endpoint mendapatkan semua menu
+		menuRoutes.GET("", menuController.GetAll)
+
+		// Endpoint pencarian menu
+		menuRoutes.GET("/search", menuController.SearchMenus)
+
+		// Endpoint mendapatkan menu berdasarkan ID
+		menuRoutes.GET("/:id", menuController.GetByID)
+
+		// Endpoint update menu
+		menuRoutes.PUT("/:id", menuController.Update)
+
+		// Endpoint hapus menu
+		menuRoutes.DELETE("/:id", menuController.Delete)
+
+		// Endpoint mendapatkan menu berdasarkan chef
+		menuRoutes.GET("/chef/:chefId", menuController.GetMenusByChef)
+	}
+
+	// Contoh route kustom atau tambahan
+	r.GET("/health", func(ctx *gin.Context) {
+		ctx.JSON(200, gin.H{
+			"status":  "healthy",
+			"message": "Restaurant Backend Service is running",
+		})
+	})
 }
