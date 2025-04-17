@@ -17,7 +17,7 @@ func RegisterRoutes(mux *http.ServeMux, db *sql.DB) {
 	// Setup Programmer routes
 	programmerRepo := repositories.NewProgrammerRepository(db)
 	programmerService := services.NewProgrammerService(programmerRepo)
-	// programmerHandler := handlers.NewProgrammerHandler(programmerService)
+	programmerHandler := handlers.NewProgrammerHandler(programmerService)
 
 	// User endpoints
 	mux.HandleFunc("GET /users", userHandler.GetAllUsers)
@@ -27,9 +27,9 @@ func RegisterRoutes(mux *http.ServeMux, db *sql.DB) {
 	mux.HandleFunc("DELETE /users/{id}", userHandler.DeleteUser)
 
 	// Programmer endpoints
-	// mux.HandleFunc("GET /programmers", programmerHandler.GetAllProgrammers)
-	// mux.HandleFunc("GET /programmers/{id}", programmerHandler.GetProgrammerByID)
-	// mux.HandleFunc("POST /programmers", programmerHandler.CreateProgrammer)
-	// mux.HandleFunc("PUT /programmers/{id}", programmerHandler.UpdateProgrammer)
-	// mux.HandleFunc("DELETE /programmers/{id}", programmerHandler.DeleteProgrammer)
+	mux.HandleFunc("GET /programmers", programmerHandler.GetAllProgrammers)
+	mux.HandleFunc("GET /programmers/{id}", programmerHandler.GetProgrammerByID)
+	mux.HandleFunc("POST /programmers", programmerHandler.CreateProgrammer)
+	mux.HandleFunc("PUT /programmers/{id}", programmerHandler.UpdateProgrammer)
+	mux.HandleFunc("DELETE /programmers/{id}", programmerHandler.DeleteProgrammer)
 }
