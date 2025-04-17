@@ -15,8 +15,8 @@ func RegisterRoutes(mux *http.ServeMux, db *sql.DB) {
 	userHandler := handlers.NewUserHandler(userService)
 
 	// Setup Programmer routes
-	// programmerRepo := repositories.NewProgrammerRepository(db)
-	// programmerService := services.NewProgrammerService(programmerRepo)
+	programmerRepo := repositories.NewProgrammerRepository(db)
+	programmerService := services.NewProgrammerService(programmerRepo)
 	// programmerHandler := handlers.NewProgrammerHandler(programmerService)
 
 	// User endpoints
