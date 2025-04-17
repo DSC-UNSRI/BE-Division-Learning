@@ -14,6 +14,7 @@ func ProductsRoutes(){
 func StoreRoutes(){
 	http.HandleFunc("/store", storeHandler)
 	http.HandleFunc("/store/", storeHandlerWithID)
+	http.HandleFunc("/store/auth", storeAuthHandler)
 }
 
 func productsHandler(w http.ResponseWriter, r *http.Request) {
@@ -69,6 +70,15 @@ func storeHandlerWithID(w http.ResponseWriter, r *http.Request) {
 		controllers.UpdateStore(w, r, id)
 	case http.MethodDelete:
 		controllers.DeleteStore(w, r, id)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func storeAuthHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodPost:
+		controllers.AuthStore(w, r)
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}

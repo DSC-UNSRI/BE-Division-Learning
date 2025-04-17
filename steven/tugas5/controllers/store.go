@@ -8,6 +8,36 @@ import (
 	"database/sql"
 )
 
+func AuthStore(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, "failed to parse form", http.StatusBadRequest)
+		return
+	}
+
+	owner := r.FormValue("owner")
+	password := r.FormValue("password")
+
+	if owner == "" || password == "" {
+		http.Error(w, "owner or password cannot be empty", http.StatusBadRequest)
+		return
+	}
+
+	var store models.Store
+	err = database.DB.QueryRow("SELECT id, name, owner, password FROM stores WHERE owner = ? AND password = ? AND deleted_at IS NULL", owner, password).
+		Scan(&store.ID, &store.Name, &store.Owner, &store.Password)
+	if err != nil {
+		http.Error(w, "owner or password is wrong", http.StatusUnauthorized)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message": "Login Success",
+		"store":   store,
+	})
+}
+
 func GetStores(w http.ResponseWriter, r *http.Request) {
 	rows, err := database.DB.Query("SELECT id, name, owner, password FROM stores WHERE deleted_at IS NULL")
 	if err != nil {
