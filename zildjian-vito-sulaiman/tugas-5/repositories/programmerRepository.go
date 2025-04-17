@@ -19,8 +19,8 @@ func (r *ProgrammerRepository) Create(programmer *models.Programmer) error {
 		return errors.New("programmer cannot be nil")
 	}
 
-	result, err := r.db.Exec("INSERT INTO programmers (name, language, years_of_experience) VALUES (?, ?, ?)",
-		programmer.Name, programmer.Language, programmer.YearsOfExperience)
+	result, err := r.db.Exec("INSERT INTO programmers (name, email, language, years_of_experience) VALUES (?, ?, ?, ?)",
+		programmer.Name, programmer.Email, programmer.Language, programmer.YearsOfExperience)
 	if err != nil {
 		return err
 	}
