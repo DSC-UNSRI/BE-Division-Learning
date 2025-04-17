@@ -1,11 +1,9 @@
 package routes
 
 import (
-	"net/http"
-	
-	"github.com/gorilla/mux"
 	"github.com/artichys/BE-Division-Learning/kenz-raki-abdurrazak/TugasP5/controllers"
 	"github.com/artichys/BE-Division-Learning/kenz-raki-abdurrazak/TugasP5/middleware"
+	"github.com/gorilla/mux"
 )
 
 func InitRoutes() *mux.Router {
