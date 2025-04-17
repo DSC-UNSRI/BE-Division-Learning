@@ -1,306 +1,207 @@
-	package controllers  
+package controllers
 
-import (  
-	"database/sql"  
-	"net/http"  
-	"strconv"  
+import (
+	"database/sql"
+	"encoding/json"
+	"net/http"
+	"strconv"
+	"tugas05/models"
+)
 
-	"tugas05/models"  
+type MenuController struct {
+	db *sql.DB
+}
 
-	"github.com/gin-gonic/gin"  
-)  
+func NewMenuController(db *sql.DB) *MenuController {
+	return &MenuController{db: db}
+}
 
-type MenuController struct {  
-	db *sql.DB  
-}  
+// Create menu (menggunakan http.Request dan http.ResponseWriter)
+func (c *MenuController) Create(w http.ResponseWriter, r *http.Request) {
+	var menu models.Menu
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&menu); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
-func NewMenuController(db *sql.DB) *MenuController {  
-	return &MenuController{db: db}  
-}  
+	// Validasi input
+	if menu.Name == "" || menu.Price <= 0 || menu.ChefID <= 0 {
+		http.Error(w, "Invalid menu details", http.StatusBadRequest)
+		return
+	}
 
-func (c *MenuController) Create(ctx *gin.Context) {  
-	var menu models.Menu  
-	if err := ctx.ShouldBindJSON(&menu); err != nil {  
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})  
-		return  
-	}  
+	// Cek apakah chef tersedia
+	var chefExists int
+	err := c.db.QueryRow("SELECT COUNT(*) FROM chefs WHERE id = ?", menu.ChefID).Scan(&chefExists)
+	if err != nil || chefExists == 0 {
+		http.Error(w, "Chef not found", http.StatusBadRequest)
+		return
+	}
 
-	// Validasi input  
-	if menu.Name == "" || menu.Price <= 0 || menu.ChefID <= 0 {  
-		ctx.JSON(http.StatusBadRequest, gin.H{  
-			"error": "Invalid menu details",  
-		})  
-		return  
-	}  
+	// Query insert
+	query := `INSERT INTO menus
+		(name, description, price, chef_id, category)
+		VALUES (?, ?, ?, ?, ?)`
 
-	// Cek apakah chef tersedia  
-	var chefExists int  
-	err := c.db.QueryRow("SELECT COUNT(*) FROM chefs WHERE id = ?", menu.ChefID).Scan(&chefExists)  
-	if err != nil || chefExists == 0 {  
-		ctx.JSON(http.StatusBadRequest, gin.H{  
-			"error": "Chef not found",  
-		})  
-		return  
-	}  
+	result, err := c.db.Exec(query,
+		menu.Name,
+		menu.Description,
+		menu.Price,
+		menu.ChefID,
+		menu.Category,
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-	// Query insert  
-	query := `INSERT INTO menus   
-		(name, description, price, chef_id, category)   
-		VALUES (?, ?, ?, ?, ?)`  
-	  
-	result, err := c.db.Exec(query,   
-		menu.Name,   
-		menu.Description,   
-		menu.Price,   
-		menu.ChefID,   
-		menu.Category,  
-	)  
-	if err != nil {  
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})  
-		return  
-	}  
+	// Dapatkan ID yang baru dibuat
+	id, _ := result.LastInsertId()
+	menu.ID = int(id)
 
-	// Dapatkan ID yang baru dibuat  
-	id, _ := result.LastInsertId()  
-	menu.ID = int(id)  
+	// Kirim response
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(menu)
+}
 
-	ctx.JSON(http.StatusCreated, menu)  
-}  
+// GetAll menu (menggunakan http.Request dan http.ResponseWriter)
+func (c *MenuController) GetAll(w http.ResponseWriter, r *http.Request) {
+	query := `SELECT id, name, description, price, chef_id, category FROM menus`
+	rows, err := c.db.Query(query)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
 
-func (c *MenuController) GetAll(ctx *gin.Context) {  
-	query := `SELECT id, name, description, price, chef_id, category FROM menus`  
-	rows, err := c.db.Query(query)  
-	if err != nil {  
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})  
-		return  
-	}  
-	defer rows.Close()  
+	var menus []models.Menu
+	for rows.Next() {
+		var menu models.Menu
+		err := rows.Scan(
+			&menu.ID,
+			&menu.Name,
+			&menu.Description,
+			&menu.Price,
+			&menu.ChefID,
+			&menu.Category,
+		)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		menus = append(menus, menu)
+	}
 
-	var menus []models.Menu  
-	for rows.Next() {  
-		var menu models.Menu  
-		err := rows.Scan(  
-			&menu.ID,   
-			&menu.Name,   
-			&menu.Description,   
-			&menu.Price,   
-			&menu.ChefID,   
-			&menu.Category,  
-		)  
-		if err != nil {  
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})  
-			return  
-		}  
-		menus = append(menus, menu)  
-	}  
+	// Kirim response
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(menus)
+}
 
-	ctx.JSON(http.StatusOK, menus)  
-}  
+// GetByID menu (menggunakan http.Request dan http.ResponseWriter)
+func (c *MenuController) GetByID(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
 
-func (c *MenuController) GetByID(ctx *gin.Context) {  
-	id := ctx.Param("id")  
-	  
-	var menu models.Menu  
-	query := `SELECT id, name, description, price, chef_id, category   
-			  FROM menus WHERE id = ?`  
-	  
-	err := c.db.QueryRow(query, id).Scan(  
-		&menu.ID,   
-		&menu.Name,   
-		&menu.Description,   
-		&menu.Price,   
-		&menu.ChefID,   
-		&menu.Category,  
-	)  
-	if err != nil {  
-		if err == sql.ErrNoRows {  
-			ctx.JSON(http.StatusNotFound, gin.H{"error": "Menu not found"})  
-		} else {  
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})  
-		}  
-		return  
-	}  
+	var menu models.Menu
+	query := `SELECT id, name, description, price, chef_id, category
+			  FROM menus WHERE id = ?`
 
-	ctx.JSON(http.StatusOK, menu)  
-}  
+	err := c.db.QueryRow(query, id).Scan(
+		&menu.ID,
+		&menu.Name,
+		&menu.Description,
+		&menu.Price,
+		&menu.ChefID,
+		&menu.Category,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Menu not found", http.StatusNotFound)
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
 
-func (c *MenuController) Update(ctx *gin.Context) {  
-	id := ctx.Param("id")  
-	  
-	var menu models.Menu  
-	if err := ctx.ShouldBindJSON(&menu); err != nil {  
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})  
-		return  
-	}  
+	// Kirim response
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(menu)
+}
 
-	// Validasi input  
-	if menu.Name == "" || menu.Price <= 0 {  
-		ctx.JSON(http.StatusBadRequest, gin.H{  
-			"error": "Invalid menu details",  
-		})  
-		return  
-	}  
+// Update menu (menggunakan http.Request dan http.ResponseWriter)
+func (c *MenuController) Update(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
 
-	// Query update  
-	query := `UPDATE menus   
-			  SET name = ?, description = ?, price = ?, chef_id = ?, category = ?   
-			  WHERE id = ?`  
-	  
-	_, err := c.db.Exec(query,   
-		menu.Name,   
-		menu.Description,   
-		menu.Price,   
-		menu.ChefID,   
-		menu.Category,   
-		id,  
-	)  
-	if err != nil {  
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})  
-		return  
-	}  
+	var menu models.Menu
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&menu); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
-	// Set ID dari parameter  
-	menu.ID, _ = strconv.Atoi(id)  
+	// Validasi input
+	if menu.Name == "" || menu.Price <= 0 {
+		http.Error(w, "Invalid menu details", http.StatusBadRequest)
+		return
+	}
 
-	ctx.JSON(http.StatusOK, menu)  
-}  
+	// Query update
+	query := `UPDATE menus
+			  SET name = ?, description = ?, price = ?, chef_id = ?, category = ?
+			  WHERE id = ?`
 
-func (c *MenuController) Delete(ctx *gin.Context) {  
-	id := ctx.Param("id")  
-	  
-	// Query delete  
-	query := "DELETE FROM menus WHERE id = ?"  
-	  
-	result, err := c.db.Exec(query, id)  
-	if err != nil {  
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})  
-		return  
-	}  
+	_, err := c.db.Exec(query,
+		menu.Name,
+		menu.Description,
+		menu.Price,
+		menu.ChefID,
+		menu.Category,
+		id,
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-	// Periksa apakah ada baris yang terpengaruh  
-	rowsAffected, err := result.RowsAffected()  
-	if err != nil {  
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})  
-		return  
-	}  
+	// Set ID dari parameter
+	menu.ID, _ = strconv.Atoi(id)
 
-	if rowsAffected == 0 {  
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "Menu not found"})  
-		return  
-	}  
+	// Kirim response
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(menu)
+}
 
-	ctx.JSON(http.StatusOK, gin.H{  
-		"message": "Menu deleted successfully",  
-	})  
-}  
+// Delete menu (menggunakan http.Request dan http.ResponseWriter)
+func (c *MenuController) Delete(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
 
-func (c *MenuController) GetMenusByChef(ctx *gin.Context) {  
-	chefID := ctx.Param("chefId")  
-	  
-	query := `SELECT id, name, description, price, chef_id, category   
-			  FROM menus WHERE chef_id = ?`  
-	  
-	rows, err := c.db.Query(query, chefID)  
-	if err != nil {  
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})  
-		return  
-	}  
-	defer rows.Close()  
+	// Query delete
+	query := "DELETE FROM menus WHERE id = ?"
 
-	var menus []models.Menu  
-	for rows.Next() {  
-		var menu models.Menu  
-		err := rows.Scan(  
-			&menu.ID,   
-			&menu.Name,   
-			&menu.Description,   
-			&menu.Price,   
-			&menu.ChefID,   
-			&menu.Category,  
-		)  
-		if err != nil {  
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})  
-			return  
-		}  
-		menus = append(menus, menu)  
-	}  
+	result, err := c.db.Exec(query, id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-	// Cek apakah daftar menu kosong  
-	if len(menus) == 0 {  
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "No menus found for this chef"})  
-		return  
-	}  
+	// Periksa apakah ada baris yang terpengaruh
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-	ctx.JSON(http.StatusOK, menus)  
-}  
+	if rowsAffected == 0 {
+		http.Error(w, "Menu not found", http.StatusNotFound)
+		return
+	}
 
-func (c *MenuController) SearchMenus(ctx *gin.Context) {  
-	// Parameter pencarian  
-	name := ctx.Query("name")  
-	category := ctx.Query("category")  
-	minPrice := ctx.Query("min_price")  
-	maxPrice := ctx.Query("max_price")  
-
-	// Query dasar  
-	query := `SELECT id, name, description, price, chef_id, category   
-			  FROM menus WHERE 1=1`  
-	  
-	var args []interface{}  
-
-	// Tambahkan kondisi pencarian  
-	if name != "" {  
-		query += " AND name LIKE ?"  
-		args = append(args, "%"+name+"%")  
-	}  
-
-	if category != "" {  
-		query += " AND category = ?"  
-		args = append(args, category)  
-	}  
-
-	if minPrice != "" {  
-		minPriceFloat, _ := strconv.ParseFloat(minPrice, 64)  
-		query += " AND price >= ?"  
-		args = append(args, minPriceFloat)  
-	}  
-
-	if maxPrice != "" {  
-		maxPriceFloat, _ := strconv.ParseFloat(maxPrice, 64)  
-		query += " AND price <= ?"  
-		args = append(args, maxPriceFloat)  
-	}  
-
-	// Eksekusi query  
-	rows, err := c.db.Query(query, args...)  
-	if err != nil {  
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})  
-		return  
-	}  
-	defer rows.Close()  
-
-	var menus []models.Menu  
-	for rows.Next() {  
-		var menu models.Menu  
-		err := rows.Scan(  
-			&menu.ID,   
-			&menu.Name,   
-			&menu.Description,   
-			&menu.Price,   
-			&menu.ChefID,   
-			&menu.Category,  
-		)  
-		if err != nil {  
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})  
-			return  
-		}  
-		menus = append(menus, menu)  
-	}  
-
-	// Cek apakah daftar menu kosong  
-	if len(menus) == 0 {  
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "No menus found"})  
-		return  
-	}  
-
-	ctx.JSON(http.StatusOK, menus)  
+	// Kirim response
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	http.Error(w, "Menu deleted suscessfully", http.StatusOK)
 }
