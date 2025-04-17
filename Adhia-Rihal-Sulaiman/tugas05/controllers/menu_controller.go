@@ -2,11 +2,10 @@
 
 import (  
 	"database/sql"  
-	"fmt"  
 	"net/http"  
 	"strconv"  
 
-	"restaurant-backend/models"  
+	"tugas05/models"  
 
 	"github.com/gin-gonic/gin"  
 )  
