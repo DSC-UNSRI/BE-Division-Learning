@@ -1,10 +1,9 @@
 package main
 
 import (
-	"database/sql"
 	"log"
-	"restaurant-backend/config"
-	"restaurant-backend/routes"
+	"tugas05/config"
+	"tugas05/routes"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gin-gonic/gin"
