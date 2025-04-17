@@ -7,9 +7,17 @@ import (
 )
 
 func Migrate() {
-	_, err := DB.Exec(models.UsersQuery)
-	if err != nil {
-		log.Fatalf("Failed to migrate: %v", err)
+	queries := []string{
+		models.UsersQuery,
+		models.ProgrammerQuery,
 	}
-	fmt.Println("Migrate Success")
+
+	for _, query := range queries {
+		_, err := DB.Exec(query)
+		if err != nil {
+			log.Fatalf("Failed to migrate: %v", err)
+		}
+	}
+
+	fmt.Println("Migration success for all tables.")
 }
