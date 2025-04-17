@@ -2,7 +2,6 @@ package utils
 
 import (
 	"regexp"
-	"strings"
 )
 
 // ValidasiUsername - Memastikan username hanya mengandung huruf dan angka dan panjangnya minimal 3 karakter.
