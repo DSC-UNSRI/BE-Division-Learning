@@ -5,7 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/artichys/BE-Division-Learning/kenz-raki-abdurrazak/TugasP5/config"
+	"github.com/kenz0/BE-Division-Learning/kenz-raki-abdurrazak/TugasP5/config"
+	"github.com/kenz0/BE-Division-Learning/kenz-raki-abdurrazak/TugasP5/routes"
 )
 
 func main() {
@@ -13,10 +14,6 @@ func main() {
 
 	r := routes.InitRoutes()
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Seminar API is running")
-	})
-
 	fmt.Println("Server running at :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8080", r))
 }
