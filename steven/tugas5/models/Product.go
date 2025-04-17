@@ -5,7 +5,7 @@ import "time"
 type Product struct {
 	ID       int     `json:"id"`
 	Name     string  `json:"name"`
-	Price    float64 `json:"price"`
+	Price    int `json:"price"`
 	Stock    int     `json:"stock"`
 	DeletedAt *time.Time `json:"deleted_at"`
 }
