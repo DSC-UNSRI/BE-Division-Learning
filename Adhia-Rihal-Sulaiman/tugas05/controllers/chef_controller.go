@@ -72,7 +72,7 @@ func (c *ChefController) Create(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(chef)
 }
 
-// Login Chef
+// Login Chef - Without Token (simple username and password check)
 func (c *ChefController) Login(w http.ResponseWriter, r *http.Request) {
 	var loginRequest struct {
 		Username string `json:"username"`
@@ -86,7 +86,7 @@ func (c *ChefController) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Cek kredensial
+	// Check credentials directly without using JWT or token
 	var chef models.Chef
 	query := `SELECT id, name, username, speciality, experience, password_hash
 			  FROM chefs WHERE username = ? AND password_hash = ?`
@@ -104,10 +104,10 @@ func (c *ChefController) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Hapus password sebelum mengirim response
+	// Remove password before sending response
 	chef.PasswordHash = ""
 
-	// Kirim response
+	// Send response (return chef details after login)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(chef)
