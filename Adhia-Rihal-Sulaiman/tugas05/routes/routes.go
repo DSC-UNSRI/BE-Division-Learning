@@ -20,7 +20,7 @@ func SetupRoutes(db *sql.DB) {
 	http.HandleFunc("/chefs/delete", chefController.Delete)
 
 	// Rute untuk Menu
-	http.HandleFunc("/menus", menuController.GetAll)
+	http.HandleFunc("/menu", menuController.GetAll)
 	http.HandleFunc("/menus/create", menuController.Create)
 	http.HandleFunc("/menus/update", menuController.Update)
 	http.HandleFunc("/menus/delete", menuController.Delete)
