@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 	"tugas-5/models"
 	"tugas-5/services"
 )
@@ -26,7 +27,15 @@ func (h *UserHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
-	idStr := r.URL.Query().Get("id")
+	path := r.URL.Path
+	parts := strings.Split(path, "/")
+
+	if len(parts) < 3 {
+		http.Error(w, "Missing ID in path", http.StatusBadRequest)
+		return
+	}
+
+	idStr := parts[len(parts)-1]
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
@@ -77,7 +86,15 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
-	idStr := r.URL.Query().Get("id")
+	path := r.URL.Path
+	parts := strings.Split(path, "/")
+
+	if len(parts) < 3 {
+		http.Error(w, "Missing ID in path", http.StatusBadRequest)
+		return
+	}
+
+	idStr := parts[len(parts)-1]
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
@@ -100,7 +117,15 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
-	idStr := r.URL.Query().Get("id")
+	path := r.URL.Path
+	parts := strings.Split(path, "/")
+
+	if len(parts) < 3 {
+		http.Error(w, "Missing ID in path", http.StatusBadRequest)
+		return
+	}
+
+	idStr := parts[len(parts)-1]
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
