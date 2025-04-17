@@ -1,13 +1,11 @@
 package controllers  
 
 import (  
-	"database/sql"  
-	"fmt"  
+	"database/sql"   
 	"net/http"  
-	"time"  
+	"strconv"  
 
-	"restaurant-backend/models"  
-	"restaurant-backend/utils"  
+	"tugas05/models"  
 
 	"github.com/gin-gonic/gin"  
 )  
