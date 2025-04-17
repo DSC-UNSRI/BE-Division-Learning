@@ -4,9 +4,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
-	"strconv"
-
 	"tugas05/models"
+
 )
 
 type ChefController struct {
@@ -17,7 +16,7 @@ func NewChefController(db *sql.DB) *ChefController {
 	return &ChefController{db: db}
 }
 
-// Create chef (menggunakan http.Request dan http.ResponseWriter)
+// Create Chef (menggunakan http.Request dan http.ResponseWriter)
 func (c *ChefController) Create(w http.ResponseWriter, r *http.Request) {
 	var chef models.Chef
 	decoder := json.NewDecoder(r.Body)
@@ -71,176 +70,5 @@ func (c *ChefController) Create(w http.ResponseWriter, r *http.Request) {
 	// Kirim response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(chef)
-}
-
-// GetAll chefs (menggunakan http.Request dan http.ResponseWriter)
-func (c *ChefController) GetAll(w http.ResponseWriter, r *http.Request) {
-	query := "SELECT id, name, speciality, experience, username FROM chefs"
-	rows, err := c.db.Query(query)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer rows.Close()
-
-	var chefs []models.Chef
-	for rows.Next() {
-		var chef models.Chef
-		err := rows.Scan(
-			&chef.ID,
-			&chef.Name,
-			&chef.Speciality,
-			&chef.Experience,
-			&chef.Username,
-		)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		chefs = append(chefs, chef)
-	}
-
-	// Kirim response
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(chefs)
-}
-
-// GetByID chef (menggunakan http.Request dan http.ResponseWriter)
-func (c *ChefController) GetByID(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Query().Get("id")
-
-	var chef models.Chef
-	query := `SELECT id, name, speciality, experience, username
-			  FROM chefs WHERE id = ?`
-
-	err := c.db.QueryRow(query, id).Scan(
-		&chef.ID,
-		&chef.Name,
-		&chef.Speciality,
-		&chef.Experience,
-		&chef.Username,
-	)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			http.Error(w, "Chef not found", http.StatusNotFound)
-		} else {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-		return
-	}
-
-	// Kirim response
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(chef)
-}
-
-// Update chef (menggunakan http.Request dan http.ResponseWriter)
-func (c *ChefController) Update(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Query().Get("id")
-
-	var chef models.Chef
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&chef); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	// Query update
-	query := `UPDATE chefs
-			  SET name = ?, speciality = ?, experience = ?
-			  WHERE id = ?`
-
-	_, err := c.db.Exec(query,
-		chef.Name,
-		chef.Speciality,
-		chef.Experience,
-		id,
-	)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Set ID dari parameter
-	chef.ID, _ = strconv.Atoi(id)
-
-	// Kirim response
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(chef)
-}
-
-// Delete chef (menggunakan http.Request dan http.ResponseWriter)
-func (c *ChefController) Delete(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Query().Get("id")
-
-	// Query delete
-	query := "DELETE FROM chefs WHERE id = ?"
-
-	result, err := c.db.Exec(query, id)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Periksa apakah ada baris yang terpengaruh
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if rowsAffected == 0 {
-		http.Error(w, "Chef not found", http.StatusNotFound)
-		return
-	}
-
-	// Kirim response
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	http.Error(w, "Chef deleted suscessfully", http.StatusOK)
-}
-
-// Login chef (menggunakan http.Request dan http.ResponseWriter)
-func (c *ChefController) Login(w http.ResponseWriter, r *http.Request) {
-	var loginRequest struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	}
-
-	// Bind request body ke struct
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&loginRequest); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	// Cek kredensial
-	var chef models.Chef
-	query := `SELECT id, name, username, speciality, experience, password_hash
-			  FROM chefs WHERE username = ? AND password_hash = ?`
-
-	err := c.db.QueryRow(query, loginRequest.Username, loginRequest.Password).Scan(
-		&chef.ID,
-		&chef.Name,
-		&chef.Username,
-		&chef.Speciality,
-		&chef.Experience,
-		&chef.PasswordHash,
-	)
-	if err != nil {
-		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
-		return
-	}
-
-	// Hapus password sebelum mengirim response
-	chef.PasswordHash = ""
-
-	// Kirim response
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(chef)
 }

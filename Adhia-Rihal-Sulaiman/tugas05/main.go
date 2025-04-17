@@ -1,24 +1,29 @@
 package main
 
 import (
+	"database/sql"
+	"fmt"
 	"log"
-	"tugas05/config"
+	"net/http"
 	"tugas05/routes"
-
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	db := config.InitDatabase()
+	// Menghubungkan ke database
+	db, err := sql.Open("mysql", "user:password@tcp(localhost:3306)/restaurant_db")
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer db.Close()
 
-	r := gin.Default()
+	// Setup routing
+	routes.SetupRoutes(db)
 
-	routes.SetupRoutes(r, db)
-
-	err := r.Run(":8080")
-	if err != nil {
-		log.Fatal("Error starting server: ", err)
+	// Jalankan server HTTP
+	port := ":8080"
+	fmt.Println("Server running on port", port)
+	if err := http.ListenAndServe(port, nil); err != nil {
+		log.Fatal(err)
 	}
 }
