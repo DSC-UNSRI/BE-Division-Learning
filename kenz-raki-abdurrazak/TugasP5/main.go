@@ -5,9 +5,10 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/kenz0/BE-Division-Learning/kenz-raki-abdurrazak/TugasP5/config"
-	"github.com/kenz0/BE-Division-Learning/kenz-raki-abdurrazak/TugasP5/routes"
+	"github.com/artichys/BE-Division-Learning/kenz-raki-abdurrazak/TugasP5/config"
+	"github.com/artichys/BE-Division-Learning/kenz-raki-abdurrazak/TugasP5/routes"
 )
+	
 
 func main() {
 	config.InitDB()
