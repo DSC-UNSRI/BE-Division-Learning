@@ -15,6 +15,7 @@ func main() {
 	defer database.DB.Close()
 	database.Migrate()
 	routes.ProductsRoutes()
+	routes.StoreRoutes()
 
 	fmt.Println("Server running at http://localhost:8080/")
 	log.Fatal(http.ListenAndServe(":8080", nil))

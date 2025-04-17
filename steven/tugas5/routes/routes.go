@@ -11,6 +11,11 @@ func ProductsRoutes(){
 	http.HandleFunc("/products/", productsHandlerWithID)
 }
 
+func StoreRoutes(){
+	http.HandleFunc("/store", storeHandler)
+	http.HandleFunc("/store/", storeHandlerWithID)
+}
+
 func productsHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
@@ -35,6 +40,35 @@ func productsHandlerWithID(w http.ResponseWriter, r *http.Request) {
 		controllers.UpdateProduct(w, r, id)
 	case http.MethodDelete:
 		controllers.DeleteProduct(w, r, id)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func storeHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		controllers.GetStores(w, r)
+	case http.MethodPost:
+		controllers.CreateStore(w, r)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func storeHandlerWithID(w http.ResponseWriter, r *http.Request) {
+	parts, err := utils.SplitPath(r.URL.Path)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	id := parts[2]
+	switch r.Method {
+	case http.MethodGet:
+		controllers.GetStore(w, r, id)
+	case http.MethodPatch:
+		controllers.UpdateStore(w, r, id)
+	case http.MethodDelete:
+		controllers.DeleteStore(w, r, id)
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
