@@ -17,7 +17,7 @@ var ChefQuery = `
 		id INT AUTO_INCREMENT PRIMARY KEY,
 		name VARCHAR(30) NOT NULL,
 		speciality VARCHAR(30),
-		experience VARCHAR(30),
+		experience INT,
 		username VARCHAR(30) NOT NULL,
 		password VARCHAR(30) NOT NULL,
 		deleted_at TIMESTAMP NULL DEFAULT NULL
