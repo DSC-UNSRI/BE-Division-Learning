@@ -40,7 +40,7 @@ func CreateMenu(w http.ResponseWriter, r *http.Request) {
 
 	menu.Name = r.FormValue("name")
 	menu.Description = r.FormValue("description")
-	menu.Price, err = strconv.ParseFloat(r.FormValue("price"), 64)
+	menu.Price, err = strconv.Atoi(r.FormValue("price"))
 	if err != nil {
 		http.Error(w, "invalid price", http.StatusBadRequest)
 		return
@@ -92,7 +92,7 @@ func UpdateMenu(w http.ResponseWriter, r *http.Request, id string) {
 
 	name := r.FormValue("name")
 	description := r.FormValue("description")
-	price, err := strconv.ParseFloat(r.FormValue("price"), 64)
+	price, err := strconv.Atoi(r.FormValue("price"))
 	if err != nil {
 		http.Error(w, "invalid price", http.StatusBadRequest)
 		return
