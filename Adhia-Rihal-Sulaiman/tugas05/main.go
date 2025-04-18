@@ -1,24 +1,20 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
+	"tugas05/config"
 	"tugas05/routes"
+
 	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
-	// Menghubungkan ke database
-	db, err := sql.Open("mysql", "user:password@tcp(localhost:3306)/restaurant_db")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
+	config.InitDB()
 
 	// Setup routing
-	routes.SetupRoutes(db)
+	routes.SetupRoutes()
 
 	// Jalankan server HTTP
 	port := ":8080"

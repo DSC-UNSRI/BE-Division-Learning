@@ -1,15 +1,14 @@
 package routes
 
 import (
-	"database/sql"
 	"net/http"
 	"tugas05/controllers"
 )
 
-func SetupRoutes(db *sql.DB) {
+func SetupRoutes() {
 	// Inisialisasi controller
-	chefController := controllers.NewChefController(db)
-	menuController := controllers.NewMenuController(db)
+	chefController := controllers.NewChefController()
+	menuController := controllers.NewMenuController()
 
 	// Rute untuk Chef
 	http.HandleFunc("/chefs/register", chefController.Create)
