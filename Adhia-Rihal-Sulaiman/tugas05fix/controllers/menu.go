@@ -30,6 +30,32 @@ func GetMenus(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func GetMenuByID(w http.ResponseWriter, r *http.Request, id string) {
+    if id == "" {
+        http.Error(w, "Menu ID is required", http.StatusBadRequest)
+        return
+    }
+
+    var menu models.Menu
+    err := database.DB.QueryRow("SELECT id, name, description, price, chef_id, category FROM menus WHERE id = ? AND deleted_at IS NULL", id).Scan(
+        &menu.ID, &menu.Name, &menu.Description, &menu.Price, &menu.ChefID, &menu.Category)
+
+    if err != nil {
+        if err == sql.ErrNoRows {
+            http.Error(w, "Menu not found", http.StatusNotFound)
+        } else {
+            http.Error(w, err.Error(), http.StatusInternalServerError)
+        }
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(map[string]interface{}{
+        "menu": menu,
+    })
+}
+
+
 func CreateMenu(w http.ResponseWriter, r *http.Request) {
 	menu := models.Menu{}
 	err := r.ParseForm() //pakai Multipart jika ada file
