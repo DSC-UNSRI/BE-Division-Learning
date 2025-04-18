@@ -1,4 +1,3 @@
-
 package controllers
 
 import (
@@ -21,31 +20,32 @@ func GetChefs(w http.ResponseWriter, r *http.Request) {
 	chefs := []models.Chef{}
 	for rows.Next() {
 		chef := models.Chef{}
-		rows.Scan(&chef.ID, &chef.Name, &chef.Speciality, &chef.Experience, &chef.Username)
+		if err := rows.Scan(&chef.ID, &chef.Name, &chef.Speciality, &chef.Experience, &chef.Username); err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
 		chefs = append(chefs, chef)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"chefs": chefs,
-	})
+	json.NewEncoder(w).Encode(map[string]interface{}{"chefs": chefs})
 }
 
 func CreateChef(w http.ResponseWriter, r *http.Request) {
-	chef := models.Chef{}
-	err := r.ParseForm() //pakai Multipart jika ada file 
+	err := r.ParseForm()
 	if err != nil {
-		http.Error(w, "failed to parse form data", http.StatusBadRequest)
+		http.Error(w, "Failed to parse form data", http.StatusBadRequest)
 		return
 	}
 
-	chef.Name = r.FormValue("name")
-	chef.Speciality = r.FormValue("speciality")
-
+	chef := models.Chef{
+		Name:       r.FormValue("name"),
+		Speciality: r.FormValue("speciality"),
+	}
 
 	chef.Experience, err = strconv.Atoi(r.FormValue("experience"))
 	if err != nil {
-		http.Error(w, "invalid experience", http.StatusBadRequest)
+		http.Error(w, "Invalid experience", http.StatusBadRequest)
 		return
 	}
 
@@ -57,24 +57,26 @@ func CreateChef(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	id, _ := res.LastInsertId()
 	chef.ID = int(id)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"message": "chef successfully created",
+		"message": "Chef successfully created",
 		"chef":    chef,
 	})
 }
 
 func UpdateChef(w http.ResponseWriter, r *http.Request, id string) {
 	if id == "" {
-		http.Error(w, "id is null", http.StatusBadRequest)
+		http.Error(w, "ID is null", http.StatusBadRequest)
 		return
 	}
 
 	chef := models.Chef{}
-	err := database.DB.QueryRow("SELECT id, name, speciality, experience, username FROM chefs WHERE id = ? AND deleted_at IS NULL", id).Scan(&chef.ID, &chef.Name, &chef.Speciality, &chef.Experience, &chef.Username)
+	err := database.DB.QueryRow("SELECT id, name, speciality, experience, username FROM chefs WHERE id = ? AND deleted_at IS NULL", id).
+		Scan(&chef.ID, &chef.Name, &chef.Speciality, &chef.Experience, &chef.Username)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, "Chef not found", http.StatusNotFound)
@@ -86,32 +88,24 @@ func UpdateChef(w http.ResponseWriter, r *http.Request, id string) {
 
 	err = r.ParseForm()
 	if err != nil {
-		http.Error(w, "failed to parse form data", http.StatusBadRequest)
+		http.Error(w, "Failed to parse form data", http.StatusBadRequest)
 		return
 	}
 
-	name := r.FormValue("name")
-	speciality := r.FormValue("speciality")
-
-	// Convert experience to integer
-	experience, err := strconv.Atoi(r.FormValue("experience"))
-	if err != nil {
-		http.Error(w, "invalid experience", http.StatusBadRequest)
-		return
-	}
-
-	username := r.FormValue("username")
-
-	if name != "" {
+	if name := r.FormValue("name"); name != "" {
 		chef.Name = name
 	}
-	if speciality != "" {
+	if speciality := r.FormValue("speciality"); speciality != "" {
 		chef.Speciality = speciality
 	}
-	if experience != 0 {
-		chef.Experience = experience
+	if experienceStr := r.FormValue("experience"); experienceStr != "" {
+		chef.Experience, err = strconv.Atoi(experienceStr)
+		if err != nil {
+			http.Error(w, "Invalid experience", http.StatusBadRequest)
+			return
+		}
 	}
-	if username != "" {
+	if username := r.FormValue("username"); username != "" {
 		chef.Username = username
 	}
 
@@ -130,25 +124,25 @@ func UpdateChef(w http.ResponseWriter, r *http.Request, id string) {
 
 func DeleteChef(w http.ResponseWriter, r *http.Request, id string) {
 	if id == "" {
-		http.Error(w, "id is null", http.StatusBadRequest)
+		http.Error(w, "ID is null", http.StatusBadRequest)
 		return
 	}
 
 	var exists bool
 	err := database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM chefs WHERE id = ? AND deleted_at IS NULL)", id).Scan(&exists)
 	if err != nil {
-		http.Error(w, "database error", http.StatusInternalServerError)
+		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
 
 	if !exists {
-		http.Error(w, "chef not found", http.StatusNotFound)
+		http.Error(w, "Chef not found", http.StatusNotFound)
 		return
 	}
 
 	_, err = database.DB.Exec("UPDATE chefs SET deleted_at = NOW() WHERE id = ?", id)
 	if err != nil {
-		http.Error(w, "failed to delete chef", http.StatusInternalServerError)
+		http.Error(w, "Failed to delete chef", http.StatusInternalServerError)
 		return
 	}
 
