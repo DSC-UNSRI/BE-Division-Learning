@@ -213,4 +213,45 @@ func GetMenusByChef(w http.ResponseWriter, r *http.Request, chefID string) {
     })
 }
 
+func GetMenusByCategory(w http.ResponseWriter, r *http.Request, category string) {
+    if category == "" {
+        http.Error(w, "Category is required", http.StatusBadRequest)
+        return
+    }
+
+    rows, err := database.DB.Query(`
+        SELECT id, name, description, price, chef_id, category 
+        FROM menus 
+        WHERE category = ? AND deleted_at IS NULL`, category)
+
+    if err != nil {
+        http.Error(w, "Database error while retrieving menus", http.StatusInternalServerError)
+        return
+    }
+    defer rows.Close()
+
+    menus := []models.Menu{}
+    for rows.Next() {
+        menu := models.Menu{}
+        err := rows.Scan(&menu.ID, &menu.Name, &menu.Description, &menu.Price, &menu.ChefID, &menu.Category)
+        if err != nil {
+            http.Error(w, "Failed to scan menu data", http.StatusInternalServerError)
+            return
+        }
+        menus = append(menus, menu)
+    }
+
+    if len(menus) == 0 {
+        http.Error(w, "No menus found for this category", http.StatusNotFound)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(map[string]interface{}{
+        "category": category,
+        "menus":    menus,
+    })
+}
+
+
 
