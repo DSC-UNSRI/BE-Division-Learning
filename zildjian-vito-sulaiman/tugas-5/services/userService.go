@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"os"
 	"tugas-5/models"
 	"tugas-5/repositories"
 )
@@ -46,9 +47,17 @@ func (s *UserService) DeleteUser(id int) error {
 	return s.repo.Delete(id)
 }
 
-func (s *UserService) Authenticate(auth string) (*models.User, error) {
-	if auth == "" {
-		return nil, errors.New("authentication token missing")
+func (s *UserService) FakeAuth(email, password string) error {
+	expectedEmail := os.Getenv("EMAIL")
+	expectedPassword := os.Getenv("PASSWORD")
+
+	if expectedEmail == "" || expectedPassword == "" {
+		return errors.New("EMAIL or PASSWORD is not set in environment variables")
 	}
-	return s.repo.FindByAuth(auth)
+
+	if email != expectedEmail || password != expectedPassword {
+		return errors.New("invalid email or password")
+	}
+
+	return nil
 }

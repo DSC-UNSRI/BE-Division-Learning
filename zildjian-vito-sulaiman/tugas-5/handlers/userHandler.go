@@ -140,12 +140,24 @@ func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *UserHandler) Authenticate(w http.ResponseWriter, r *http.Request) {
-	auth := r.URL.Query().Get("auth")
-	user, err := h.service.Authenticate(auth)
-	if err != nil {
-		http.Error(w, "Authentication failed", http.StatusUnauthorized)
+func (h *UserHandler) FakeAuth(w http.ResponseWriter, r *http.Request) {
+	var req models.FakeAuthRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-	json.NewEncoder(w).Encode(user)
+
+	if req.Email == "" || req.Password == "" {
+		http.Error(w, "Missing email or password", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.service.FakeAuth(req.Email, req.Password); err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Authentication successful"})
 }

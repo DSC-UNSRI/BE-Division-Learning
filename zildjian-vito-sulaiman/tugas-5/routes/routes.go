@@ -25,6 +25,7 @@ func RegisterRoutes(mux *http.ServeMux, db *sql.DB) {
 	mux.HandleFunc("POST /users", userHandler.CreateUser)
 	mux.HandleFunc("PUT /users/{id}", userHandler.UpdateUser)
 	mux.HandleFunc("DELETE /users/{id}", userHandler.DeleteUser)
+	mux.HandleFunc("GET //users/login", programmerHandler.CountProgrammersByUserID)
 
 	// Programmer endpoints
 	mux.HandleFunc("GET /programmers", programmerHandler.GetAllProgrammers)
@@ -34,4 +35,5 @@ func RegisterRoutes(mux *http.ServeMux, db *sql.DB) {
 	mux.HandleFunc("DELETE /programmers/{id}", programmerHandler.DeleteProgrammer)
 	mux.HandleFunc("GET /programmers/users/{id}", programmerHandler.GetProgrammersByUserID)
 	mux.HandleFunc("GET /programmers/users/{id}/count", programmerHandler.CountProgrammersByUserID)
+
 }
