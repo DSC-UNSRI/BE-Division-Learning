@@ -1,0 +1,42 @@
+# Go binaries
+/bin/
+/obj/
+
+# Go workspace
+.go/
+
+# Go modules
+/go.sum
+/go.mod
+
+# Build output (binary files)
+*.exe
+*.out
+*.test
+*.tar
+*.gz
+
+# Environment variables file
+.env
+
+# IDE/editor folders and files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Log files
+*.log
+
+# Dependency directories
+/vendor/
+
+# Cache directories
+*.cache
+
+# Coverage output
+coverage/
+
+# Temporary files
+*.tmp
