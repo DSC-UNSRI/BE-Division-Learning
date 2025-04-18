@@ -6,33 +6,67 @@ import (
 	"net/http"
 )
 
-func BooksRoutes(){
-	http.HandleFunc("/books", booksHandler)
-	http.HandleFunc("/books/", booksHandlerWithID)
+func ChefRoutes() {
+	http.HandleFunc("/chefs", chefsHandler)
+	http.HandleFunc("/chefs/", chefsHandlerWithID)
 }
 
-func booksHandler(w http.ResponseWriter, r *http.Request) {
+func MenuRoutes() {
+	http.HandleFunc("/menus", menusHandler)
+	http.HandleFunc("/menus/", menusHandlerWithID)
+}
+
+func chefsHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		controllers.GetBooks(w, r)
+		controllers.GetChefs(w, r)
 	case http.MethodPost:
-		controllers.CreateBook(w, r)
+		controllers.CreateChef(w, r)
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
 }
 
-func booksHandlerWithID(w http.ResponseWriter, r *http.Request) {
+func chefsHandlerWithID(w http.ResponseWriter, r *http.Request) {
 	parts, err := utils.SplitPath(r.URL.Path)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 	id := parts[2]
 	switch r.Method {
 	case http.MethodPatch:
-		controllers.UpdateBook(w, r, id)
+		controllers.UpdateChef(w, r, id)
 	case http.MethodDelete:
-		controllers.DeleteBook(w, r, id)
+		controllers.DeleteChef(w, r, id)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func menusHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		controllers.GetMenus(w, r)
+	case http.MethodPost:
+		controllers.CreateMenu(w, r)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func menusHandlerWithID(w http.ResponseWriter, r *http.Request) {
+	parts, err := utils.SplitPath(r.URL.Path)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	id := parts[2]
+	switch r.Method {
+	case http.MethodPatch:
+		controllers.UpdateMenu(w, r, id)
+	case http.MethodDelete:
+		controllers.DeleteMenu(w, r, id)
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
