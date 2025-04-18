@@ -125,3 +125,54 @@ func (h *ProgrammerHandler) DeleteProgrammer(w http.ResponseWriter, r *http.Requ
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func (h *ProgrammerHandler) GetProgrammersByUserID(w http.ResponseWriter, r *http.Request) {
+	parts := strings.Split(r.URL.Path, "/")
+	if len(parts) < 3 {
+		http.Error(w, "Missing user ID in path", http.StatusBadRequest)
+		return
+	}
+
+	userIDStr := parts[len(parts)-2]
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
+
+	programmers, err := h.service.GetProgrammersByUserID(userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(programmers)
+}
+
+func (h *ProgrammerHandler) CountProgrammersByUserID(w http.ResponseWriter, r *http.Request) {
+	parts := strings.Split(r.URL.Path, "/")
+	if len(parts) < 3 {
+		http.Error(w, "Missing user ID in path", http.StatusBadRequest)
+		return
+	}
+
+	userIDStr := parts[len(parts)-2]
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
+
+	count, err := h.service.CountProgrammersByUserID(userID)
+	if err != nil {
+		http.Error(w, "Failed to count programmers", http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]interface{}{
+		"user_id":           userID,
+		"total_programmers": count,
+	}
+
+	json.NewEncoder(w).Encode(response)
+}
