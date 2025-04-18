@@ -16,6 +16,10 @@ func MenuRoutes() {
 	http.HandleFunc("/menus/", menusHandlerWithID)
 }
 
+func AuthRoutes() {
+	http.HandleFunc("/login", controllers.LoginHandler)
+}
+
 func chefsHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
