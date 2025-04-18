@@ -12,7 +12,7 @@ type MenuController struct {
 	db *sql.DB
 }
 
-func NewMenuController(db *sql.DB) *MenuController {
+func NewMenuController() *MenuController {
 	return &MenuController{db: db}
 }
 

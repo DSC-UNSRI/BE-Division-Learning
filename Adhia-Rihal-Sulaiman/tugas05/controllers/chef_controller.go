@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
+	"tugas05/config"
 	"tugas05/models"
 )
 
@@ -11,7 +12,7 @@ type ChefController struct {
 	db *sql.DB
 }
 
-func NewChefController(db *sql.DB) *ChefController {
+func NewChefController() *ChefController {
 	return &ChefController{db: db}
 }
 
@@ -32,7 +33,7 @@ func (c *ChefController) Create(w http.ResponseWriter, r *http.Request) {
 
 	// Cek apakah username sudah ada
 	var count int
-	err := c.db.QueryRow("SELECT COUNT(*) FROM chefs WHERE username = ?", chef.Username).Scan(&count)
+	err := config.DB.QueryRow("SELECT COUNT(*) FROM chefs WHERE username = ?", chef.Username).Scan(&count)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -47,7 +48,7 @@ func (c *ChefController) Create(w http.ResponseWriter, r *http.Request) {
 		(name, speciality, experience, username, password_hash)
 		VALUES (?, ?, ?, ?, ?)`
 
-	result, err := c.db.Exec(query,
+	result, err := config.DB.Exec(query,
 		chef.Name,
 		chef.Speciality,
 		chef.Experience,
@@ -91,7 +92,7 @@ func (c *ChefController) Login(w http.ResponseWriter, r *http.Request) {
 	query := `SELECT id, name, username, speciality, experience, password_hash
 			  FROM chefs WHERE username = ? AND password_hash = ?`
 
-	err := c.db.QueryRow(query, loginRequest.Username, loginRequest.Password).Scan(
+	err := config.DB.QueryRow(query, loginRequest.Username, loginRequest.Password).Scan(
 		&chef.ID,
 		&chef.Name,
 		&chef.Username,
@@ -116,7 +117,7 @@ func (c *ChefController) Login(w http.ResponseWriter, r *http.Request) {
 // GetAll Chef
 func (c *ChefController) GetAll(w http.ResponseWriter, r *http.Request) {
 	query := "SELECT id, name, speciality, experience, username FROM chefs"
-	rows, err := c.db.Query(query)
+	rows, err := config.DB.Query(query)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -153,7 +154,7 @@ func (c *ChefController) GetByID(w http.ResponseWriter, r *http.Request) {
 	query := `SELECT id, name, speciality, experience, username
 			  FROM chefs WHERE id = ?`
 
-	err := c.db.QueryRow(query, id).Scan(
+	err := config.DB.QueryRow(query, id).Scan(
 		&chef.ID,
 		&chef.Name,
 		&chef.Speciality,
@@ -190,7 +191,7 @@ func (c *ChefController) Update(w http.ResponseWriter, r *http.Request) {
 			  SET name = ?, speciality = ?, experience = ?
 			  WHERE id = ?`
 
-	_, err := c.db.Exec(query,
+	_, err := config.DB.Exec(query,
 		chef.Name,
 		chef.Speciality,
 		chef.Experience,
@@ -214,7 +215,7 @@ func (c *ChefController) Delete(w http.ResponseWriter, r *http.Request) {
 	// Query delete
 	query := "DELETE FROM chefs WHERE id = ?"
 
-	result, err := c.db.Exec(query, id)
+	result, err := config.DB.Exec(query, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
