@@ -14,6 +14,7 @@ func ChefRoutes() {
 func MenuRoutes() {
 	http.HandleFunc("/menus", menusHandler)
 	http.HandleFunc("/menus/", menusHandlerWithID)
+	http.HandleFunc("/getmenusbychef/", menusByChefHandler)
 }
 
 func AuthRoutes() {
@@ -71,6 +72,21 @@ func menusHandlerWithID(w http.ResponseWriter, r *http.Request) {
 		controllers.UpdateMenu(w, r, id)
 	case http.MethodDelete:
 		controllers.DeleteMenu(w, r, id)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func menusByChefHandler(w http.ResponseWriter, r *http.Request) {
+	parts, err := utils.SplitPath(r.URL.Path)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	chefID := parts[2]
+	switch r.Method {
+	case http.MethodGet:
+		controllers.GetMenusByChef(w, r, chefID)
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
