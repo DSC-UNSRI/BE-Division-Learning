@@ -84,14 +84,3 @@ func (r *UserRepository) Delete(id int) error {
 	_, err := r.db.Exec("UPDATE users SET deleted_at = NOW() WHERE id = ?", id)
 	return err
 }
-
-func (r *UserRepository) FindByAuth(auth string) (*models.User, error) {
-	user := &models.User{}
-	err := r.db.QueryRow("SELECT id, name, email FROM users WHERE password = ?", auth).
-		Scan(&user.ID, &user.Name, &user.Email)
-
-	if err == sql.ErrNoRows {
-		return nil, errors.New("auth token is invalid")
-	}
-	return user, err
-}

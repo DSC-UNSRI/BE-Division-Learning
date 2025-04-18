@@ -37,3 +37,8 @@ type UserResponse struct {
 	CreatedAt *time.Time `json:"created_at"`
 	DeletedAt *time.Time `json:"deleted_at"`
 }
+
+type FakeAuthRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
