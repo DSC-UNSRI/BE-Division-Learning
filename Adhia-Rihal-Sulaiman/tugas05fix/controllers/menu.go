@@ -156,6 +156,7 @@ func DeleteMenu(w http.ResponseWriter, r *http.Request, id string) {
 		http.Error(w, "failed to delete menu", http.StatusInternalServerError)
 		return
 	}
+	
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
@@ -163,3 +164,53 @@ func DeleteMenu(w http.ResponseWriter, r *http.Request, id string) {
 		"id":      id,
 	})
 }
+
+func GetMenusByChef(w http.ResponseWriter, r *http.Request, chefID string) {
+
+    var exists bool
+    err := database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM chefs WHERE id = ? AND deleted_at IS NULL)", chefID).Scan(&exists)
+    if err != nil {
+        http.Error(w, "Database error while validating chef", http.StatusInternalServerError)
+        return
+    }
+    
+    if !exists {
+        http.Error(w, "Chef not found", http.StatusNotFound)
+        return
+    }
+
+    rows, err := database.DB.Query(`
+        SELECT id, name, description, price, category, chef_id 
+        FROM menus 
+        WHERE chef_id = ? AND deleted_at IS NULL`, chefID)
+    
+    if err != nil {
+        http.Error(w, "Database error while retrieving menus", http.StatusInternalServerError)
+        return
+    }
+    defer rows.Close()
+
+    menus := []models.Menu{}
+    for rows.Next() {
+        menu := models.Menu{}
+        err := rows.Scan(&menu.ID, &menu.Name, &menu.Description, &menu.Price, &menu.Category, &menu.ChefID)
+        if err != nil {
+            http.Error(w, "Failed to scan menu data", http.StatusInternalServerError)
+            return
+        }
+        menus = append(menus, menu)
+    }
+
+    if len(menus) == 0 {
+        http.Error(w, "Chef has no assigned menus", http.StatusOK)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(map[string]interface{}{
+        "chef_id": chefID,
+        "menus":   menus,
+    })
+}
+
+
