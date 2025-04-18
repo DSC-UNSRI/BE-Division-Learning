@@ -7,18 +7,13 @@ import (
 	"tugas-5/config"
 	"tugas-5/database"
 	"tugas-5/routes"
-	"tugas-5/utils"
 )
 
 func main() {
-	user, err := config.ENVLoad()
-	if err != nil {
-		log.Fatalf("Error loading env: %v", err)
-	}
-
-	if !utils.Authenticate(user) {
-		log.Fatal("User authentication failed: user cannot be nil or invalid")
-	}
+	config.ENVLoad()
+	// if err != nil {
+	// 	log.Fatalf("Error loading env: %v", err)
+	// }
 
 	database.InitDB()
 	defer database.DB.Close()
