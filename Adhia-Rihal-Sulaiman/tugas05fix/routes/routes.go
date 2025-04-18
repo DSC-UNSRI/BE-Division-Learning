@@ -41,6 +41,8 @@ func chefsHandlerWithID(w http.ResponseWriter, r *http.Request) {
 	}
 	id := parts[2]
 	switch r.Method {
+	case http.MethodGet:
+		controllers.GetChefByID(w, r, id)
 	case http.MethodPatch:
 		controllers.UpdateChef(w, r, id)
 	case http.MethodDelete:
@@ -69,6 +71,8 @@ func menusHandlerWithID(w http.ResponseWriter, r *http.Request) {
 	}
 	id := parts[2]
 	switch r.Method {
+	case http.MethodGet:
+		controllers.GetMenuByID(w, r, id)
 	case http.MethodPatch:
 		controllers.UpdateMenu(w, r, id)
 	case http.MethodDelete:

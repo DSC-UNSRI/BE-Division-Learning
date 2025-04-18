@@ -31,6 +31,32 @@ func GetChefs(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{"chefs": chefs})
 }
 
+func GetChefByID(w http.ResponseWriter, r *http.Request, id string) {
+    if id == "" {
+        http.Error(w, "Chef ID is required", http.StatusBadRequest)
+        return
+    }
+
+    var chef models.Chef
+    err := database.DB.QueryRow("SELECT id, name, speciality, experience, username FROM chefs WHERE id = ? AND deleted_at IS NULL", id).Scan(
+        &chef.ID, &chef.Name, &chef.Speciality, &chef.Experience, &chef.Username)
+
+    if err != nil {
+        if err == sql.ErrNoRows {
+            http.Error(w, "Chef not found", http.StatusNotFound)
+        } else {
+            http.Error(w, err.Error(), http.StatusInternalServerError)
+        }
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(map[string]interface{}{
+        "chef": chef,
+    })
+}
+
+
 func CreateChef(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
