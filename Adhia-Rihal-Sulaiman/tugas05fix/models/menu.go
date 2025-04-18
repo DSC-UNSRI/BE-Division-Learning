@@ -6,7 +6,7 @@ type Menu struct {
 	ID          int     `json:"id"`  
 	Name        string  `json:"name"`  
 	Description string  `json:"description"`  
-	Price       float64 `json:"price"`  
+	Price       int `json:"price"`  
 	ChefID      int     `json:"chef_id"`  
 	Category    string  `json:"category"`  
 	DeletedAt   *time.Time `json:"deleted_at"`
@@ -17,7 +17,7 @@ var MenuQuery = `
 		id INT AUTO_INCREMENT PRIMARY KEY,
 		name VARCHAR(30) NOT NULL,
 		description VARCHAR(60),
-		price FLOAT NOT NULL,
+		price INT NOT NULL,
 		chef_id INT,
 		category VARCHAR(30),
 		deleted_at TIMESTAMP NULL DEFAULT NULL,
