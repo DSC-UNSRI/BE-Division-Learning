@@ -22,7 +22,7 @@ func GetAllResep(w http.ResponseWriter, r *http.Request) {
 	var reseps []models.Resep
 	for rows.Next() {
 		var r models.Resep
-		if err := rows.Scan(&r.ID, &r.NamaResep, &r.DeskripsiResep); err != nil {
+		if err := rows.Scan(&r.ID, &r.NamaResep, &r.DeskripsiResep, &r.BahanUtama, &r.WaktuMasak, &r.NegaraID); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -38,8 +38,8 @@ func GetResepByID(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(idParam)
 
 	var rcp models.Resep
-	err := database.DB.QueryRow("SELECT * WHERE id = ?", id).
-		Scan(&rcp.ID, &rcp.NamaResep, &rcp.DeskripsiResep)
+	err := database.DB.QueryRow("SELECT * FROM data_resep WHERE id = ?", id).
+		Scan(&rcp.ID, &rcp.NamaResep, &rcp.DeskripsiResep, &rcp.BahanUtama, &rcp.WaktuMasak, &rcp.NegaraID)
 
 	if err != nil {
 		http.Error(w, "Resep not found", http.StatusNotFound)
@@ -58,8 +58,8 @@ func CreateResep(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = database.DB.Exec("INSERT INTO data_resep(nama_resep, description) VALUES(?, ?)",
-		rcp.NamaResep, rcp.DeskripsiResep)
+	_, err = database.DB.Exec("INSERT INTO data_resep(nama_resep, description, bahan_utama, waktu_masak, negara_id) VALUES(?, ?, ?, ?, ?)",
+		rcp.NamaResep, rcp.DeskripsiResep, rcp.BahanUtama, rcp.WaktuMasak, rcp.NegaraID)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -81,8 +81,8 @@ func UpdateResep(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = database.DB.Exec("UPDATE data_resep SET nama_resep=?, description=? WHERE id=?",
-		rcp.NamaResep, rcp.DeskripsiResep, id)
+	_, err = database.DB.Exec("UPDATE data_resep SET nama_resep=?, description=?, bahan_utama=?, waktu_masak=?, negara_id=? WHERE id=?",
+		rcp.NamaResep, rcp.DeskripsiResep, rcp.BahanUtama, rcp.WaktuMasak, rcp.NegaraID, id)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
