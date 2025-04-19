@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -45,7 +46,6 @@ func GetAllMahasiswa(w http.ResponseWriter, r *http.Request) {
 	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{"mahasiswa": mahasiswas})
 }
 
-
 func GetMahasiswaByID(w http.ResponseWriter, r *http.Request, idStr string) {
 	authenticatedUser, ok := utils.CheckAuthAndRespond(w, r)
 	if !ok {
@@ -60,9 +60,8 @@ func GetMahasiswaByID(w http.ResponseWriter, r *http.Request, idStr string) {
 
 	if authenticatedUser.ID != id {
 		utils.RespondWithError(w, http.StatusForbidden, "Forbidden: You can only view your own profile.")
-	 	return
+		return
 	}
-
 
 	var mhs models.Mahasiswa
 	query := "SELECT id, nama, created_at, updated_at FROM mahasiswa WHERE id = ? AND deleted_at IS NULL"
@@ -243,7 +242,6 @@ func UpdateMahasiswa(w http.ResponseWriter, r *http.Request, idStr string) {
 	utils.RespondWithJSON(w, http.StatusOK, updatedMhs)
 }
 
-
 func DeleteMahasiswa(w http.ResponseWriter, r *http.Request, idStr string) {
 	authenticatedUser, ok := utils.CheckAuthAndRespond(w, r)
 	if !ok {
@@ -279,4 +277,55 @@ func DeleteMahasiswa(w http.ResponseWriter, r *http.Request, idStr string) {
 	}
 
 	utils.RespondWithJSON(w, http.StatusOK, map[string]string{"message": "Mahasiswa marked as deleted successfully"})
+}
+
+func LoginMahasiswa(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Nama     string `json:"nama"`
+		Password string `json:"password"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		utils.RespondWithError(w, http.StatusBadRequest, "Invalid request body format")
+		return
+	}
+	defer r.Body.Close()
+
+	namaTrimmed := strings.TrimSpace(input.Nama)
+	passwordTrimmed := strings.TrimSpace(input.Password)
+
+	if namaTrimmed == "" || passwordTrimmed == "" {
+		utils.RespondWithError(w, http.StatusBadRequest, "Nama and Password are required")
+		return
+	}
+
+	var user models.Mahasiswa
+	var dbHashedPassword string
+	query := "SELECT id, nama, password FROM mahasiswa WHERE nama = ? AND deleted_at IS NULL"
+	err := database.DB.QueryRow(query, namaTrimmed).Scan(&user.ID, &user.Nama, &dbHashedPassword)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			utils.RespondWithError(w, http.StatusUnauthorized, "Invalid credentials (user not found)")
+		} else {
+			fmt.Printf("Database error during login for user %s: %v\n", namaTrimmed, err)
+			utils.RespondWithError(w, http.StatusInternalServerError, "Internal server error during login")
+		}
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(dbHashedPassword), []byte(passwordTrimmed))
+	if err != nil {
+		utils.RespondWithError(w, http.StatusUnauthorized, "Invalid credentials (password mismatch)")
+		return
+	}
+
+	responseUser := models.Mahasiswa{
+		ID:   user.ID,
+		Nama: user.Nama,
+	}
+	utils.RespondWithJSON(w, http.StatusOK, map[string]interface{}{
+		"message": "Login successful",
+		"user":    responseUser,
+	})
 }
