@@ -13,11 +13,10 @@ func InitRoutes() {
 
 	mux.HandleFunc("POST /mahasiswa", controllers.CreateMahasiswa)
 	mux.HandleFunc("GET /mahasiswa", controllers.GetAllMahasiswa)
-
 	mux.HandleFunc("/mahasiswa/", mahasiswaSubHandler)
-
 	mux.HandleFunc("/minat", minatBaseHandler)
 	mux.HandleFunc("/minat/", minatIDHandler)
+	mux.HandleFunc("POST /login", controllers.LoginMahasiswa)
 
 	http.Handle("/", mux)
 }
