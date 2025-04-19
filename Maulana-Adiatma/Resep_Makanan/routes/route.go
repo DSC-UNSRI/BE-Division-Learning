@@ -16,17 +16,18 @@ func SetupRoutes() *mux.Router {
 
 	router.HandleFunc("/resep", controllers.GetAllResep).Methods("GET")
 	router.HandleFunc("/resep", controllers.CreateResep).Methods("POST")
-	router.HandleFunc("/negara", controllers.GetAllNegara).Methods("GET")
-	router.HandleFunc("/negara", controllers.CreateNegara).Methods("POST")
-
 	router.HandleFunc("/resep/{id}", controllers.GetResepByID).Methods("GET")
 	router.HandleFunc("/resep/{id}", controllers.UpdateResep).Methods("PUT")
 	router.HandleFunc("/resep/{id}", controllers.DeleteResep).Methods("DELETE")
+
+	router.HandleFunc("/negara", controllers.GetAllNegara).Methods("GET")
+	router.HandleFunc("/negara", controllers.CreateNegara).Methods("POST")
 	router.HandleFunc("/negara/{id}", controllers.GetNegaraByID).Methods("GET")
 	router.HandleFunc("/negara/{id}", controllers.UpdateNegara).Methods("PUT")
 	router.HandleFunc("/negara/{id}", controllers.DeleteNegara).Methods("DELETE")
 
-
-
+	router.HandleFunc("/resep-negara", controllers.GetResepJoinNegara).Methods("GET")
+	router.HandleFunc("/resep-negara/{id}", controllers.GetResepByNegaraID).Methods("GET")
+	
 	return router
 }
