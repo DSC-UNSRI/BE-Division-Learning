@@ -8,11 +8,11 @@ import (
 )
 
 func SetupRoutes() {
-	http.HandleFunc("/students", StudentHandler)
-	http.HandleFunc("/students/", StudentHandlerWithID)
-	http.HandleFunc("/organizations", OrganizationHandler)
-	http.HandleFunc("/organizations/", OrganizationHandlerWithID)
-	http.HandleFunc("/organizations/members/", OrganizationMembersHandler)
+	http.HandleFunc("/students", controllers.Authenticate(StudentHandler))
+	http.HandleFunc("/students/", controllers.Authenticate(StudentHandlerWithID))
+	http.HandleFunc("/organizations", controllers.Authenticate(OrganizationHandler))
+	http.HandleFunc("/organizations/", controllers.Authenticate(OrganizationHandlerWithID))
+	http.HandleFunc("/organizations/members/", controllers.Authenticate(OrganizationMembersHandler))
 }
 
 func StudentHandler(w http.ResponseWriter, r *http.Request) {
