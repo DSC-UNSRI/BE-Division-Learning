@@ -1,8 +1,7 @@
-package controllers
+vpackage controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -20,27 +19,27 @@ func GetAllNegara(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	var reseps []models.Country
+	var countries []models.Country
 	for rows.Next() {
-		var r models.Country
-		if err := rows.Scan(&r.ID, &r.NamaNegara); err != nil {
+		var c models.Country
+		if err := rows.Scan(&c.ID, &c.NamaNegara, &c.KodeNegara); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		reseps = append(reseps, r)
+		countries = append(countries, c)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(reseps)
+	json.NewEncoder(w).Encode(countries)
 }
 
 func GetNegaraByID(w http.ResponseWriter, r *http.Request) {
 	idParam := mux.Vars(r)["id"]
 	id, _ := strconv.Atoi(idParam)
 
-	var rcp models.Country
+	var c models.Country
 	err := database.DB.QueryRow("SELECT * FROM data_negara WHERE id = ?", id).
-		Scan(&rcp.ID, &rcp.NamaNegara)
+		Scan(&c.ID, &c.NamaNegara, &c.KodeNegara)
 
 	if err != nil {
 		http.Error(w, "Country not found", http.StatusNotFound)
@@ -48,21 +47,18 @@ func GetNegaraByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(rcp)
+	json.NewEncoder(w).Encode(c)
 }
 
 func CreateNegara(w http.ResponseWriter, r *http.Request) {
-	var rcp models.Country
-	err := json.NewDecoder(r.Body).Decode(&rcp)
-	fmt.Println("err:", err)
+	var c models.Country
+	err := json.NewDecoder(r.Body).Decode(&c)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	_, err = database.DB.Exec("INSERT INTO data_negara(negara_asal) VALUES(?)",
-		rcp.NamaNegara)
-
+	_, err = database.DB.Exec("INSERT INTO data_negara (negara_asal, kode_negara) VALUES (?, ?)", c.NamaNegara, c.KodeNegara)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -76,16 +72,14 @@ func UpdateNegara(w http.ResponseWriter, r *http.Request) {
 	idParam := mux.Vars(r)["id"]
 	id, _ := strconv.Atoi(idParam)
 
-	var rcp models.Country
-	err := json.NewDecoder(r.Body).Decode(&rcp)
+	var c models.Country
+	err := json.NewDecoder(r.Body).Decode(&c)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	_, err = database.DB.Exec("UPDATE data_negara SET negara_asal=? WHERE id=?",
-		rcp.NamaNegara, id)
-
+	_, err = database.DB.Exec("UPDATE data_negara SET negara_asal=?, kode_negara=? WHERE id=?", c.NamaNegara, c.KodeNegara, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
