@@ -1,9 +1,8 @@
 package models
 
-type MataUang struct {
-	ID         int     `json:"id"`
-	Nama       string  `json:"nama"`
-	Singkatan  string  `json:"singkatan"`
-	NilaiTukar float64 `json:"nilai_tukar"`
-	NasabahID  int     `json:"nasabah_id"`
+type NilaiMataUang struct {
+	ID             int     `json:"id"`
+	NamaMataUang   string  `json:"nama_mata_uang"`
+	Singkatan      string  `json:"singkatan"`
+	ExchangeRate   float64 `json:"exchange_rate"`
 }

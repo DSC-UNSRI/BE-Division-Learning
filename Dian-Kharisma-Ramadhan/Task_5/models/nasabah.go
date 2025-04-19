@@ -5,3 +5,4 @@ type Nasabah struct {
 	Nama     string `json:"nama"`
 	Password string `json:"password"`
 }
+
