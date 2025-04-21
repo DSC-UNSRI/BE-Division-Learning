@@ -1,14 +1,20 @@
 package database
 
 import (
-	"fmt"
 	"log"
 
 	"Tugas-Pertemuan-5/models"
 )
 
 func Migrate() {
-	_, err := DB.Exec(models.FilmsQuery)
+	var err error
+
+	_, err = DB.Exec(models.DirectorsQuery)
+	if err != nil {
+		log.Fatalf("Gagal migrasi tabel directors: %v", err)
+	}
+
+	_, err = DB.Exec(models.FilmsQuery)
 	if err != nil {
 		log.Fatalf("Gagal migrasi tabel films: %v", err)
 	}
@@ -18,5 +24,5 @@ func Migrate() {
 		log.Fatalf("Gagal migrasi tabel users: %v", err)
 	}
 
-	fmt.Println("Migrasi Sukses")
+	log.Println("Migrasi Database Selesai.")
 }
