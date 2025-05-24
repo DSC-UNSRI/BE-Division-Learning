@@ -1,0 +1,50 @@
+{
+  "Name": "BINTANG",
+  "Email": "BINTANG@GMAIL.COM",
+  "Password": "123",
+  "Vehicle": "Nebeng",
+  "Equipment": [
+    "Baju",
+    "Botol Air",
+    "Masker",
+    "meja",
+    "kursi",
+    "Kasur"
+  ],
+  "Recommendations": [
+    {
+      "Category": "Minuman",
+      "Content": "Sirsak"
+    },
+    {
+      "Category": "Minuman",
+      "Content": "Air Kelapa"
+    },
+    {
+      "Category": "Makanan",
+      "Content": "Kurma"
+    }
+  ],
+  "Friends": [
+    {
+      "Name": "Asyrof",
+      "Division": "FE"
+    },
+    {
+      "Name": "ABDUL",
+      "Division": "BE"
+    },
+    {
+      "Name": "RIZKY",
+      "Division": "UI/UX"
+    },
+    {
+      "Name": "KURNIA",
+      "Division": "PSDM"
+    },
+    {
+      "Name": "Kak Steven",
+      "Division": "BE"
+    }
+  ]
+}

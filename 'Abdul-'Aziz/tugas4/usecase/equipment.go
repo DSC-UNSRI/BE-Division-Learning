@@ -37,3 +37,4 @@ func (uc *EquipmentUseCase) UpdateEquipment(index int, newItem string) error {
     user.Equipment[index] = newItem
     return uc.repo.SaveUser(user)
 }
+
