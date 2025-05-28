@@ -6,6 +6,7 @@ import (
 
 	"context"
 	"net/http"
+	"database/sql"
 )
 
 func AuthMiddleware(next http.Handler) http.Handler {
@@ -74,9 +75,14 @@ func CourseOwnershipMiddleware(next http.Handler, courseID string) http.Handler 
 		var courseOwnerID string
 		err := database.DB.QueryRow("SELECT lecturer_id FROM courses WHERE course_id = ? AND deleted_at IS NULL", courseID).Scan(&courseOwnerID)
 		if err != nil {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			if err == sql.ErrNoRows {
+				http.Error(w, "Course not found", http.StatusNotFound)
+			} else {
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			}
 			return
 		}
+
 
 		if courseOwnerID != lecturerID {
 			http.Error(w, "Forbidden - the course isn't yours", http.StatusForbidden)
