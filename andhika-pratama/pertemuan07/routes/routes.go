@@ -2,12 +2,23 @@ package routes
 
 import (
 	"pertemuan05/controllers"
+	"pertemuan05/middlewares"
 	"pertemuan05/utils"
-	
+
 	"net/http"
 )
 
+func withAuth(handler http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		utils.ApplyMiddlewares(handler, middleware.AuthMiddleware).ServeHTTP(w, r)
+	}
+}
 
+func withAdminAuth(handler http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		utils.ApplyMiddlewares(handler, middleware.AuthMiddleware, middleware.AdminMiddleware).ServeHTTP(w, r)
+	}
+}
 
 func RoutesHandlers() {
 	http.HandleFunc("/login", controllers.LoginHandler)
@@ -22,9 +33,9 @@ func RoutesHandlers() {
 func lecturersHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		controllers.GetLecturers(w, r)
+		withAdminAuth(controllers.GetLecturers)(w, r)
 	case http.MethodPost:
-		controllers.CreateLecturer(w, r)
+		withAdminAuth(controllers.CreateLecturer)(w, r)
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
@@ -34,15 +45,22 @@ func lecturersHandlerWithID(w http.ResponseWriter, r *http.Request) {
 	parts, err := utils.SplitPath(r.URL.Path)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 	id := parts[2]
 	switch r.Method {
 	case http.MethodGet:
-		controllers.GetLecturerByID(w, r, id)
+		withAdminAuth(func(w http.ResponseWriter, r *http.Request) {
+			controllers.GetLecturerByID(w, r, id)
+		})(w, r)
 	case http.MethodPatch:
-		controllers.UpdateLecturer(w, r, id)
+		withAdminAuth(func(w http.ResponseWriter, r *http.Request) {
+			controllers.UpdateLecturer(w, r, id)
+		})(w, r)
 	case http.MethodDelete:
-		controllers.DeleteLecturer(w, r, id)
+		withAdminAuth(func(w http.ResponseWriter, r *http.Request) {
+			controllers.DeleteLecturer(w, r, id)
+		})(w, r)
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
@@ -51,9 +69,9 @@ func lecturersHandlerWithID(w http.ResponseWriter, r *http.Request) {
 func coursesHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		controllers.GetCourses(w, r)
+		withAuth(controllers.GetCourses)(w, r)
 	case http.MethodPost:
-		controllers.CreateCourse(w, r)
+		withAuth(controllers.CreateCourse)(w, r)
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
@@ -63,15 +81,22 @@ func coursesHandlerWithID(w http.ResponseWriter, r *http.Request) {
 	parts, err := utils.SplitPath(r.URL.Path)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 	id := parts[2]
 	switch r.Method {
 	case http.MethodGet:
-		controllers.GetCourseByID(w, r, id)
+		withAuth(func(w http.ResponseWriter, r *http.Request) {
+			controllers.GetCourseByID(w, r, id)
+		})(w, r)
 	case http.MethodPatch:
-		controllers.UpdateCourse(w, r, id)
+		withAuth(func(w http.ResponseWriter, r *http.Request) {
+			controllers.UpdateCourse(w, r, id)
+		})(w, r)
 	case http.MethodDelete:
-		controllers.DeleteCourse(w, r, id)
+		withAuth(func(w http.ResponseWriter, r *http.Request) {
+			controllers.DeleteCourse(w, r, id)
+		})(w, r)
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
@@ -86,7 +111,9 @@ func coursesByLecturerHandler(w http.ResponseWriter, r *http.Request) {
 	lecturerID := parts[2]
 	switch r.Method {
 	case http.MethodGet:
-		controllers.GetCoursesByLecturer(w, r, lecturerID)
+		withAuth(func(w http.ResponseWriter, r *http.Request) {
+			controllers.GetCoursesByLecturer(w, r, lecturerID)
+		})(w, r)
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
@@ -101,7 +128,10 @@ func lecturersByCityHandler(w http.ResponseWriter, r *http.Request) {
 	city := parts[2]
 	switch r.Method {
 	case http.MethodGet:
-		controllers.GetLecturersByCity(w, r, city)
+		withAuth(func(w http.ResponseWriter, r *http.Request) {
+			controllers.GetLecturersByCity(w, r, city)
+		})(w, r)
+		
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
