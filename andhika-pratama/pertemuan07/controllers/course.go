@@ -11,7 +11,9 @@ import (
 )
 
 func GetCourses(w http.ResponseWriter, r *http.Request) {
-	rows, err := database.DB.Query("SELECT course_id, course_name, lecturer_id, semester, credit FROM courses WHERE deleted_at IS NULL")
+	ctxLecturerID := r.Context().Value(utils.LecturerIDKey).(string)
+
+	rows, err := database.DB.Query("SELECT course_id, course_name, lecturer_id, semester, credit FROM courses WHERE lecturer_id = ? AND deleted_at IS NULL", ctxLecturerID)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -55,6 +57,8 @@ func GetCourseByID(w http.ResponseWriter, r *http.Request, id string) {
 }
 
 func CreateCourse(w http.ResponseWriter, r *http.Request) {
+	ctxLecturerID := r.Context().Value(utils.LecturerIDKey).(string)
+
 	err := r.ParseForm()
 	if err != nil {
 		http.Error(w, "Failed to parse form data", http.StatusBadRequest)
@@ -64,12 +68,12 @@ func CreateCourse(w http.ResponseWriter, r *http.Request) {
 	course := models.Course{
 		CourseID:   r.FormValue("course_id"),
 		CourseName: r.FormValue("course_name"),
-		LecturerID: r.FormValue("lecturer_id"),
+		LecturerID: ctxLecturerID,
 		Semester:   utils.Atoi(r.FormValue("semester")),
 		Credit:     utils.Atoi(r.FormValue("credit")),
 	}
 
-	if course.CourseID == "" || course.CourseName == "" || course.LecturerID == "" {
+	if course.CourseID == "" || course.CourseName == "" {
 		http.Error(w, "Missing required fields", http.StatusBadRequest)
 		return
 	}
