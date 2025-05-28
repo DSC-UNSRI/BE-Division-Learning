@@ -21,7 +21,8 @@ func withAdminAuth(handler http.HandlerFunc) http.HandlerFunc {
 }
 
 func RoutesHandlers() {
-	http.HandleFunc("/login", controllers.LoginHandler)
+	http.HandleFunc("/register", controllers.Register)
+	http.HandleFunc("/login", controllers.Login)
 	http.HandleFunc("/lecturers", lecturersHandler)
 	http.HandleFunc("/lecturers/", lecturersHandlerWithID)
 	http.HandleFunc("/courses", coursesHandler)
