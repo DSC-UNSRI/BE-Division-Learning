@@ -5,7 +5,6 @@ import (
 	"pertemuan05/models"
 	"pertemuan05/utils"
 
-	"database/sql"
 	"encoding/json"
 	"net/http"
 )
@@ -44,11 +43,7 @@ func GetCourseByID(w http.ResponseWriter, r *http.Request, id string) {
 		Scan(&course.CourseID, &course.CourseName, &course.LecturerID, &course.Semester, &course.Credit)
 
 	if err != nil {
-		if err == sql.ErrNoRows {
-			http.Error(w, "Course not found", http.StatusNotFound)
-		} else {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -123,16 +118,14 @@ func UpdateCourse(w http.ResponseWriter, r *http.Request, id string) {
 		return
 	}
 
+	ctxLecturerID := r.Context().Value(utils.LecturerIDKey).(string)
+
 	course := models.Course{}
-	err := database.DB.QueryRow("SELECT course_id, course_name, lecturer_id, semester, credit FROM courses WHERE course_id = ? AND deleted_at IS NULL", id).
+	err := database.DB.QueryRow("SELECT course_id, course_name, lecturer_id, semester, credit FROM courses WHERE course_id = ? AND lecturer_id = ? AND deleted_at IS NULL", id, ctxLecturerID).
 		Scan(&course.CourseID, &course.CourseName, &course.LecturerID, &course.Semester, &course.Credit)
 
 	if err != nil {
-		if err == sql.ErrNoRows {
-			http.Error(w, "Course not found", http.StatusNotFound)
-		} else {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -145,19 +138,6 @@ func UpdateCourse(w http.ResponseWriter, r *http.Request, id string) {
 	if name := r.FormValue("course_name"); name != "" {
 		course.CourseName = name
 	}
-	if lecturerID := r.FormValue("lecturer_id"); lecturerID != "" {
-		var exists bool
-		err = database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM lecturers WHERE lecturer_id = ? AND deleted_at IS NULL)", lecturerID).Scan(&exists)
-		if err != nil {
-			http.Error(w, "Database error while validating lecturer", http.StatusInternalServerError)
-			return
-		}
-		if !exists {
-			http.Error(w, "Lecturer not found", http.StatusBadRequest)
-			return
-		}
-		course.LecturerID = lecturerID
-	}
 	if sem := r.FormValue("semester"); sem != "" {
 		course.Semester = utils.Atoi(sem)
 	}
@@ -166,10 +146,10 @@ func UpdateCourse(w http.ResponseWriter, r *http.Request, id string) {
 	}
 
 	_, err = database.DB.Exec(`
-		UPDATE courses 
-		SET course_name = ?, lecturer_id = ?, semester = ?, credit = ?
-		WHERE course_id = ? AND deleted_at IS NULL`,
-		course.CourseName, course.LecturerID, course.Semester, course.Credit, id)
+		UPDATE courses
+		SET course_name = ?, semester = ?, credit = ?
+		WHERE course_id = ? AND lecturer_id = ? AND deleted_at IS NULL`,
+		course.CourseName, course.Semester, course.Credit, id, ctxLecturerID)
 
 	if err != nil {
 		http.Error(w, "Failed to update course", http.StatusInternalServerError)
@@ -189,18 +169,9 @@ func DeleteCourse(w http.ResponseWriter, r *http.Request, id string) {
 		return
 	}
 
-	var exists bool
-	err := database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM courses WHERE course_id = ? AND deleted_at IS NULL)", id).Scan(&exists)
-	if err != nil {
-		http.Error(w, "Database error", http.StatusInternalServerError)
-		return
-	}
-	if !exists {
-		http.Error(w, "Course not found", http.StatusNotFound)
-		return
-	}
+	ctxLecturerID := r.Context().Value(utils.LecturerIDKey).(string)
 
-	_, err = database.DB.Exec("UPDATE courses SET deleted_at = NOW() WHERE course_id = ?", id)
+	_, err := database.DB.Exec("UPDATE courses SET deleted_at = NOW() WHERE course_id = ? AND lecturer_id = ?", id, ctxLecturerID)
 	if err != nil {
 		http.Error(w, "Failed to delete course", http.StatusInternalServerError)
 		return
