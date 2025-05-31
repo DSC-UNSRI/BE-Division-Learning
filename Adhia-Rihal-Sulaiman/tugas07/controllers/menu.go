@@ -20,7 +20,7 @@ func GetMenus(w http.ResponseWriter, r *http.Request) {
 	menus := []models.Menu{}
 	for rows.Next() {
 		menu := models.Menu{}
-		rows.Scan(&menu.ID, &menu.Name, &menu.Description, &menu.Price, &menu.ChefID, &menu.Category)
+		rows.Scan(&menu.MenuID, &menu.Name, &menu.Description, &menu.Price, &menu.ChefID, &menu.Category)
 		menus = append(menus, menu)
 	}
 
@@ -38,7 +38,7 @@ func GetMenuByID(w http.ResponseWriter, r *http.Request, id string) {
 
     var menu models.Menu
     err := database.DB.QueryRow("SELECT id, name, description, price, chef_id, category FROM menus WHERE id = ? AND deleted_at IS NULL", id).Scan(
-        &menu.ID, &menu.Name, &menu.Description, &menu.Price, &menu.ChefID, &menu.Category)
+        &menu.MenuID, &menu.Name, &menu.Description, &menu.Price, &menu.ChefID, &menu.Category)
 
     if err != nil {
         if err == sql.ErrNoRows {
@@ -84,7 +84,7 @@ func CreateMenu(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id, _ := res.LastInsertId()
-	menu.ID = int(id)
+	menu.MenuID = int(id)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
@@ -100,7 +100,7 @@ func UpdateMenu(w http.ResponseWriter, r *http.Request, id string) {
 	}
 
 	menu := models.Menu{}
-	err := database.DB.QueryRow("SELECT id, name, description, price, chef_id, category FROM menus WHERE id = ? AND deleted_at IS NULL", id).Scan(&menu.ID, &menu.Name, &menu.Description, &menu.Price, &menu.ChefID, &menu.Category)
+	err := database.DB.QueryRow("SELECT id, name, description, price, chef_id, category FROM menus WHERE id = ? AND deleted_at IS NULL", id).Scan(&menu.MenuID, &menu.Name, &menu.Description, &menu.Price, &menu.ChefID, &menu.Category)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, "Menu not found", http.StatusNotFound)
@@ -219,7 +219,7 @@ func GetMenusByChef(w http.ResponseWriter, r *http.Request, chefID string) {
     menus := []models.Menu{}
     for rows.Next() {
         menu := models.Menu{}
-        err := rows.Scan(&menu.ID, &menu.Name, &menu.Description, &menu.Price, &menu.Category, &menu.ChefID)
+        err := rows.Scan(&menu.MenuID, &menu.Name, &menu.Description, &menu.Price, &menu.Category, &menu.ChefID)
         if err != nil {
             http.Error(w, "Failed to scan menu data", http.StatusInternalServerError)
             return
@@ -259,7 +259,7 @@ func GetMenusByCategory(w http.ResponseWriter, r *http.Request, category string)
     menus := []models.Menu{}
     for rows.Next() {
         menu := models.Menu{}
-        err := rows.Scan(&menu.ID, &menu.Name, &menu.Description, &menu.Price, &menu.ChefID, &menu.Category)
+        err := rows.Scan(&menu.MenuID, &menu.Name, &menu.Description, &menu.Price, &menu.ChefID, &menu.Category)
         if err != nil {
             http.Error(w, "Failed to scan menu data", http.StatusInternalServerError)
             return
