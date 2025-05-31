@@ -45,11 +45,40 @@ func AuthMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func AdminMiddleware(next http.Handler) http.Handler {
+func HeadMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		role := r.Context().Value(utils.RoleKey)
 		if role == nil || role.(string) != "head" {
 			http.Error(w, "Forbidden - Head chef access only hahahah", http.StatusForbidden)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func CourseOwnershipMiddleware(next http.Handler, MenuID string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctxChefID := r.Context().Value(utils.ChefIDKey)
+		ChefID, ok := ctxChefID.(string)
+		if !ok || ChefID == "" {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		if MenuID == "" {
+			http.Error(w, "menu_id is null", http.StatusBadRequest)
+			return
+		}
+
+		var courseOwnerID string
+		err := database.DB.QueryRow("SELECT chef_id FROM menus WHERE menu_id = ? AND deleted_at IS NULL", MenuID).Scan(&courseOwnerID)
+		if err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
+		if courseOwnerID != ChefID {
+			http.Error(w, "Forbidden - the menu isn't yours", http.StatusForbidden)
 			return
 		}
 

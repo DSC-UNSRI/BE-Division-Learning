@@ -2,7 +2,7 @@ package routes
 
 import (
 	"be_pert7/controllers"
-	middleware "be_pert7/middlewares"
+	"be_pert7/middlewares"
 	"be_pert7/utils"
 	"net/http"
 )
@@ -13,9 +13,24 @@ func withAuth(handler http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func withAdminAuth(handler http.HandlerFunc) http.HandlerFunc {
+func withOwnAuth(handler func(http.ResponseWriter, *http.Request, string), id string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		utils.ApplyMiddlewares(handler, middleware.AuthMiddleware, middleware.AdminMiddleware).ServeHTTP(w, r)
+		wrappedControllerHandler := http.HandlerFunc(func(innerW http.ResponseWriter, innerR *http.Request) {
+			handler(innerW, innerR, id)
+		})
+
+		middlewareChain := middleware.CourseOwnershipMiddleware(
+			wrappedControllerHandler,
+			id,
+		)
+
+		utils.ApplyMiddlewares(middlewareChain, middleware.AuthMiddleware).ServeHTTP(w, r)
+	}
+}
+
+func withHeadAuth(handler http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		utils.ApplyMiddlewares(handler, middleware.AuthMiddleware, middleware.HeadMiddleware).ServeHTTP(w, r)
 	}
 }
 
@@ -38,9 +53,9 @@ func AuthRoutes() {
 func chefsHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		withAdminAuth(controllers.GetChefs)(w, r)
+		withHeadAuth(controllers.GetChefs)(w, r)
 	case http.MethodPost:
-		withAdminAuth(controllers.CreateChef)(w, r)
+		withHeadAuth(controllers.CreateChef)(w, r)
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
@@ -55,15 +70,15 @@ func chefsHandlerWithID(w http.ResponseWriter, r *http.Request) {
 	id := parts[2]
 	switch r.Method {
 	case http.MethodGet:
-		withAdminAuth(func(w http.ResponseWriter, r *http.Request) {
+		withHeadAuth(func(w http.ResponseWriter, r *http.Request) {
 			controllers.GetChefByID(w, r, id)
 		})(w, r)
 	case http.MethodPatch:
-		withAdminAuth(func(w http.ResponseWriter, r *http.Request) {
+		withHeadAuth(func(w http.ResponseWriter, r *http.Request) {
 			controllers.UpdateChef(w, r, id)
 		})(w, r)
 	case http.MethodDelete:
-		withAdminAuth(func(w http.ResponseWriter, r *http.Request) {
+		withHeadAuth(func(w http.ResponseWriter, r *http.Request) {
 			controllers.DeleteChef(w, r, id)
 		})(w, r)
 	default:
@@ -91,17 +106,11 @@ func menusHandlerWithID(w http.ResponseWriter, r *http.Request) {
 	id := parts[2]
 	switch r.Method {
 	case http.MethodGet:
-		withAuth(func(w http.ResponseWriter, r *http.Request) {
-			controllers.GetMenuByID(w, r, id)
-		})(w, r)
+		withOwnAuth(controllers.GetMenuByID, id)(w, r)
 	case http.MethodPatch:
-		withAuth(func(w http.ResponseWriter, r *http.Request) {
-			controllers.UpdateMenu(w, r, id)
-		})(w, r)
+		withOwnAuth(controllers.UpdateMenu, id)(w, r)
 	case http.MethodDelete:
-		withAuth(func(w http.ResponseWriter, r *http.Request) {
-			controllers.DeleteMenu(w, r, id)
-		})(w, r)
+		withOwnAuth(controllers.DeleteMenu, id)(w, r)
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
