@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"golang.org/x/crypto/bcrypt"
+	"fmt"
 )
 
 func Register(w http.ResponseWriter, r *http.Request) {
@@ -21,8 +22,9 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var exists bool
-	err := database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM chefs WHERE chefs_id = ? AND deleted_at IS NULL)", ChefID).Scan(&exists)
+	err := database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM chefs WHERE chef_id = ? AND deleted_at IS NULL)", ChefID).Scan(&exists)
 	if err != nil {
+		fmt.Println("Error saat memeriksa keberadaan Chef ID:", err)
 		http.Error(w, "Database error checking Chef ID existence", http.StatusInternalServerError)
 		return
 	}
