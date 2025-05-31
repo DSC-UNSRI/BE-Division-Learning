@@ -47,8 +47,9 @@ func MenuRoutes() {
 }
 
 func AuthRoutes() {
-
-}
+	http.HandleFunc("/register", controllers.Register)
+	http.HandleFunc("/login", controllers.Login)
+}	
 
 func chefsHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
