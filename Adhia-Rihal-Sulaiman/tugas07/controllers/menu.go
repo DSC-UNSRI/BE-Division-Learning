@@ -3,6 +3,7 @@ package controllers
 import (
 	"be_pert7/database"
 	"be_pert7/models"
+	"be_pert7/utils"
 	"database/sql"
 	"encoding/json"
 	"net/http"
@@ -10,7 +11,9 @@ import (
 )
 
 func GetMenus(w http.ResponseWriter, r *http.Request) {
-	rows, err := database.DB.Query("SELECT id, name, description, price, chef_id, category FROM menus WHERE deleted_at IS NULL")
+	ctxChefID := r.Context().Value(utils.ChefIDKey).(string)
+
+	rows, err := database.DB.Query("SELECT menu_id, menu_name, description, price, chef_id, category FROM menus WHERE deleted_at IS NULL", ctxChefID)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -31,40 +34,39 @@ func GetMenus(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetMenuByID(w http.ResponseWriter, r *http.Request, id string) {
-    if id == "" {
-        http.Error(w, "Menu ID is required", http.StatusBadRequest)
-        return
-    }
-
-    var menu models.Menu
-    err := database.DB.QueryRow("SELECT id, name, description, price, chef_id, category FROM menus WHERE id = ? AND deleted_at IS NULL", id).Scan(
-        &menu.MenuID, &menu.Name, &menu.Description, &menu.Price, &menu.ChefID, &menu.Category)
-
-    if err != nil {
-        if err == sql.ErrNoRows {
-            http.Error(w, "Menu not found", http.StatusNotFound)
-        } else {
-            http.Error(w, err.Error(), http.StatusInternalServerError)
-        }
-        return
-    }
-
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(map[string]interface{}{
-        "menu": menu,
-    })
-}
-
-
-func CreateMenu(w http.ResponseWriter, r *http.Request) {
-	menu := models.Menu{}
-	err := r.ParseForm() //pakai Multipart jika ada file
-	if err != nil {
-		http.Error(w, "failed to parse form data", http.StatusBadRequest)
+	if id == "" {
+		http.Error(w, "Menu ID is required", http.StatusBadRequest)
 		return
 	}
 
-	menu.Name = r.FormValue("name")
+	var menu models.Menu
+	err := database.DB.QueryRow("SELECT menu_id, menu_name, description, price, chef_id, category FROM menus WHERE menu_id = ? AND deleted_at IS NULL", id).Scan(
+		&menu.MenuID, &menu.Name, &menu.Description, &menu.Price, &menu.ChefID, &menu.Category)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Menu not found", http.StatusNotFound)
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"menu": menu,
+	})
+}
+
+func CreateMenu(w http.ResponseWriter, r *http.Request) {
+	menu := models.Menu{}
+	err := r.ParseForm() 
+	if err != nil {
+		http.Error(w, "Failed to parse form data"+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	menu.Name = r.FormValue("menu_name")
 	menu.Description = r.FormValue("description")
 	menu.Price, err = strconv.Atoi(r.FormValue("price"))
 	if err != nil {
@@ -78,9 +80,9 @@ func CreateMenu(w http.ResponseWriter, r *http.Request) {
 	}
 	menu.Category = r.FormValue("category")
 
-	res, err := database.DB.Exec("INSERT INTO menus (name, description, price, chef_id, category) VALUES (?, ?, ?, ?, ?)", menu.Name, menu.Description, menu.Price, menu.ChefID, menu.Category)
+	res, err := database.DB.Exec("INSERT INTO menus (menu_name, description, price, chef_id, category) VALUES (?, ?, ?, ?, ?)", menu.Name, menu.Description, menu.Price, menu.ChefID, menu.Category)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Failed to create menu: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	id, _ := res.LastInsertId()
@@ -88,19 +90,19 @@ func CreateMenu(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"message": "menu successfully created",
+		"message": "Menu successfully created",
 		"menu":    menu,
 	})
 }
 
 func UpdateMenu(w http.ResponseWriter, r *http.Request, id string) {
 	if id == "" {
-		http.Error(w, "id is null", http.StatusBadRequest)
+		http.Error(w, "Menu id is null", http.StatusBadRequest)
 		return
 	}
 
 	menu := models.Menu{}
-	err := database.DB.QueryRow("SELECT id, name, description, price, chef_id, category FROM menus WHERE id = ? AND deleted_at IS NULL", id).Scan(&menu.MenuID, &menu.Name, &menu.Description, &menu.Price, &menu.ChefID, &menu.Category)
+	err := database.DB.QueryRow("SELECT menu_id, menu_name, description, price, chef_id, category FROM menus WHERE menu_id = ? AND deleted_at IS NULL", id).Scan(&menu.MenuID, &menu.Name, &menu.Description, &menu.Price, &menu.ChefID, &menu.Category)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, "Menu not found", http.StatusNotFound)
@@ -112,11 +114,11 @@ func UpdateMenu(w http.ResponseWriter, r *http.Request, id string) {
 
 	err = r.ParseForm()
 	if err != nil {
-		http.Error(w, "failed to parse form data", http.StatusBadRequest)
+		http.Error(w, "failed to parse form data"+err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	name := r.FormValue("name")
+	name := r.FormValue("menu_name")
 	description := r.FormValue("description")
 	price, err := strconv.Atoi(r.FormValue("price"))
 	if err != nil {
@@ -146,9 +148,9 @@ func UpdateMenu(w http.ResponseWriter, r *http.Request, id string) {
 		menu.Category = category
 	}
 
-	_, err = database.DB.Exec("UPDATE menus SET name = ?, description = ?, price = ?, chef_id = ?, category = ? WHERE id = ? AND deleted_at IS NULL", menu.Name, menu.Description, menu.Price, menu.ChefID, menu.Category, id)
+	_, err = database.DB.Exec("UPDATE menus SET menu_name = ?, description = ?, price = ?, chef_id = ?, category = ? WHERE menu_id = ? AND deleted_at IS NULL", menu.Name, menu.Description, menu.Price, menu.ChefID, menu.Category, id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w,"Failed to update menu :"+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -161,12 +163,12 @@ func UpdateMenu(w http.ResponseWriter, r *http.Request, id string) {
 
 func DeleteMenu(w http.ResponseWriter, r *http.Request, id string) {
 	if id == "" {
-		http.Error(w, "id is null", http.StatusBadRequest)
+		http.Error(w, "menu_id is required", http.StatusBadRequest)
 		return
 	}
 
 	var exists bool
-	err := database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM menus WHERE id = ? AND deleted_at IS NULL)", id).Scan(&exists)
+	err := database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM menus WHERE menu_id = ? AND deleted_at IS NULL)", id).Scan(&exists)
 	if err != nil {
 		http.Error(w, "database error", http.StatusInternalServerError)
 		return
@@ -177,12 +179,11 @@ func DeleteMenu(w http.ResponseWriter, r *http.Request, id string) {
 		return
 	}
 
-	_, err = database.DB.Exec("UPDATE menus SET deleted_at = NOW() WHERE id = ?", id)
+	_, err = database.DB.Exec("UPDATE menus SET deleted_at = NOW() WHERE menu_id = ?", id)
 	if err != nil {
 		http.Error(w, "failed to delete menu", http.StatusInternalServerError)
 		return
 	}
-	
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
@@ -193,91 +194,88 @@ func DeleteMenu(w http.ResponseWriter, r *http.Request, id string) {
 
 func GetMenusByChef(w http.ResponseWriter, r *http.Request, chefID string) {
 
-    var exists bool
-    err := database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM chefs WHERE id = ? AND deleted_at IS NULL)", chefID).Scan(&exists)
-    if err != nil {
-        http.Error(w, "Database error while validating chef", http.StatusInternalServerError)
-        return
-    }
-    
-    if !exists {
-        http.Error(w, "Chef not found", http.StatusNotFound)
-        return
-    }
+	var exists bool
+	err := database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM chefs WHERE chef_id = ? AND deleted_at IS NULL)", chefID).Scan(&exists)
+	if err != nil {
+		http.Error(w, "Database error while validating chef", http.StatusInternalServerError)
+		return
+	}
 
-    rows, err := database.DB.Query(`
-        SELECT id, name, description, price, category, chef_id 
+	if !exists {
+		http.Error(w, "Chef not found", http.StatusNotFound)
+		return
+	}
+
+	rows, err := database.DB.Query(`
+        SELECT menu_id, menu_name, description, price, category, chef_id 
         FROM menus 
         WHERE chef_id = ? AND deleted_at IS NULL`, chefID)
-    
-    if err != nil {
-        http.Error(w, "Database error while retrieving menus", http.StatusInternalServerError)
-        return
-    }
-    defer rows.Close()
 
-    menus := []models.Menu{}
-    for rows.Next() {
-        menu := models.Menu{}
-        err := rows.Scan(&menu.MenuID, &menu.Name, &menu.Description, &menu.Price, &menu.Category, &menu.ChefID)
-        if err != nil {
-            http.Error(w, "Failed to scan menu data", http.StatusInternalServerError)
-            return
-        }
-        menus = append(menus, menu)
-    }
+	if err != nil {
+		http.Error(w, "Database error while retrieving menus", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
 
-    if len(menus) == 0 {
-        http.Error(w, "Chef has no assigned menus", http.StatusOK)
-        return
-    }
+	menus := []models.Menu{}
+	for rows.Next() {
+		menu := models.Menu{}
+		err := rows.Scan(&menu.MenuID, &menu.Name, &menu.Description, &menu.Price, &menu.Category, &menu.ChefID)
+		if err != nil {
+			http.Error(w, "Failed to scan menu data", http.StatusInternalServerError)
+			return
+		}
+		menus = append(menus, menu)
+	}
 
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(map[string]interface{}{
-        "chef_id": chefID,
-        "menus":   menus,
-    })
+	if len(menus) == 0 {
+		http.Error(w, "Chef has no assigned menus", http.StatusOK)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"chef_id": chefID,
+		"menus":   menus,
+	})
 }
 
 func GetMenusByCategory(w http.ResponseWriter, r *http.Request, category string) {
-    if category == "" {
-        http.Error(w, "Category is required", http.StatusBadRequest)
-        return
-    }
+	if category == "" {
+		http.Error(w, "Category is required", http.StatusBadRequest)
+		return
+	}
 
-    rows, err := database.DB.Query(`
-        SELECT id, name, description, price, chef_id, category 
+	rows, err := database.DB.Query(`
+        SELECT menu_id, menu_name, description, price, chef_id, category 
         FROM menus 
         WHERE category = ? AND deleted_at IS NULL`, category)
 
-    if err != nil {
-        http.Error(w, "Database error while retrieving menus", http.StatusInternalServerError)
-        return
-    }
-    defer rows.Close()
+	if err != nil {
+		http.Error(w, "Database error while retrieving menus", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
 
-    menus := []models.Menu{}
-    for rows.Next() {
-        menu := models.Menu{}
-        err := rows.Scan(&menu.MenuID, &menu.Name, &menu.Description, &menu.Price, &menu.ChefID, &menu.Category)
-        if err != nil {
-            http.Error(w, "Failed to scan menu data", http.StatusInternalServerError)
-            return
-        }
-        menus = append(menus, menu)
-    }
+	menus := []models.Menu{}
+	for rows.Next() {
+		menu := models.Menu{}
+		err := rows.Scan(&menu.MenuID, &menu.Name, &menu.Description, &menu.Price, &menu.ChefID, &menu.Category)
+		if err != nil {
+			http.Error(w, "Failed to scan menu data", http.StatusInternalServerError)
+			return
+		}
+		menus = append(menus, menu)
+	}
 
-    if len(menus) == 0 {
-        http.Error(w, "No menus found for this category", http.StatusNotFound)
-        return
-    }
+	if len(menus) == 0 {
+		http.Error(w, "No menus found for this category", http.StatusNotFound)
+		return
+	}
 
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(map[string]interface{}{
-        "category": category,
-        "menus":    menus,
-    })
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"category": category,
+		"menus":    menus,
+	})
 }
-
-
-

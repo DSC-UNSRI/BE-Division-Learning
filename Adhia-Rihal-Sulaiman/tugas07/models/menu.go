@@ -3,7 +3,7 @@ package models
 import "time"
 
 type Menu struct {
-	MenuID          int        `json:"menu_id"`
+	MenuID      int        `json:"menu_id"`
 	Name        string     `json:"menu_name"`
 	Description string     `json:"description"`
 	Price       int        `json:"price"`
