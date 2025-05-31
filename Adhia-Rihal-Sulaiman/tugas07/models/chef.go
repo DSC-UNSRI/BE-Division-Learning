@@ -16,8 +16,8 @@ type Chef struct {
 
 var ChefQuery = `
 	CREATE TABLE IF NOT EXISTS chefs (
-		id INT AUTO_INCREMENT PRIMARY KEY,
-		name VARCHAR(30) NOT NULL,
+		chef_id INT AUTO_INCREMENT PRIMARY KEY,
+		chef_name VARCHAR(30) NOT NULL,
 		speciality VARCHAR(30),
 		experience INT,
 		username VARCHAR(30) NOT NULL,

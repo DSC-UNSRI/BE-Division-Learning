@@ -3,8 +3,8 @@ package models
 import "time"
 
 type Menu struct {
-	ID          int        `json:"id"`
-	Name        string     `json:"name"`
+	MenuID          int        `json:"menu_id"`
+	Name        string     `json:"menu_name"`
 	Description string     `json:"description"`
 	Price       int        `json:"price"`
 	ChefID      int        `json:"chef_id"`
@@ -14,8 +14,8 @@ type Menu struct {
 
 var MenuQuery = `
 	CREATE TABLE IF NOT EXISTS menus (
-		id INT AUTO_INCREMENT PRIMARY KEY,
-		name VARCHAR(30) NOT NULL,
+		menu_id INT AUTO_INCREMENT PRIMARY KEY,
+		menu_name VARCHAR(30) NOT NULL,
 		description VARCHAR(60),
 		price INT NOT NULL,
 		chef_id INT,
