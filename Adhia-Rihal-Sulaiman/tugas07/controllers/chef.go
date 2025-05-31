@@ -20,7 +20,7 @@ func GetChefs(w http.ResponseWriter, r *http.Request) {
 	chefs := []models.Chef{}
 	for rows.Next() {
 		chef := models.Chef{}
-		if err := rows.Scan(&chef.ID, &chef.Name, &chef.Speciality, &chef.Experience, &chef.Username); err != nil {
+		if err := rows.Scan(&chef.ChefID, &chef.Name, &chef.Speciality, &chef.Experience, &chef.Username); err != nil {
 			http.Error(w, err.Error(), 500)
 			return
 		}
@@ -39,7 +39,7 @@ func GetChefByID(w http.ResponseWriter, r *http.Request, id string) {
 
     var chef models.Chef
     err := database.DB.QueryRow("SELECT id, name, speciality, experience, username FROM chefs WHERE id = ? AND deleted_at IS NULL", id).Scan(
-        &chef.ID, &chef.Name, &chef.Speciality, &chef.Experience, &chef.Username)
+        &chef.ChefID, &chef.Name, &chef.Speciality, &chef.Experience, &chef.Username)
 
     if err != nil {
         if err == sql.ErrNoRows {
@@ -85,7 +85,7 @@ func CreateChef(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id, _ := res.LastInsertId()
-	chef.ID = int(id)
+	chef.ChefID = int(id)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
@@ -102,7 +102,7 @@ func UpdateChef(w http.ResponseWriter, r *http.Request, id string) {
 
 	chef := models.Chef{}
 	err := database.DB.QueryRow("SELECT id, name, speciality, experience, username FROM chefs WHERE id = ? AND deleted_at IS NULL", id).
-		Scan(&chef.ID, &chef.Name, &chef.Speciality, &chef.Experience, &chef.Username)
+		Scan(&chef.ChefID, &chef.Name, &chef.Speciality, &chef.Experience, &chef.Username)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, "Chef not found", http.StatusNotFound)

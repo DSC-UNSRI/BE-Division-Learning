@@ -32,7 +32,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	err = database.DB.QueryRow(`
 		SELECT id, name, speciality, experience, username, password FROM chefs 
 		WHERE username = ? AND deleted_at IS NULL
-	`, username).Scan(&chef.ID, &chef.Name, &chef.Speciality, &chef.Experience, &chef.Username, &chef.Password)
+	`, username).Scan(&chef.ChefID, &chef.Name, &chef.Speciality, &chef.Experience, &chef.Username, &chef.Password)
 	
 	if err != nil {
 		if err == sql.ErrNoRows {
