@@ -4,6 +4,7 @@ import (
 	"be_pert7/database"
 	"be_pert7/utils"
 
+	"database/sql"
 	"context"
 	"net/http"
 )
@@ -73,7 +74,11 @@ func CourseOwnershipMiddleware(next http.Handler, MenuID string) http.Handler {
 		var courseOwnerID string
 		err := database.DB.QueryRow("SELECT chef_id FROM menus WHERE menu_id = ? AND deleted_at IS NULL", MenuID).Scan(&courseOwnerID)
 		if err != nil {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			if err == sql.ErrNoRows {
+				http.Error(w, "Chef not found", http.StatusNotFound)
+			} else {
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			}
 			return
 		}
 
