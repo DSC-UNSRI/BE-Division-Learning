@@ -32,7 +32,7 @@ func MenuRoutes() {
 }
 
 func AuthRoutes() {
-	http.HandleFunc("/login", controllers.LoginHandler)
+
 }
 
 func chefsHandler(w http.ResponseWriter, r *http.Request) {
