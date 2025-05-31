@@ -23,6 +23,6 @@ var ChefQuery = `
 		username VARCHAR(30) NOT NULL,
 		password VARCHAR(100) NOT NULL,
 		token VARCHAR(255) NOT NULL,
-		role ENUM('old', 'new') NOT NULL DEFAULT 'new',
+		role ENUM('head', 'rookie') NOT NULL DEFAULT 'rookie',
 		deleted_at TIMESTAMP NULL DEFAULT NULL
 	);`
