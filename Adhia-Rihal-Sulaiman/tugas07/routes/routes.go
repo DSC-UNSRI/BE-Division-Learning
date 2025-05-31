@@ -2,9 +2,22 @@ package routes
 
 import (
 	"be_pert7/controllers"
+	middleware "be_pert7/middlewares"
 	"be_pert7/utils"
 	"net/http"
 )
+
+func withAuth(handler http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		utils.ApplyMiddlewares(handler, middleware.AuthMiddleware).ServeHTTP(w, r)
+	}
+}
+
+func withAdminAuth(handler http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		utils.ApplyMiddlewares(handler, middleware.AuthMiddleware, middleware.AdminMiddleware).ServeHTTP(w, r)
+	}
+}
 
 func ChefRoutes() {
 	http.HandleFunc("/chefs", chefsHandler)
@@ -25,9 +38,9 @@ func AuthRoutes() {
 func chefsHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		controllers.GetChefs(w, r)
+		withAdminAuth(controllers.GetChefs)(w, r)
 	case http.MethodPost:
-		controllers.CreateChef(w, r)
+		withAdminAuth(controllers.CreateChef)(w, r)
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
@@ -42,11 +55,17 @@ func chefsHandlerWithID(w http.ResponseWriter, r *http.Request) {
 	id := parts[2]
 	switch r.Method {
 	case http.MethodGet:
-		controllers.GetChefByID(w, r, id)
+		withAdminAuth(func(w http.ResponseWriter, r *http.Request) {
+			controllers.GetChefByID(w, r, id)
+		})(w, r)
 	case http.MethodPatch:
-		controllers.UpdateChef(w, r, id)
+		withAdminAuth(func(w http.ResponseWriter, r *http.Request) {
+			controllers.UpdateChef(w, r, id)
+		})(w, r)
 	case http.MethodDelete:
-		controllers.DeleteChef(w, r, id)
+		withAdminAuth(func(w http.ResponseWriter, r *http.Request) {
+			controllers.DeleteChef(w, r, id)
+		})(w, r)
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
@@ -55,9 +74,9 @@ func chefsHandlerWithID(w http.ResponseWriter, r *http.Request) {
 func menusHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		controllers.GetMenus(w, r)
+		withAuth(controllers.GetMenus)(w, r)
 	case http.MethodPost:
-		controllers.CreateMenu(w, r)
+		withAuth(controllers.CreateMenu)(w, r)
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
@@ -72,11 +91,17 @@ func menusHandlerWithID(w http.ResponseWriter, r *http.Request) {
 	id := parts[2]
 	switch r.Method {
 	case http.MethodGet:
-		controllers.GetMenuByID(w, r, id)
+		withAuth(func(w http.ResponseWriter, r *http.Request) {
+			controllers.GetMenuByID(w, r, id)
+		})(w, r)
 	case http.MethodPatch:
-		controllers.UpdateMenu(w, r, id)
+		withAuth(func(w http.ResponseWriter, r *http.Request) {
+			controllers.UpdateMenu(w, r, id)
+		})(w, r)
 	case http.MethodDelete:
-		controllers.DeleteMenu(w, r, id)
+		withAuth(func(w http.ResponseWriter, r *http.Request) {
+			controllers.DeleteMenu(w, r, id)
+		})(w, r)
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
@@ -91,7 +116,9 @@ func menusByChefHandler(w http.ResponseWriter, r *http.Request) {
 	chefID := parts[2]
 	switch r.Method {
 	case http.MethodGet:
-		controllers.GetMenusByChef(w, r, chefID)
+		withAuth(func(w http.ResponseWriter, r *http.Request) {
+			controllers.GetMenusByChef(w, r, chefID)
+		})(w, r)
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
@@ -106,7 +133,9 @@ func menusByCategoryHandler(w http.ResponseWriter, r *http.Request) {
 	category := parts[2]
 	switch r.Method {
 	case http.MethodGet:
-		controllers.GetMenusByCategory(w, r, category)
+		withAuth(func(w http.ResponseWriter, r *http.Request) {
+			controllers.GetMenusByCategory(w, r, category)
+		})(w, r)
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
