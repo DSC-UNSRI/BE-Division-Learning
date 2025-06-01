@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"Tugas-Pertemuan-5/database"
-	"Tugas-Pertemuan-5/models"
+	"Tugas-Pertemuan-7/database"
+	"Tugas-Pertemuan-7/models"
 )
 
 func GetFilms(w http.ResponseWriter, r *http.Request) {
