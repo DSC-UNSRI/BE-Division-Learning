@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"Tugas-Pertemuan-5/database"
-	"Tugas-Pertemuan-5/models"
+	"Tugas-Pertemuan-7/database"
+	"Tugas-Pertemuan-7/models"
 )
 
 func GetDirectors(w http.ResponseWriter, r *http.Request) {
