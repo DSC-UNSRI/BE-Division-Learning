@@ -12,7 +12,8 @@ import (
 )
 
 func GetMenus(w http.ResponseWriter, r *http.Request) {
-	rows, err := database.DB.Query("SELECT menu_id, menu_name, description, price, chef_id, category FROM menus WHERE deleted_at IS NULL")
+	ctxChefID := r.Context().Value(utils.ChefIDKey).(string)
+	rows, err := database.DB.Query("SELECT menu_id, menu_name, description, price, chef_id, category FROM menus WHERE chef_id = ? AND deleted_at IS NULL", ctxChefID)
 	if err != nil {
 		http.Error(w, "Failed to retrieve menus: "+err.Error(), http.StatusInternalServerError)
 		return
