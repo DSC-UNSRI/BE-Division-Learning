@@ -13,9 +13,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// GetChefs retrieves all non-deleted chefs.
 func GetChefs(w http.ResponseWriter, r *http.Request) {
-	rows, err := database.DB.Query("SELECT chef_id, chef_name, speciality, experience, username, role, deleted_at FROM chefs WHERE deleted_at IS NULL")
+	rows, err := database.DB.Query("SELECT chef_id, chef_name, speciality, experience, username, role, deleted_at, token FROM chefs WHERE deleted_at IS NULL")
 	if err != nil {
 		http.Error(w, "Failed to retrieve chefs: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -26,9 +25,27 @@ func GetChefs(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		chef := models.Chef{}
 		var deletedAt sql.NullTime
-		if err := rows.Scan(&chef.ChefID, &chef.Name, &chef.Speciality, &chef.Experience, &chef.Username, &chef.Role, &deletedAt); err != nil {
+		var speciality sql.NullString
+		var experience sql.NullInt64
+		var token sql.NullString
+		if err := rows.Scan(&chef.ChefID, &chef.Name, &speciality, &experience, &chef.Username, &chef.Role, &deletedAt, &token); err != nil {
 			http.Error(w, "Failed to scan chef data: "+err.Error(), http.StatusInternalServerError)
 			return
+		}
+		if speciality.Valid {
+			chef.Speciality = speciality.String
+		} else {
+			chef.Speciality = ""
+		}
+		if experience.Valid {
+			chef.Experience = int(experience.Int64)
+		} else {
+			chef.Experience = 0
+		}
+		if token.Valid {
+			chef.Token = token.String
+		} else {
+			chef.Token = ""
 		}
 		if deletedAt.Valid {
 			chef.DeletedAt = &deletedAt.Time
@@ -40,7 +57,6 @@ func GetChefs(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{"chefs": chefs})
 }
 
-// GetChefByID retrieves a single non-deleted chef by their ID.
 func GetChefByID(w http.ResponseWriter, r *http.Request, id string) {
 	if id == "" {
 		http.Error(w, "Chef ID is required", http.StatusBadRequest)
@@ -49,8 +65,11 @@ func GetChefByID(w http.ResponseWriter, r *http.Request, id string) {
 
 	var chef models.Chef
 	var deletedAt sql.NullTime
-	err := database.DB.QueryRow("SELECT chef_id, chef_name, speciality, experience, username, role, deleted_at FROM chefs WHERE chef_id = ? AND deleted_at IS NULL", id).Scan(
-		&chef.ChefID, &chef.Name, &chef.Speciality, &chef.Experience, &chef.Username, &chef.Role, &deletedAt)
+	var speciality sql.NullString
+	var experience sql.NullInt64
+	var token sql.NullString
+	err := database.DB.QueryRow("SELECT chef_id, chef_name, speciality, experience, username, role, deleted_at, token FROM chefs WHERE chef_id = ? AND deleted_at IS NULL", id).Scan(
+		&chef.ChefID, &chef.Name, &speciality, &experience, &chef.Username, &chef.Role, &deletedAt, &token)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -59,6 +78,21 @@ func GetChefByID(w http.ResponseWriter, r *http.Request, id string) {
 			http.Error(w, "Database error: "+err.Error(), http.StatusInternalServerError)
 		}
 		return
+	}
+	if speciality.Valid {
+		chef.Speciality = speciality.String
+	} else {
+		chef.Speciality = ""
+	}
+	if experience.Valid {
+		chef.Experience = int(experience.Int64)
+	} else {
+		chef.Experience = 0
+	}
+	if token.Valid {
+		chef.Token = token.String
+	} else {
+		chef.Token = ""
 	}
 	if deletedAt.Valid {
 		chef.DeletedAt = &deletedAt.Time
@@ -70,7 +104,6 @@ func GetChefByID(w http.ResponseWriter, r *http.Request, id string) {
 	})
 }
 
-// CreateChef creates a new chef entry.
 func CreateChef(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "Failed to parse form data: "+err.Error(), http.StatusBadRequest)
@@ -78,9 +111,17 @@ func CreateChef(w http.ResponseWriter, r *http.Request) {
 	}
 
 	chef := models.Chef{
-		Name:       r.FormValue("chef_name"),
-		Speciality: r.FormValue("speciality"),
-		Username:   r.FormValue("username"),
+		Name:     r.FormValue("chef_name"),
+		Username: r.FormValue("username"),
+	}
+
+	specialityFormValue := r.FormValue("speciality")
+	var specialityToDB interface{} = specialityFormValue
+	if specialityFormValue == "" {
+		specialityToDB = nil
+		chef.Speciality = ""
+	} else {
+		chef.Speciality = specialityFormValue
 	}
 
 	password := r.FormValue("password")
@@ -97,18 +138,21 @@ func CreateChef(w http.ResponseWriter, r *http.Request) {
 	chef.Password = string(hashedPassword)
 
 	experienceStr := r.FormValue("experience")
+	var experienceToDB interface{}
 	if experienceStr == "" {
-		http.Error(w, "Experience is required", http.StatusBadRequest)
-		return
-	}
-	if chef.Experience, err = strconv.Atoi(experienceStr); err != nil {
-		http.Error(w, "Invalid experience format", http.StatusBadRequest)
-		return
+		experienceToDB = nil
+		chef.Experience = 0
+	} else {
+		if chef.Experience, err = strconv.Atoi(experienceStr); err != nil {
+			http.Error(w, "Invalid experience format", http.StatusBadRequest)
+			return
+		}
+		experienceToDB = chef.Experience
 	}
 
 	role := r.FormValue("role")
 	if role == "" {
-		chef.Role = "rookie" // Default role
+		chef.Role = "rookie"
 	} else if role != "head" && role != "rookie" {
 		http.Error(w, "Invalid role. Role must be 'head' or 'rookie'", http.StatusBadRequest)
 		return
@@ -133,7 +177,7 @@ func CreateChef(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res, err := database.DB.Exec("INSERT INTO chefs (chef_name, speciality, experience, username, password, token, role) VALUES (?, ?, ?, ?, ?, ?, ?)",
-		chef.Name, chef.Speciality, chef.Experience, chef.Username, chef.Password, chef.Token, chef.Role)
+		chef.Name, specialityToDB, experienceToDB, chef.Username, chef.Password, chef.Token, chef.Role)
 	if err != nil {
 		http.Error(w, "Failed to create chef: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -150,17 +194,19 @@ func CreateChef(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// UpdateChef updates an existing chef.
 func UpdateChef(w http.ResponseWriter, r *http.Request, id string) {
 	if id == "" {
 		http.Error(w, "Chef ID is required", http.StatusBadRequest)
 		return
 	}
 
-	chef := models.Chef{}
+	var chef models.Chef
 	var deletedAt sql.NullTime
+	var speciality sql.NullString
+	var experience sql.NullInt64
+	var token sql.NullString
 	err := database.DB.QueryRow("SELECT chef_id, chef_name, speciality, experience, username, password, token, role, deleted_at FROM chefs WHERE chef_id = ? AND deleted_at IS NULL", id).
-		Scan(&chef.ChefID, &chef.Name, &chef.Speciality, &chef.Experience, &chef.Username, &chef.Password, &chef.Token, &chef.Role, &deletedAt)
+		Scan(&chef.ChefID, &chef.Name, &speciality, &experience, &chef.Username, &chef.Password, &token, &chef.Role, &deletedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, "Chef not found", http.StatusNotFound)
@@ -168,6 +214,21 @@ func UpdateChef(w http.ResponseWriter, r *http.Request, id string) {
 			http.Error(w, "Database error: "+err.Error(), http.StatusInternalServerError)
 		}
 		return
+	}
+	if speciality.Valid {
+		chef.Speciality = speciality.String
+	} else {
+		chef.Speciality = ""
+	}
+	if experience.Valid {
+		chef.Experience = int(experience.Int64)
+	} else {
+		chef.Experience = 0
+	}
+	if token.Valid {
+		chef.Token = token.String
+	} else {
+		chef.Token = ""
 	}
 	if deletedAt.Valid {
 		chef.DeletedAt = &deletedAt.Time
@@ -186,21 +247,31 @@ func UpdateChef(w http.ResponseWriter, r *http.Request, id string) {
 		updateFields = append(updateFields, "chef_name = ?")
 		updateValues = append(updateValues, name)
 	}
-	if speciality := r.FormValue("speciality"); speciality != "" {
-		chef.Speciality = speciality
+	if specialityFormValue := r.FormValue("speciality"); specialityFormValue != "" {
+		chef.Speciality = specialityFormValue
 		updateFields = append(updateFields, "speciality = ?")
-		updateValues = append(updateValues, speciality)
+		updateValues = append(updateValues, specialityFormValue)
+	} else if r.Form.Has("speciality") {
+		updateFields = append(updateFields, "speciality = ?")
+		updateValues = append(updateValues, nil)
+		chef.Speciality = ""
 	}
+
 	if experienceStr := r.FormValue("experience"); experienceStr != "" {
-		experience, err := strconv.Atoi(experienceStr)
+		experienceInt, err := strconv.Atoi(experienceStr)
 		if err != nil {
 			http.Error(w, "Invalid experience format", http.StatusBadRequest)
 			return
 		}
-		chef.Experience = experience
+		chef.Experience = experienceInt
 		updateFields = append(updateFields, "experience = ?")
-		updateValues = append(updateValues, experience)
+		updateValues = append(updateValues, experienceInt)
+	} else if r.Form.Has("experience") {
+		updateFields = append(updateFields, "experience = ?")
+		updateValues = append(updateValues, nil)
+		chef.Experience = 0
 	}
+
 	if username := r.FormValue("username"); username != "" {
 		chef.Username = username
 		updateFields = append(updateFields, "username = ?")
@@ -246,14 +317,12 @@ func UpdateChef(w http.ResponseWriter, r *http.Request, id string) {
 	})
 }
 
-// DeleteChef soft deletes a chef.
 func DeleteChef(w http.ResponseWriter, r *http.Request, id string) {
 	if id == "" {
 		http.Error(w, "Chef ID is required", http.StatusBadRequest)
 		return
 	}
 
-	// Check if chef is assigned to any active menus
 	var hasMenus bool
 	err := database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM menus WHERE chef_id = ? AND deleted_at IS NULL)", id).Scan(&hasMenus)
 	if err != nil {
@@ -265,7 +334,6 @@ func DeleteChef(w http.ResponseWriter, r *http.Request, id string) {
 		return
 	}
 
-	// Check if the chef exists and is not already deleted
 	var chefExists bool
 	err = database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM chefs WHERE chef_id = ? AND deleted_at IS NULL)", id).Scan(&chefExists)
 	if err != nil {
@@ -277,7 +345,6 @@ func DeleteChef(w http.ResponseWriter, r *http.Request, id string) {
 		return
 	}
 
-	// Perform soft delete
 	if _, err := database.DB.Exec("UPDATE chefs SET token = '', deleted_at = ? WHERE chef_id = ?", time.Now(), id); err != nil {
 		http.Error(w, "Failed to delete chef: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -290,17 +357,16 @@ func DeleteChef(w http.ResponseWriter, r *http.Request, id string) {
 	})
 }
 
-// GetChefsBySpeciality retrieves all non-deleted chefs based on their speciality.
-func GetChefsBySpeciality(w http.ResponseWriter, r *http.Request, speciality string) {
-	if speciality == "" {
+func GetChefsBySpeciality(w http.ResponseWriter, r *http.Request, specialityParam string) {
+	if specialityParam == "" {
 		http.Error(w, "Speciality is required", http.StatusBadRequest)
 		return
 	}
 
 	rows, err := database.DB.Query(`
-		SELECT chef_id, chef_name, speciality, experience, username, role, deleted_at
+		SELECT chef_id, chef_name, speciality, experience, username, role, deleted_at, token
 		FROM chefs
-		WHERE speciality = ? AND deleted_at IS NULL`, speciality)
+		WHERE speciality = ? AND deleted_at IS NULL`, specialityParam)
 
 	if err != nil {
 		http.Error(w, "Database error while retrieving chefs by speciality: "+err.Error(), http.StatusInternalServerError)
@@ -312,9 +378,27 @@ func GetChefsBySpeciality(w http.ResponseWriter, r *http.Request, speciality str
 	for rows.Next() {
 		chef := models.Chef{}
 		var deletedAt sql.NullTime
-		if err := rows.Scan(&chef.ChefID, &chef.Name, &chef.Speciality, &chef.Experience, &chef.Username, &chef.Role, &deletedAt); err != nil {
+		var speciality sql.NullString
+		var experience sql.NullInt64
+		var token sql.NullString
+		if err := rows.Scan(&chef.ChefID, &chef.Name, &speciality, &experience, &chef.Username, &chef.Role, &deletedAt, &token); err != nil {
 			http.Error(w, "Failed to scan chef data: "+err.Error(), http.StatusInternalServerError)
 			return
+		}
+		if speciality.Valid {
+			chef.Speciality = speciality.String
+		} else {
+			chef.Speciality = ""
+		}
+		if experience.Valid {
+			chef.Experience = int(experience.Int64)
+		} else {
+			chef.Experience = 0
+		}
+		if token.Valid {
+			chef.Token = token.String
+		} else {
+			chef.Token = ""
 		}
 		if deletedAt.Valid {
 			chef.DeletedAt = &deletedAt.Time
@@ -332,7 +416,7 @@ func GetChefsBySpeciality(w http.ResponseWriter, r *http.Request, speciality str
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"message":    "No chefs found for this speciality",
-			"speciality": speciality,
+			"speciality": specialityParam,
 			"chefs":      []models.Chef{},
 		})
 		return
@@ -340,7 +424,7 @@ func GetChefsBySpeciality(w http.ResponseWriter, r *http.Request, speciality str
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"speciality": speciality,
+		"speciality": specialityParam,
 		"chefs":      chefs,
 	})
 }

@@ -5,9 +5,9 @@ import (
 	"be_pert7/models"
 	"be_pert7/utils"
 	"encoding/json"
-	"net/http"
-	"golang.org/x/crypto/bcrypt"
 	"fmt"
+	"golang.org/x/crypto/bcrypt"
+	"net/http"
 )
 
 func Register(w http.ResponseWriter, r *http.Request) {
@@ -56,13 +56,13 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	ChefID := r.FormValue("chef_id")
 	Password := r.FormValue("password")
 
-	if ChefID == "" ||  Password == "" {
+	if ChefID == "" || Password == "" {
 		http.Error(w, "Missing required fields: chef_id, password", http.StatusBadRequest)
 		return
 	}
 
 	var chef models.Chef
-	err := database.DB.QueryRow("SELECT chef_id, chef_name, password, token, role FROM chefs WHERE chefs_id = ? AND deleted_at IS NULL", ChefID).
+	err := database.DB.QueryRow("SELECT chef_id, chef_name, password, token, role FROM chefs WHERE chef_id = ? AND deleted_at IS NULL", ChefID).
 		Scan(&chef.ChefID, &chef.Name, &chef.Password, &chef.Token, &chef.Role)
 
 	if err != nil {
@@ -77,7 +77,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	newToken := utils.GenerateToken(32)
 
-	_, err = database.DB.Exec("UPDATE chefs SET token = ? WHERE chefs_id = ? AND deleted_at IS NULL", newToken, ChefID)
+	_, err = database.DB.Exec("UPDATE chefs SET token = ? WHERE chef_id = ? AND deleted_at IS NULL", newToken, ChefID)
 	if err != nil {
 		http.Error(w, "Failed to update token", http.StatusInternalServerError)
 		return
@@ -86,6 +86,5 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
 		"token": newToken,
-
 	})
 }
