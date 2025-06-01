@@ -49,7 +49,7 @@ func MenuRoutes() {
 func AuthRoutes() {
 	http.HandleFunc("/register", controllers.Register)
 	http.HandleFunc("/login", controllers.Login)
-}	
+}
 
 func chefsHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
@@ -68,6 +68,7 @@ func chefsHandlerWithID(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
 	id := parts[2]
 	switch r.Method {
 	case http.MethodGet:
@@ -75,6 +76,10 @@ func chefsHandlerWithID(w http.ResponseWriter, r *http.Request) {
 			controllers.GetChefByID(w, r, id)
 		})(w, r)
 	case http.MethodPatch:
+		withHeadAuth(func(w http.ResponseWriter, r *http.Request) {
+			controllers.UpdateChef(w, r, id)
+		})(w, r)
+	case http.MethodPut:
 		withHeadAuth(func(w http.ResponseWriter, r *http.Request) {
 			controllers.UpdateChef(w, r, id)
 		})(w, r)
@@ -109,6 +114,8 @@ func menusHandlerWithID(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet:
 		withOwnAuth(controllers.GetMenuByID, id)(w, r)
 	case http.MethodPatch:
+		withOwnAuth(controllers.UpdateMenu, id)(w, r)
+	case http.MethodPut:
 		withOwnAuth(controllers.UpdateMenu, id)(w, r)
 	case http.MethodDelete:
 		withOwnAuth(controllers.DeleteMenu, id)(w, r)
