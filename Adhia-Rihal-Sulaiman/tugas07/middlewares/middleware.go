@@ -57,7 +57,7 @@ func HeadMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func CourseOwnershipMiddleware(next http.Handler, MenuID string) http.Handler {
+func MenuOwnershipMiddleware(next http.Handler, MenuID string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctxChefID := r.Context().Value(utils.ChefIDKey)
 		ChefID, ok := ctxChefID.(string)

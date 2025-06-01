@@ -19,7 +19,7 @@ func withOwnAuth(handler func(http.ResponseWriter, *http.Request, string), id st
 			handler(innerW, innerR, id)
 		})
 
-		middlewareChain := middleware.CourseOwnershipMiddleware(
+		middlewareChain := middleware.MenuOwnershipMiddleware(
 			wrappedControllerHandler,
 			id,
 		)
