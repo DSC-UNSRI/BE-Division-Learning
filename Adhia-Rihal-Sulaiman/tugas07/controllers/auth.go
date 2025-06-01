@@ -12,24 +12,23 @@ import (
 
 func Register(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
-	ChefID := r.FormValue("chef_id")
 	Name := r.FormValue("chef_name")
 	Password := r.FormValue("password")
 
-	if ChefID == "" || Name == "" || Password == "" {
-		http.Error(w, "Missing required fields: chef_id, chef_name, password", http.StatusBadRequest)
+	if Name == "" || Password == "" {
+		http.Error(w, "Missing required fields: Name, Password", http.StatusBadRequest)
 		return
 	}
 
 	var exists bool
-	err := database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM chefs WHERE chef_id = ? AND deleted_at IS NULL)", ChefID).Scan(&exists)
+	err := database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM chefs WHERE chef_name = ? AND deleted_at IS NULL)", Name).Scan(&exists)
 	if err != nil {
-		fmt.Println("Error saat memeriksa keberadaan Chef ID:", err)
-		http.Error(w, "Database error checking Chef ID existence", http.StatusInternalServerError)
+		fmt.Println("Error saat memeriksa keberadaan Nama Chef:", err)
+		http.Error(w, "Database error checking Chef Name existence", http.StatusInternalServerError)
 		return
 	}
 	if exists {
-		http.Error(w, "Chef with this ID already exists", http.StatusConflict)
+		http.Error(w, "Chef with Name already exists", http.StatusConflict)
 		return
 	}
 
@@ -39,8 +38,8 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = database.DB.Exec("INSERT INTO chefs (chef_id, chef_name, password) VALUES (?, ?, ?)",
-		ChefID, Name, hashedPassword,
+	_, err = database.DB.Exec("INSERT INTO chefs (chef_name, password) VALUES (?, ?)",
+		Name, hashedPassword,
 	)
 	if err != nil {
 		http.Error(w, "Failed to register Chef", http.StatusInternalServerError)
@@ -53,16 +52,16 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 func Login(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
-	ChefID := r.FormValue("chef_id")
+	Name := r.FormValue("chef_name")
 	Password := r.FormValue("password")
 
-	if ChefID == "" || Password == "" {
-		http.Error(w, "Missing required fields: chef_id, password", http.StatusBadRequest)
+	if Name == "" || Password == "" {
+		http.Error(w, "Missing required fields: Name, Password", http.StatusBadRequest)
 		return
 	}
 
 	var chef models.Chef
-	err := database.DB.QueryRow("SELECT chef_id, chef_name, password, token, role FROM chefs WHERE chef_id = ? AND deleted_at IS NULL", ChefID).
+	err := database.DB.QueryRow("SELECT chef_id, chef_name, password, token, role FROM chefs WHERE chef_name = ? AND deleted_at IS NULL", Name).
 		Scan(&chef.ChefID, &chef.Name, &chef.Password, &chef.Token, &chef.Role)
 
 	if err != nil {
@@ -77,7 +76,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	newToken := utils.GenerateToken(32)
 
-	_, err = database.DB.Exec("UPDATE chefs SET token = ? WHERE chef_id = ? AND deleted_at IS NULL", newToken, ChefID)
+	_, err = database.DB.Exec("UPDATE chefs SET token = ? WHERE chef_name = ? AND deleted_at IS NULL", newToken, Name)
 	if err != nil {
 		http.Error(w, "Failed to update token", http.StatusInternalServerError)
 		return
