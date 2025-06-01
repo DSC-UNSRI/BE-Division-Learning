@@ -3,7 +3,7 @@ package database
 import (
 	"log"
 
-	"Tugas-Pertemuan-5/models"
+	"Tugas-Pertemuan-7/models"
 )
 
 func Migrate() {
