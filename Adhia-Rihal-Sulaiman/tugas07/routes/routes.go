@@ -42,8 +42,8 @@ func ChefRoutes() {
 func MenuRoutes() {
 	http.HandleFunc("/menus", menusHandler)
 	http.HandleFunc("/menus/", menusHandlerWithID)
-	http.HandleFunc("/getmenusbychef/", menusByChefHandler)
-	http.HandleFunc("/getmenusbycategory/", menusByCategoryHandler)
+	http.HandleFunc("/menusbychef/", menusByChefHandler)
+	http.HandleFunc("/menusbycategory/", menusByCategoryHandler)
 }
 
 func AuthRoutes() {
@@ -133,7 +133,7 @@ func menusByChefHandler(w http.ResponseWriter, r *http.Request) {
 	chefID := parts[2]
 	switch r.Method {
 	case http.MethodGet:
-		withAuth(func(w http.ResponseWriter, r *http.Request) {
+		withHeadAuth(func(w http.ResponseWriter, r *http.Request) {
 			controllers.GetMenusByChef(w, r, chefID)
 		})(w, r)
 	default:
@@ -150,7 +150,7 @@ func menusByCategoryHandler(w http.ResponseWriter, r *http.Request) {
 	category := parts[2]
 	switch r.Method {
 	case http.MethodGet:
-		withAuth(func(w http.ResponseWriter, r *http.Request) {
+		withHeadAuth(func(w http.ResponseWriter, r *http.Request) {
 			controllers.GetMenusByCategory(w, r, category)
 		})(w, r)
 	default:
