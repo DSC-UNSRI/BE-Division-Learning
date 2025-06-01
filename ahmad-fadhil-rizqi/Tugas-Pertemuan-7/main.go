@@ -1,9 +1,9 @@
 package main
 
 import (
-	"Tugas-Pertemuan-5/config"
-	"Tugas-Pertemuan-5/database"
-	"Tugas-Pertemuan-5/routes"
+	"Tugas-Pertemuan-7/config"
+	"Tugas-Pertemuan-7/database"
+	"Tugas-Pertemuan-7/routes"
 	"fmt"
 	"log"
 	"net/http"
