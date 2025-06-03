@@ -2,9 +2,12 @@ package controllers
 
 import (
 	"uts/database"
+	"uts/models"
+	"uts/utils"
 
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -76,4 +79,45 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]string{"message": "User registered successfully"})
+}
+
+func Login(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	username := r.FormValue("username")
+	password := r.FormValue("password")
+
+	if username == "" ||  password == "" {
+		http.Error(w, "Missing required fields: username, password", http.StatusBadRequest)
+		return
+	}
+
+	var user models.User
+	err := database.DB.QueryRow("SELECT user_id, username, password, role, type FROM users WHERE username = ? AND deleted_at IS NULL", username).
+		Scan(&user.UserID, &user.Username, &user.Password, &user.Role, &user.Type)
+	if err != nil {
+		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		return
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		return
+	}
+
+	newToken := utils.GenerateToken(32)
+	expirationDate := time.Now().Add(time.Hour)
+
+	_, err = database.DB.Exec("INSERT INTO tokens (token_value, expires_at) VALUES (?, ?)",
+		newToken, expirationDate,
+	)
+
+	if err != nil {
+		http.Error(w, "Failed to create a token", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"token": newToken,
+	})
 }

@@ -8,6 +8,6 @@ import (
 
 func SetupRoutes() {
 	http.HandleFunc("/register", controllers.Register)
-	// http.HandleFunc("/login", controllers.Login)
+	http.HandleFunc("/login", controllers.Login)
 	// http.HandleFunc("/forget", controllers.ForgetPassword)
 }
