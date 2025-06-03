@@ -215,3 +215,20 @@ func PasswordReset(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Password reset successfully"))
 }
+
+func Logout(w http.ResponseWriter, r *http.Request) {
+	tokenValue, ok := r.Context().Value(utils.TokenValueKey).(string) 
+	if !ok {
+		http.Error(w, "Internal server error: Token not found in context", http.StatusInternalServerError)
+		return
+	}
+
+	_, err := database.DB.Exec("DELETE FROM tokens WHERE token_value = ?", tokenValue)
+	if err != nil {
+		http.Error(w, "Failed to logout due to internal error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Logged out successfully"))
+}
