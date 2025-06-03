@@ -4,5 +4,5 @@ type key string
 
 const (
 	DirectorIDKey key = "directorID"
-	MovieIDKey    key = "movieID"
+	RoleKey       key = "directorRole"
 )
