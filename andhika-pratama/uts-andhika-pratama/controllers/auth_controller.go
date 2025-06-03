@@ -108,8 +108,8 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	newToken := utils.GenerateToken(32)
 	expirationDate := time.Now().Add(time.Hour)
 
-	_, err = database.DB.Exec("INSERT INTO tokens (token_value, expires_at) VALUES (?, ?)",
-		newToken, expirationDate,
+	_, err = database.DB.Exec("INSERT INTO tokens (user_id, token_value, expires_at) VALUES (?, ?, ?)",
+		user.UserID, newToken, expirationDate,
 	)
 
 	if err != nil {
@@ -121,6 +121,23 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{
 		"token": newToken,
 	})
+}
+
+func Logout(w http.ResponseWriter, r *http.Request) {
+	tokenValue, ok := r.Context().Value(utils.TokenValueKey).(string) 
+	if !ok {
+		http.Error(w, "Internal server error: Token not found in context", http.StatusInternalServerError)
+		return
+	}
+
+	_, err := database.DB.Exec("DELETE FROM tokens WHERE token_value = ?", tokenValue)
+	if err != nil {
+		http.Error(w, "Failed to logout due to internal error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Logged out successfully"))
 }
 
 func InitiatePasswordReset(w http.ResponseWriter, r *http.Request) {
@@ -214,21 +231,4 @@ func PasswordReset(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Password reset successfully"))
-}
-
-func Logout(w http.ResponseWriter, r *http.Request) {
-	tokenValue, ok := r.Context().Value(utils.TokenValueKey).(string) 
-	if !ok {
-		http.Error(w, "Internal server error: Token not found in context", http.StatusInternalServerError)
-		return
-	}
-
-	_, err := database.DB.Exec("DELETE FROM tokens WHERE token_value = ?", tokenValue)
-	if err != nil {
-		http.Error(w, "Failed to logout due to internal error", http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Logged out successfully"))
 }
