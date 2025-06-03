@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"database/sql"
 	"uts/database"
 	"uts/models"
 	"uts/utils"
@@ -120,4 +121,51 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{
 		"token": newToken,
 	})
+}
+
+func InitiatePasswordReset(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm() 
+	username := r.FormValue("username")
+
+	if username == "" {
+		http.Error(w, "Missing required field: username", http.StatusBadRequest)
+		return
+	}
+
+	var userID int
+	err := database.DB.QueryRow("SELECT user_id FROM users WHERE username = ? AND deleted_at IS NULL", username).Scan(&userID)
+
+	if err == sql.ErrNoRows {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	if err != nil {
+		http.Error(w, "Database error during password reset initiation", http.StatusInternalServerError)
+		return
+	}
+
+	var challengeQuestion string
+
+	err = database.DB.QueryRow("SELECT question FROM challenges WHERE user_id = ?", userID).Scan(&challengeQuestion)
+
+	if err == sql.ErrNoRows {
+		http.Error(w, "No security question found for this user", http.StatusNotFound)
+		return
+	}
+
+	if err != nil {
+		http.Error(w, "Database error retrieving security question", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"question": challengeQuestion,
+		"message":  "Please answer your security question",
+	})
+}
+
+func PasswordReset (w http.ResponseWriter, r *http.Request) {
+	
 }
