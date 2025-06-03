@@ -14,13 +14,13 @@ func WithAuth(handler http.HandlerFunc) http.HandlerFunc {
 
 func WithPremiumAuth(handler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		utils.ApplyMiddlewares(handler, TypeMiddleware, AuthMiddleware).ServeHTTP(w, r)
+		utils.ApplyMiddlewares(handler, AuthMiddleware, TypeMiddleware).ServeHTTP(w, r)
 	}
 }
 
 func WithAdminAuth(handler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		utils.ApplyMiddlewares(handler, RoleMiddleware, AuthMiddleware).ServeHTTP(w, r)
+		utils.ApplyMiddlewares(handler, AuthMiddleware, RoleMiddleware).ServeHTTP(w, r)
 	}
 }
 
