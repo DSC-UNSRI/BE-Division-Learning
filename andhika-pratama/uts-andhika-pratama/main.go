@@ -3,6 +3,7 @@ package main
 import (
 	"uts/config"
 	"uts/database"
+	"uts/routes"
 
 	"fmt"
 	"log"
@@ -17,6 +18,8 @@ func main() {
 
 	database.Migrate()
 	fmt.Println("Migration Success")
+
+	routes.SetupRoutes()
 
 	fmt.Println("Server running at http://localhost:8080/")
 	log.Fatal(http.ListenAndServe(":8080", nil))

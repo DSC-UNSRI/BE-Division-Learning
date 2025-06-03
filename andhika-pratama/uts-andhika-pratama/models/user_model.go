@@ -18,7 +18,7 @@ var UserQuery = `
 		username VARCHAR(255) NOT NULL UNIQUE,
 		password VARCHAR(255) NOT NULL,
 		role ENUM('user', 'admin') DEFAULT 'user',
-		type_enum ENUM('free', 'premium') DEFAULT 'free',
+		type ENUM('free', 'premium') DEFAULT 'free',
 		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		deleted_at TIMESTAMP NULL DEFAULT NULL
 	);
