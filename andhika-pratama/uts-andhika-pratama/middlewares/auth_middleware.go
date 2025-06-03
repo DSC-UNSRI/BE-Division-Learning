@@ -7,6 +7,7 @@ import (
 	"context"
 	"database/sql"
 	"net/http"
+	"fmt"
 )
 
 func AuthMiddleware(next http.Handler) http.Handler {
@@ -39,8 +40,9 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			http.Error(w, "Unauthorized - invalid token", http.StatusUnauthorized)
 			return
 		}
-		
+
 		if err != nil {
+			fmt.Printf("AuthMiddleware DB Query Error: Type: %T, Value: %v\n", err, err)
 			http.Error(w, "Unauthorized - token validation error", http.StatusUnauthorized)
 			return
 		}
@@ -48,6 +50,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		ctx := context.WithValue(r.Context(), utils.UserIDKey, userID)
 		ctx = context.WithValue(ctx, utils.RoleKey, userRole)
 		ctx = context.WithValue(ctx, utils.TypeKey, userType) 
+		ctx = context.WithValue(ctx, utils.TokenValueKey, token) 
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
