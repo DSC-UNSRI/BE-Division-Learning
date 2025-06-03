@@ -23,9 +23,16 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	user_role := r.FormValue("role")
 	user_type := r.FormValue("type")
+	question := r.FormValue("question")
+	answer := r.FormValue("answer")
 
 	if  username == "" || password == "" || user_role == "" || user_type == "" {
 		http.Error(w, "Missing required fields: username, password, role, type" , http.StatusBadRequest)
+		return
+	}
+
+	if question == "" || answer == "" {
+		http.Error(w, "Please input your security question and answer for password recovery", http.StatusBadRequest)
 		return
 	}
 
@@ -80,6 +87,21 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user.UserID = int(userID)
+	hashedAnswer, err := bcrypt.GenerateFromPassword([]byte(answer), bcrypt.DefaultCost)
+
+	if err != nil {
+		http.Error(w, "Failed to hash security answer", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = database.DB.Exec("INSERT INTO challenges (user_id, question, answer) VALUES (?, ?, ?)",
+		userID, question, hashedAnswer,
+	)
+
+	if err != nil {
+		http.Error(w, "Failed to store security question and answer", http.StatusInternalServerError)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
