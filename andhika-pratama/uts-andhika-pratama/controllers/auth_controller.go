@@ -166,6 +166,52 @@ func InitiatePasswordReset(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func PasswordReset (w http.ResponseWriter, r *http.Request) {
-	
+func PasswordReset(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	username := r.FormValue("username")
+	answer := r.FormValue("answer")  
+	newPassword := r.FormValue("new_password")     
+
+	if username == "" || answer == "" {
+		http.Error(w, "Missing required fields: username, answer, new_password", http.StatusBadRequest)
+		return
+	}
+
+	var userID int
+	var storedHashedAnswer string 
+
+	err := database.DB.QueryRow(
+		"SELECT u.user_id, c.answer FROM users u JOIN challenges c ON u.user_id = c.user_id WHERE u.username = ? AND u.deleted_at IS NULL",
+		username,
+	).Scan(&userID, &storedHashedAnswer)
+
+	if err == sql.ErrNoRows {
+		http.Error(w, "Password reset failed: Invalid username", http.StatusUnauthorized)
+		return
+	}
+	if err != nil {
+		http.Error(w, "Internal server error during security answer verification: ", http.StatusInternalServerError)
+		return
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(storedHashedAnswer), []byte(answer)); err != nil {
+		http.Error(w, "Password reset failed: Invalid security answer", http.StatusUnauthorized)
+		return
+	}
+
+	hashedNewPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+
+	if err != nil {
+		http.Error(w, "Failed to hash new password", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = database.DB.Exec("UPDATE users SET password = ? WHERE user_id = ?", hashedNewPassword, userID)
+	if err != nil {
+		http.Error(w, "Failed to update password", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Password reset successfully"))
 }
