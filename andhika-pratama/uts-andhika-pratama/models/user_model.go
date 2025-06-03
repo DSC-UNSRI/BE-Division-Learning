@@ -8,8 +8,8 @@ type User struct {
 	Password  string     `json:"-"`
 	Role      string     `json:"role"`
 	Type      string     `json:"type"`
-	CreatedAt time.Time  `json:"created_at"`
-	DeletedAt *time.Time `json:"deleted_at"`
+	CreatedAt time.Time  `json:"-"`
+	DeletedAt *time.Time `json:"-"`
 }
 
 var UserQuery = `

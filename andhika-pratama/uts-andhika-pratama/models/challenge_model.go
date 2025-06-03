@@ -7,7 +7,7 @@ type Challenge struct {
 	UserID      int       `json:"user_id"`
 	Question    string    `json:"question"`
 	Answer      string    `json:"-"`
-	CreatedAt   time.Time `json:"created_at"`
+	CreatedAt   time.Time `json:"-"`
 }
 
 var ChallengeQuery = `

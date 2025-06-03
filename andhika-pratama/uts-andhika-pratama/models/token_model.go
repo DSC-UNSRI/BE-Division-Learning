@@ -6,8 +6,8 @@ type Token struct {
 	TokenID    int       `json:"token_id"`
 	UserID     int       `json:"user_id"`
 	TokenValue string    `json:"token_value"`
-	CreatedAt  time.Time `json:"created_at"`
-	ExpiresAt  time.Time `json:"expires_at"`
+	CreatedAt  time.Time `json:"-"`
+	ExpiresAt  time.Time `json:"-"`
 }
 
 var TokenQuery = `
