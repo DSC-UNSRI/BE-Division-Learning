@@ -11,18 +11,13 @@ func Migrate() {
 
 	_, err = DB.Exec(models.DirectorsQuery)
 	if err != nil {
-		log.Fatalf("Gagal migrasi tabel directors: %v", err)
+		log.Fatalf("Failed to migrate directors table: %v", err)
 	}
 
 	_, err = DB.Exec(models.FilmsQuery)
 	if err != nil {
-		log.Fatalf("Gagal migrasi tabel films: %v", err)
+		log.Fatalf("Failed to migrate films table: %v", err)
 	}
 
-	_, err = DB.Exec(models.UsersQuery)
-	if err != nil {
-		log.Fatalf("Gagal migrasi tabel users: %v", err)
-	}
-
-	log.Println("Migrasi Database Selesai.")
+	log.Println("Database migration complete.")
 }
