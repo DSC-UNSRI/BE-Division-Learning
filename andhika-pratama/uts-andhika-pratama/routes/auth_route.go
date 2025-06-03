@@ -10,9 +10,8 @@ import (
 func AuthRoutes() {
 	http.HandleFunc("/register", controllers.Register)
 	http.HandleFunc("/login", controllers.Login)
+	http.HandleFunc("/logout", middlewares.WithAuth(controllers.Logout))
 
 	http.HandleFunc("/forget-password-initiate", controllers.InitiatePasswordReset)
 	http.HandleFunc("/forget-password-reset", controllers.PasswordReset)
-
-	http.HandleFunc("/logout", middlewares.WithAuth(controllers.Logout))
 }

@@ -7,7 +7,6 @@ import (
 	"context"
 	"database/sql"
 	"net/http"
-	"fmt"
 )
 
 func AuthMiddleware(next http.Handler) http.Handler {
@@ -32,7 +31,10 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		var userType string
 
 		err := database.DB.QueryRow(
-			"SELECT user_id, role, type_enum FROM users WHERE token = ? AND deleted_at IS NULL", // Assumed 'type_enum' as per previous migration
+			`SELECT u.user_id, u.role, u.type 
+			FROM users u
+            JOIN tokens t ON u.user_id = t.user_id
+            WHERE t.token_value = ? AND u.deleted_at IS NULL`, 
 			token,
 		).Scan(&userID, &userRole, &userType)
 
@@ -42,7 +44,6 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		if err != nil {
-			fmt.Printf("AuthMiddleware DB Query Error: Type: %T, Value: %v\n", err, err)
 			http.Error(w, "Unauthorized - token validation error", http.StatusUnauthorized)
 			return
 		}
