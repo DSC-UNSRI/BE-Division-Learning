@@ -18,7 +18,7 @@ func OwnsAnswerMiddleware(next http.Handler, answerID string) http.Handler {
 		}
 
 		if answerID == "" {
-			http.Error(w, "question_id is null", http.StatusBadRequest)
+			http.Error(w, "answer_id is null", http.StatusBadRequest)
 			return
 		}
 
