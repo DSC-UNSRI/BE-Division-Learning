@@ -7,6 +7,8 @@ import (
 	"context"
 	"database/sql"
 	"net/http"
+	"fmt"
+	"time"
 )
 
 func AuthMiddleware(next http.Handler) http.Handler {
@@ -29,14 +31,15 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		var userID string
 		var userRole string
 		var userType string
+		var expiresAt sql.NullTime
 
 		err := database.DB.QueryRow(
-			`SELECT u.user_id, u.role, u.type 
+			`SELECT u.user_id, u.role, u.type, t.expires_at
 			FROM users u
             JOIN tokens t ON u.user_id = t.user_id
             WHERE t.token_value = ? AND u.deleted_at IS NULL`, 
 			token,
-		).Scan(&userID, &userRole, &userType)
+		).Scan(&userID, &userRole, &userType, &expiresAt)
 
 		if err == sql.ErrNoRows {
 			http.Error(w, "Unauthorized - invalid token", http.StatusUnauthorized)
@@ -44,10 +47,19 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		if err != nil {
+			fmt.Printf("DEBUG: AuthMiddleware Database Query Error: %v\n", err)
 			http.Error(w, "Unauthorized - token validation error", http.StatusUnauthorized)
 			return
 		}
 
+		if expiresAt.Valid && time.Now().After(expiresAt.Time) { 
+			_, err := database.DB.Exec("DELETE FROM tokens WHERE token_value = ?", token)
+			if err != nil {
+				fmt.Printf("DEBUG: Error deleting expired token %s: %v\n", token, err)
+			}
+			http.Error(w, "Unauthorized - token has expired", http.StatusUnauthorized)
+			return
+		}
 		ctx := context.WithValue(r.Context(), utils.UserIDKey, userID)
 		ctx = context.WithValue(ctx, utils.RoleKey, userRole)
 		ctx = context.WithValue(ctx, utils.TypeKey, userType) 

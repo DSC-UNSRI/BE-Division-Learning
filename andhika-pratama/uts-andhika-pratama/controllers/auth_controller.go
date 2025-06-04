@@ -106,7 +106,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newToken := utils.GenerateToken(32)
-	expirationDate := time.Now().Add(time.Hour)
+	expirationDate := time.Now().Add(24 * time.Hour)
 
 	_, err = database.DB.Exec("INSERT INTO tokens (user_id, token_value, expires_at) VALUES (?, ?, ?)",
 		user.UserID, newToken, expirationDate,
