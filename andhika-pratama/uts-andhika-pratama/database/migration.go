@@ -7,7 +7,7 @@ import (
 )
 
 func Migrate() {
-	queries := []string{models.UserQuery, models.TokenQuery, models.ChallengeQuery, models.QuestionQuery, models.AnswerQuery}
+	queries := []string{models.UserQuery, models.TokenQuery, models.ChallengeQuery, models.QuestionQuery, models.AnswerQuery, models.VoteQuery}
 	for _, q := range queries {
 		_, err := DB.Exec(q)
 		if err != nil {
