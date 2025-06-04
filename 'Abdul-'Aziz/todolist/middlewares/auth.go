@@ -5,16 +5,17 @@ import (
 	"net/http"
 	"strings"
 
+	"tugas/todolist/helper"
 	"tugas/todolist/lib"
 )
 
-func AuthMiddleware(secretKey string) func(http.Handler) http.Handler {
+func AuthMiddleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			tokenString := r.Header.Get("Authorization")
 
 			if tokenString == "" {
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				helper.RespondWithError(w, http.StatusUnauthorized, "Unauthorized")
                 return
 			}
 
@@ -23,7 +24,7 @@ func AuthMiddleware(secretKey string) func(http.Handler) http.Handler {
 			claims, err := lib.VerifyJWT(tokenString)
 
 			    if err != nil {
-                    http.Error(w, "Unauthorized", http.StatusUnauthorized)
+                    helper.RespondWithError(w, http.StatusUnauthorized, "Unauthorized")
                     return
                 }
 

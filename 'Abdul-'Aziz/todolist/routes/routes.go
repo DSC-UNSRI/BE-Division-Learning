@@ -4,13 +4,13 @@ import (
 	"database/sql"
 	"net/http"
 	"tugas/todolist/controllers"
+	middleware "tugas/todolist/middlewares"
 
 	"github.com/gorilla/mux"
 )
 
 func SetupRoutes(db *sql.DB) *mux.Router {
 	router := mux.NewRouter()
-
 
 
 	userRouter := router.PathPrefix("/users").Subrouter()
@@ -33,15 +33,16 @@ func SetupRoutes(db *sql.DB) *mux.Router {
 
 
 	taskRouter := router.PathPrefix("/tasks").Subrouter()
-	taskRouter.HandleFunc("", func(w http.ResponseWriter, r *http.Request) {
-		controllers.CreateTask(db, w, r)
-	}).Methods("POST")
+	
+	taskRouter.Handle("", middleware.AuthMiddleware()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	controllers.CreateTask(db, w, r)
+	}))).Methods("POST")
 	taskRouter.HandleFunc("", func(w http.ResponseWriter, r *http.Request) {
 		controllers.GetAllTasks(db, w, r)
 	}).Methods("GET")
-	taskRouter.HandleFunc("/all-task-user", func(w http.ResponseWriter, r *http.Request) {
-		controllers.GetAllTasksWithUser(db, w, r)
-	}).Methods("GET")
+	taskRouter.Handle("/all-task-user", middleware.AuthMiddleware()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	controllers.GetAllTasksWithUser(db, w, r)
+	}))).Methods("GET")
 	taskRouter.HandleFunc("/user/{id}", func(w http.ResponseWriter, r *http.Request) {
 		controllers.GetTaskByUserID(db, w, r)
 	}).Methods("GET")
