@@ -1,0 +1,7 @@
+Kendala yang aku hadapin ga terlalu banyak. Yang pertama itu pas aku nyoba  fitur update data (PATCH), 
+saya sempet bingung karena datanya gak berubah tapi API ngerespon sukses. Aku udah otak atik berkali kali 
+tapi masih belum berhasil. Setelah kuperiksa lagi, ternyata aku yang salah tempat masukin data
+seharusnya masukin datanya di body tapi malah kumasukin di header. 
+Terus ada kendala lain pas nyoba fitur login, disitu aku dapet pesan error 
+'Internal Server Error'. Setelah dicek, penyebabnya karena migrasi database untuk tabel user belum
+kepanggil, jadi tabel usernya belum kebuat yang nyebabin error.

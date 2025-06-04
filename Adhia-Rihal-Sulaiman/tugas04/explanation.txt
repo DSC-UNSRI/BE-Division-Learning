@@ -1,0 +1,13 @@
+Sistem Dashboard Iftar GDCoC
+
+Sistem ini dibuat untuk mendata peserta yang mengikuti iftar GDCoC.
+
+Fitur-fitur:
+1. Autentikasi sederhana dengan email dan password
+2. Manajemen opsi kendaraan (maksimal 2 dari 3 pilihan)
+3. Pendataan barang yang dibawa
+4. Penambahan rekomendasi untuk iftar
+5. Pendataan teman yang ikut iftar
+6. Melihat semua data
+
+Sistem menggunakan godotenv untuk mengelola kredensial login.
