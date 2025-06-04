@@ -59,9 +59,10 @@ func SetupRoutes(db *sql.DB) *mux.Router {
 	
 
 
-	router.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
-		controllers.Login(db, w, r)
-	}).Methods("POST")
+	router.Handle("/login", middleware.RateLimitMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	controllers.Login(db, w, r)
+	}))).Methods("POST")
+
 
 	return router
 }
