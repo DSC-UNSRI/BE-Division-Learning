@@ -9,7 +9,6 @@ import (
 	"strconv"
 )
 
-// GetAllTabungan hanya mengambil tabungan milik user yang sedang login
 func GetAllTabungan(w http.ResponseWriter, r *http.Request) {
 	userIDCtx := r.Context().Value(middleware.UserIDKey)
 	if userIDCtx == nil {
@@ -46,7 +45,6 @@ func GetAllTabungan(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// CreateTabungan membuat tabungan baru milik user yang sedang login
 func CreateTabungan(w http.ResponseWriter, r *http.Request) {
 	userIDCtx := r.Context().Value(middleware.UserIDKey)
 	if userIDCtx == nil {
@@ -60,7 +58,6 @@ func CreateTabungan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Parse form data
 	err := r.ParseForm()
 	if err != nil {
 		http.Error(w, "failed to parse form data", http.StatusBadRequest)
@@ -101,7 +98,6 @@ func CreateTabungan(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// UpdateTabungan hanya mengupdate tabungan milik user yang login
 func UpdateTabungan(w http.ResponseWriter, r *http.Request, idStr string) {
 	userIDCtx := r.Context().Value(middleware.UserIDKey)
 	if userIDCtx == nil {
@@ -173,7 +169,6 @@ func UpdateTabungan(w http.ResponseWriter, r *http.Request, idStr string) {
 	})
 }
 
-// DeleteTabungan hanya menghapus tabungan milik user yang login
 func DeleteTabungan(w http.ResponseWriter, r *http.Request, idStr string) {
 	userIDCtx := r.Context().Value(middleware.UserIDKey)
 	if userIDCtx == nil {
@@ -198,8 +193,6 @@ func DeleteTabungan(w http.ResponseWriter, r *http.Request, idStr string) {
 		http.Error(w, "Invalid id", http.StatusBadRequest)
 		return
 	}
-
-	// Cek apakah tabungan ada
 	var exists bool
 	err = database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM tabungan WHERE id = ?)", id).Scan(&exists)
 	if err != nil {
@@ -211,7 +204,6 @@ func DeleteTabungan(w http.ResponseWriter, r *http.Request, idStr string) {
 		return
 	}
 
-	// Jika bukan admin, cek apakah user adalah pemilik tabungan
 	if role != "admin" {
 		var ownerID int
 		err = database.DB.QueryRow("SELECT user_id FROM tabungan WHERE id = ?", id).Scan(&ownerID)
