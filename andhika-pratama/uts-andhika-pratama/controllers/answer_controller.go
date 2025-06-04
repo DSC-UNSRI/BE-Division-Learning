@@ -223,7 +223,7 @@ func UpvoteAnswer(w http.ResponseWriter, r *http.Request, answerID string) {
 		return
 	}
 
-	_, err = database.DB.Exec("UPDATE answers SET upvotes = upvotes + 1 WHERE answer_id = ?", answerID)
+	_, err = database.DB.Exec("UPDATE answers SET upvotes = upvotes + 1 WHERE answer_id = ? AND deleted_at IS NULL", answerID)
 
 	if err != nil {
 		http.Error(w, "Failed to upvote this answer", http.StatusInternalServerError)
@@ -265,7 +265,7 @@ func DownvoteAnswer(w http.ResponseWriter, r *http.Request, answerID string) {
 		return
 	}
 
-	_, err = database.DB.Exec("UPDATE answers SET downvotes = downvotes + 1 WHERE answer_id = ?", answerID)
+	_, err = database.DB.Exec("UPDATE answers SET downvotes = downvotes + 1 WHERE answer_id = ? AND deleted_at IS NULL", answerID)
 
 	if err != nil {
 		http.Error(w, "Failed to downvote this answer", http.StatusInternalServerError)

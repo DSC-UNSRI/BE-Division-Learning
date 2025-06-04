@@ -190,7 +190,19 @@ func UpvoteQuestion(w http.ResponseWriter, r *http.Request, questionID string) {
 		return
 	}
 
-	_, err := database.DB.Exec("UPDATE questions SET upvotes = upvotes + 1 WHERE question_id = ?", utils.Atoi(questionID))
+	var exists bool
+	err := database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM questions WHERE question_id = ? AND deleted_at IS NULL)", questionID).Scan(&exists)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	if !exists {
+		http.Error(w, "Answer not found", http.StatusNotFound)
+		return
+	}
+
+	_, err = database.DB.Exec("UPDATE questions SET upvotes = upvotes + 1 WHERE question_id = ? AND deleted_at IS NULL", questionID)
 
 	if err != nil {
 		http.Error(w, "Failed to upvote this question", http.StatusInternalServerError)
@@ -220,7 +232,19 @@ func DownvoteQuestion(w http.ResponseWriter, r *http.Request, questionID string)
 		return
 	}
 
-	_, err := database.DB.Exec("UPDATE questions SET downvotes = downvotes + 1 WHERE question_id = ?", utils.Atoi(questionID))
+	var exists bool
+	err := database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM questions WHERE question_id = ? AND deleted_at IS NULL)", questionID).Scan(&exists)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	if !exists {
+		http.Error(w, "Answer not found", http.StatusNotFound)
+		return
+	}
+
+	_, err = database.DB.Exec("UPDATE questions SET downvotes = downvotes + 1 WHERE question_id = ? AND deleted_at is NULL", questionID)
 	
 	if err != nil {
 		http.Error(w, "Failed to downvote this question", http.StatusInternalServerError)
