@@ -10,7 +10,7 @@ import (
 
 func UserRoutes() {
 	http.HandleFunc("/users", userHandler)
-	http.HandleFunc("/users/", usersHandlerWithID)
+	http.HandleFunc("/users/", userHandlerWithID)
 }
 
 func userHandler(w http.ResponseWriter, r *http.Request) {
@@ -24,7 +24,7 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func usersHandlerWithID(w http.ResponseWriter, r *http.Request) {
+func userHandlerWithID(w http.ResponseWriter, r *http.Request) {
 	parts, err := utils.SplitPath(r.URL.Path)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
