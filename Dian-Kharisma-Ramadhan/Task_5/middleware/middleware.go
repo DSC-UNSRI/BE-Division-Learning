@@ -65,8 +65,3 @@ func AdminMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// func CheckTabunganOwner(userID, tabunganID int) bool {
-// 	var id int
-// 	err := database.DB.QueryRow("SELECT id FROM tabungan WHERE id = ? AND user_id = ?", tabunganID, userID).Scan(&id)
-// 	return err == nil && id == tabunganID
-// }
