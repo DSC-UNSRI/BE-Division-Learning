@@ -190,34 +190,77 @@ func UpvoteQuestion(w http.ResponseWriter, r *http.Request, questionID string) {
 		return
 	}
 
-	var exists bool
-	err := database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM questions WHERE question_id = ? AND deleted_at IS NULL)", questionID).Scan(&exists)
+	ctxUserID := r.Context().Value(utils.UserIDKey)
+
+	var questionExists bool
+	err := database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM questions WHERE question_id = ? AND deleted_at IS NULL)", questionID).Scan(&questionExists)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if !exists {
-		http.Error(w, "Answer not found", http.StatusNotFound)
+	if !questionExists {
+		http.Error(w, "Question not found", http.StatusNotFound)
 		return
 	}
 
-	_, err = database.DB.Exec("UPDATE questions SET upvotes = upvotes + 1 WHERE question_id = ? AND deleted_at IS NULL", questionID)
+	var existingVote models.Vote
+	targetType := "question"
+	desiredVoteType := "up"
 
-	if err != nil {
-		http.Error(w, "Failed to upvote this question", http.StatusInternalServerError)
+	err = database.DB.QueryRow("SELECT vote_id, vote_type FROM votes WHERE user_id = ? AND target_id = ? AND target_type = ?",
+		ctxUserID, questionID, targetType).Scan(&existingVote.VoteID, &existingVote.VoteType)
+
+	if err == sql.ErrNoRows {
+		_, err = database.DB.Exec("INSERT INTO votes (user_id, target_id, target_type, vote_type) VALUES (?, ?, ?, ?)",
+			ctxUserID, questionID, targetType, desiredVoteType)
+		if err != nil {
+			http.Error(w, "Failed to record upvote", http.StatusInternalServerError)
+			return
+		}
+		_, err = database.DB.Exec("UPDATE questions SET upvotes = upvotes + 1 WHERE question_id = ?", questionID)
+		if err != nil {
+			http.Error(w, "Failed to update question upvote count", http.StatusInternalServerError)
+			return
+		}
+	} else if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
+	} else {
+		if existingVote.VoteType == desiredVoteType {
+			http.Error(w, "You already upvoted this question", http.StatusBadRequest)
+			return
+		} else {
+			_, err = database.DB.Exec("UPDATE votes SET vote_type = ? WHERE vote_id = ?", desiredVoteType, existingVote.VoteID)
+			if err != nil {
+				http.Error(w, "Failed to change vote", http.StatusInternalServerError)
+				return
+			}
+			_, err = database.DB.Exec("UPDATE questions SET downvotes = downvotes - 1 WHERE question_id = ?", questionID)
+			if err != nil {
+				http.Error(w, "Failed to update question downvote count", http.StatusInternalServerError)
+				return
+			}
+			_, err = database.DB.Exec("UPDATE questions SET upvotes = upvotes + 1 WHERE question_id = ?", questionID)
+			if err != nil {
+				http.Error(w, "Failed to update question upvote count", http.StatusInternalServerError)
+				return
+			}
+		}
 	}
-	
+
 	question := models.Question{}
 	err = database.DB.QueryRow("SELECT question_id, user_id, title, content, upvotes, downvotes FROM questions WHERE question_id = ? AND deleted_at IS NULL", questionID).
 		Scan(&question.QuestionID, &question.UserID, &question.Title, &question.Content, &question.Upvotes, &question.Downvotes)
 
 	if err != nil {
-		http.Error(w, "Failed to fetch upvoted question", http.StatusInternalServerError)
+		if err == sql.ErrNoRows {
+			http.Error(w, "Question not found after vote operation", http.StatusNotFound)
+		} else {
+			http.Error(w, "Failed to fetch updated question", http.StatusInternalServerError)
+		}
 		return
 	}
-
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
@@ -232,34 +275,77 @@ func DownvoteQuestion(w http.ResponseWriter, r *http.Request, questionID string)
 		return
 	}
 
-	var exists bool
-	err := database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM questions WHERE question_id = ? AND deleted_at IS NULL)", questionID).Scan(&exists)
+	ctxUserID := r.Context().Value(utils.UserIDKey)
+
+	var questionExists bool
+	err := database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM questions WHERE question_id = ? AND deleted_at IS NULL)", questionID).Scan(&questionExists)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if !exists {
-		http.Error(w, "Answer not found", http.StatusNotFound)
+	if !questionExists {
+		http.Error(w, "Question not found", http.StatusNotFound)
 		return
 	}
 
-	_, err = database.DB.Exec("UPDATE questions SET downvotes = downvotes + 1 WHERE question_id = ? AND deleted_at is NULL", questionID)
-	
-	if err != nil {
-		http.Error(w, "Failed to downvote this question", http.StatusInternalServerError)
+	var existingVote models.Vote
+	targetType := "question"
+	desiredVoteType := "down"
+
+	err = database.DB.QueryRow("SELECT vote_id, vote_type FROM votes WHERE user_id = ? AND target_id = ? AND target_type = ?",
+		ctxUserID, questionID, targetType).Scan(&existingVote.VoteID, &existingVote.VoteType)
+
+	if err == sql.ErrNoRows {
+		_, err = database.DB.Exec("INSERT INTO votes (user_id, target_id, target_type, vote_type) VALUES (?, ?, ?, ?)",
+			ctxUserID, questionID, targetType, desiredVoteType)
+		if err != nil {
+			http.Error(w, "Failed to record downvote", http.StatusInternalServerError)
+			return
+		}
+		_, err = database.DB.Exec("UPDATE questions SET downvotes = downvotes + 1 WHERE question_id = ?", questionID)
+		if err != nil {
+			http.Error(w, "Failed to update question downvote count", http.StatusInternalServerError)
+			return
+		}
+	} else if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
+	} else {
+		if existingVote.VoteType == desiredVoteType {
+			http.Error(w, "You already downvoted this question", http.StatusBadRequest)
+			return
+		} else {
+			_, err = database.DB.Exec("UPDATE votes SET vote_type = ? WHERE vote_id = ?", desiredVoteType, existingVote.VoteID)
+			if err != nil {
+				http.Error(w, "Failed to change vote", http.StatusInternalServerError)
+				return
+			}
+			_, err = database.DB.Exec("UPDATE questions SET upvotes = upvotes - 1 WHERE question_id = ?", questionID)
+			if err != nil {
+				http.Error(w, "Failed to update question upvote count", http.StatusInternalServerError)
+				return
+			}
+			_, err = database.DB.Exec("UPDATE questions SET downvotes = downvotes + 1 WHERE question_id = ?", questionID)
+			if err != nil {
+				http.Error(w, "Failed to update question downvote count", http.StatusInternalServerError)
+				return
+			}
+		}
 	}
-	
+
 	question := models.Question{}
 	err = database.DB.QueryRow("SELECT question_id, user_id, title, content, upvotes, downvotes FROM questions WHERE question_id = ? AND deleted_at IS NULL", questionID).
 		Scan(&question.QuestionID, &question.UserID, &question.Title, &question.Content, &question.Upvotes, &question.Downvotes)
 
 	if err != nil {
-		http.Error(w, "Failed to fetch downvoted question", http.StatusInternalServerError)
+		if err == sql.ErrNoRows {
+			http.Error(w, "Question not found after vote operation", http.StatusNotFound)
+		} else {
+			http.Error(w, "Failed to fetch updated question", http.StatusInternalServerError)
+		}
 		return
 	}
-
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
