@@ -3,7 +3,10 @@ package controllers
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"tugas/todolist/dto"
+	"tugas/todolist/helper"
 	"tugas/todolist/models"
 	"tugas/todolist/usecase"
 
@@ -16,7 +19,7 @@ func CreateUser(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	err := usecase.CreateUser(db, user)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		helper.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -24,12 +27,25 @@ func CreateUser(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"message": "User created"})
 }
 
+func GetAllUsers(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	users, err := usecase.GetAllUsers(db)
+	if err != nil {
+		helper.RespondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	json.NewEncoder(w).Encode(users)
+}
+
+
 func GetUserByID(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 
+	fmt.Println("user id", id)
+
 	user, err := usecase.GetUserByID(db, id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		helper.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -42,9 +58,11 @@ func UpdateUser(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	var user models.User
 	json.NewDecoder(r.Body).Decode(&user)
 
+	fmt.Println("user", user)
+
 	err := usecase.UpdateUser(db, id, user)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		helper.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -56,7 +74,7 @@ func DeleteUser(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	err := usecase.DeleteUser(db, id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		helper.RespondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -64,17 +82,17 @@ func DeleteUser(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 }
 
 func Login(db *sql.DB, w http.ResponseWriter, r *http.Request) {
-	var loginData struct {
-		Name     string `json:"name"`
-		Password string `json:"password"`
-	}
+	var loginData dto.LoginData
+
 	json.NewDecoder(r.Body).Decode(&loginData)
 
-	user, err := usecase.LoginUser(db, loginData.Name, loginData.Password)
+	user, err := usecase.LoginUser(db, loginData.Email, loginData.Password)
+
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
+		helper.RespondWithError(w, http.StatusUnauthorized, err.Error())
 		return
 	}
+
 
 	json.NewEncoder(w).Encode(user)
 }
