@@ -24,7 +24,7 @@ func WithAdminAuth(handler http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func withOwnsQuestionAuth(handler func(http.ResponseWriter, *http.Request, string), id string) http.HandlerFunc {
+func WithOwnsQuestionAuth(handler func(http.ResponseWriter, *http.Request, string), id string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		wrappedControllerHandler := http.HandlerFunc(func(innerW http.ResponseWriter, innerR *http.Request) {
 			handler(innerW, innerR, id)
@@ -39,7 +39,7 @@ func withOwnsQuestionAuth(handler func(http.ResponseWriter, *http.Request, strin
 	}
 }
 
-func withOwnsAnswerAuth(handler func(http.ResponseWriter, *http.Request, string), id string) http.HandlerFunc {
+func WithOwnsAnswerAuth(handler func(http.ResponseWriter, *http.Request, string), id string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		wrappedControllerHandler := http.HandlerFunc(func(innerW http.ResponseWriter, innerR *http.Request) {
 			handler(innerW, innerR, id)
