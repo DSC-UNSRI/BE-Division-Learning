@@ -4,4 +4,5 @@ func SetupRoutes() {
 	AuthRoutes()
 	UserRoutes()
 	QuestionRoutes()
+	AnswerRoutes()
 }
