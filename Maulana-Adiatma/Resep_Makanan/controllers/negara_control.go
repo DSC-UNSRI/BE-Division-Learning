@@ -7,8 +7,6 @@ import (
 
 	"percobaan3/database"
 	"percobaan3/models"
-
-	"github.com/gorilla/mux"
 )
 
 func GetAllNegara(w http.ResponseWriter, r *http.Request) {
