@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/artichys/BE-Division-Learning/kenz-raki-abdurrazak/TugasP5/config"
+	"github.com/artichys/BE-Division-Learning/kenz-raki-abdurrazak/TugasP5/middleware"
 	"github.com/artichys/BE-Division-Learning/kenz-raki-abdurrazak/TugasP5/models"
 	"github.com/gorilla/mux"
 )
@@ -172,4 +173,53 @@ func CreateFullEvent(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"message": "Speaker and Event saved successfully"})
+}
+
+func GetMyEvents(w http.ResponseWriter, r *http.Request) {
+	// Ambil speakerID dari context yang sudah di-set oleh AuthSpeakerMiddleware
+	speakerIDValue := r.Context().Value(middleware.SpeakerIDKey)
+	if speakerIDValue == nil {
+		// Ini seharusnya tidak terjadi jika AuthSpeakerMiddleware bekerja dengan benar
+		// dan rute ini diproteksi olehnya.
+		http.Error(w, "Speaker ID not found in context", http.StatusInternalServerError)
+		return
+	}
+
+	speakerID, ok := speakerIDValue.(int)
+	if !ok {
+		// Ini juga seharusnya tidak terjadi jika middleware menyimpan tipe data yang benar.
+		http.Error(w, "Speaker ID in context is not of expected type", http.StatusInternalServerError)
+		return
+	}
+
+	var events []models.Event
+	// Query events dari database yang dimiliki oleh speakerID ini
+	// Pastikan nama kolom di tabel 'events' sesuai (misal, 'speaker_id')
+	rows, err := config.DB.Query("SELECT id, title, description, speaker_id FROM events WHERE speaker_id = ?", speakerID)
+	if err != nil {
+		http.Error(w, "Failed to retrieve events: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var event models.Event
+		// Pastikan urutan field di Scan cocok dengan urutan SELECT
+		if err := rows.Scan(&event.ID, &event.Title, &event.Description, &event.SpeakerID); err != nil {
+			http.Error(w, "Failed to scan event: "+err.Error(), http.StatusInternalServerError)
+			// Sebaiknya log error ini juga di sisi server untuk debugging
+			return
+		}
+		events = append(events, event)
+	}
+
+	// Periksa error yang mungkin terjadi selama iterasi rows.Next()
+	if err = rows.Err(); err != nil {
+		http.Error(w, "Error during rows iteration: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(events)
 }
