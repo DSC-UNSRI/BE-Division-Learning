@@ -63,7 +63,7 @@ func GetMyResep(w http.ResponseWriter, r *http.Request) {
 	rows, err := database.DB.Query(`
         SELECT id, nama_resep, deskripsi_resep, bahan_utama, waktu_masak, negara_id 
         FROM data_resep 
-        WHERE negara_id = ?`, user.ID)
+        WHERE negara_id = ?`, user.KodeNegara)
 	if err != nil {
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
