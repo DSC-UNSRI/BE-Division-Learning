@@ -136,55 +136,69 @@ func GetStores(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-
-func GetStore(w http.ResponseWriter, r *http.Request, id string){
+func GetStore(w http.ResponseWriter, r *http.Request, id string) {
 	if id == "" {
-		http.Error(w, "id is null", http.StatusBadRequest)
+		http.Error(w, "ID cannot be empty", http.StatusBadRequest)
 		return
 	}
 
-	row := database.DB.QueryRow("SELECT id, name, owner, password FROM stores WHERE id = ? AND deleted_at IS NULL", id)
-
 	var store models.Store
-	err := row.Scan(&store.ID, &store.Name, &store.Owner, &store.Password)
+	err := database.DB.QueryRow(`
+		SELECT id, name, owner, token, role, deleted_at
+		FROM stores WHERE id = ? AND deleted_at IS NULL`, id,
+	).Scan(
+		&store.ID,
+		&store.Name,
+		&store.Owner,
+		&store.Token,
+		&store.Role,
+		&store.DeletedAt,
+	)
 	if err != nil {
-		http.Error(w, "Store not found", http.StatusNotFound)
+		if err == sql.ErrNoRows {
+			http.Error(w, "Store not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Database error: "+err.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"message": "Success Found",
-		"store": store,
+		"message": "Store found",
+		"store":   store,
 	})
 }
 
 func UpdateStore(w http.ResponseWriter, r *http.Request, id string) {
 	if id == "" {
-		http.Error(w, "id is null", http.StatusBadRequest)
+		http.Error(w, "ID cannot be empty", http.StatusBadRequest)
 		return
 	}
 
-	store := models.Store{}
-	err := database.DB.QueryRow("SELECT id, name, owner, password FROM stores WHERE id = ? AND deleted_at IS NULL", id).Scan(&store.ID, &store.Name, &store.Owner, &store.Password)
+	var store models.Store
+	err := database.DB.QueryRow("SELECT id, name, owner, role FROM stores WHERE id = ? AND deleted_at IS NULL", id).
+		Scan(&store.ID, &store.Name, &store.Owner, &store.Role)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, "Store not found", http.StatusNotFound)
 		} else {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(w, "Database error: "+err.Error(), http.StatusInternalServerError)
 		}
 		return
 	}
 
 	err = r.ParseForm()
 	if err != nil {
-		http.Error(w, "failed to parse form data", http.StatusBadRequest)
+		http.Error(w, "Failed to parse form data", http.StatusBadRequest)
 		return
 	}
 
 	name := r.FormValue("name")
 	owner := r.FormValue("owner")
 	password := r.FormValue("password")
+	role := r.FormValue("role")
+
 	if name != "" {
 		store.Name = name
 	}
@@ -192,22 +206,43 @@ func UpdateStore(w http.ResponseWriter, r *http.Request, id string) {
 		store.Owner = owner
 	}
 	if password != "" {
-		store.Password = password
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		if err != nil {
+			http.Error(w, "Failed to hash password", http.StatusInternalServerError)
+			return
+		}
+		store.Password = string(hashedPassword)
+		_, err = database.DB.Exec(
+			"UPDATE stores SET name = ?, owner = ?, password = ?, role = ? WHERE id = ? AND deleted_at IS NULL",
+			store.Name, store.Owner, store.Password, role, store.ID,
+		)
+	} else {
+		if role == "" {
+			role = "user"
+		}
+
+		_, err = database.DB.Exec(
+			"UPDATE stores SET name = ?, owner = ?, role = ? WHERE id = ? AND deleted_at IS NULL",
+			store.Name, store.Owner, role, store.ID,
+		)
 	}
 
-	_, err = database.DB.Exec("UPDATE stores SET name = ?, owner = ?, password = ? WHERE id = ? AND deleted_at IS NULL", store.Name, store.Owner, store.Password, id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Failed to update store: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"message": "Store Updated",
-		"store":    store,
+		"message": "Store updated",
+		"store": map[string]interface{}{
+			"id":    store.ID,
+			"name":  store.Name,
+			"owner": store.Owner,
+			"role":  role, 
+		},
 	})
 }
-
 
 func DeleteStore(w http.ResponseWriter, r *http.Request, id string) {
 	if id == "" {		
