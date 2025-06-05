@@ -2,9 +2,8 @@ package routes
 
 import (
 	"net/http"
-	"strings"
-	"strconv"
 	"resepku/controllers"
+	"strings"
 )
 
 func SetupRoutes() {
@@ -79,15 +78,22 @@ func SetupRoutes() {
 			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 			return
 		}
-		id := r.URL.Query().Get("id")
+		controllers.GetResepResultNegara(w, r)
+	})
+
+	http.HandleFunc("/resep-negara/", func(w http.ResponseWriter, r *http.Request) {
+		id := strings.TrimPrefix(r.URL.Path, "/resep-negara/")
 		if id == "" {
-			controllers.GetResepResultNegara(w, r)
-		} else {
-			if _, err := strconv.Atoi(id); err != nil {
-				http.Error(w, "Invalid ID", http.StatusBadRequest)
-				return
-			}
+			http.NotFound(w, r)
+			return
+		}
+		r.URL.RawQuery = "id=" + id
+
+		switch r.Method {
+		case "GET":
 			controllers.GetResepByNegaraID(w, r)
+		default:
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		}
 	})
 }

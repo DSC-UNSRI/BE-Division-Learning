@@ -60,7 +60,7 @@ func CreateResep(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    _, err = database.DB.Exec("INSERT INTO data_resep(nama_resep, description, bahan_utama, waktu_masak, negara_id) VALUES(?, ?, ?, ?, ?)",
+    _, err = database.DB.Exec("INSERT INTO data_resep(nama_resep, deskripsi_resep, bahan_utama, waktu_masak, negara_id) VALUES(?, ?, ?, ?, ?)",
         rcp.NamaResep, rcp.DeskripsiResep, rcp.BahanUtama, rcp.WaktuMasak, rcp.NegaraID)
 
     if err != nil {
@@ -87,7 +87,7 @@ func UpdateResep(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    _, err = database.DB.Exec("UPDATE data_resep SET nama_resep=?, description=?, bahan_utama=?, waktu_masak=?, negara_id=? WHERE id=?",
+    _, err = database.DB.Exec("UPDATE data_resep SET nama_resep=?, deskripsi_resep=?, bahan_utama=?, waktu_masak=?, negara_id=? WHERE id=?",
         rcp.NamaResep, rcp.DeskripsiResep, rcp.BahanUtama, rcp.WaktuMasak, rcp.NegaraID, id)
 
     if err != nil {
