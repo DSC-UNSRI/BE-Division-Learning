@@ -33,9 +33,9 @@ func GetProducts(w http.ResponseWriter, r *http.Request) {
 
 func CreateProduct(w http.ResponseWriter, r *http.Request) {
 	product := models.Product{}
-	err := r.ParseForm() 
+	err := r.ParseForm()
 	if err != nil {
-		http.Error(w, "failed to parse form data", http.StatusBadRequest)
+		http.Error(w, "Failed to parse form data", http.StatusBadRequest)
 		return
 	}
 
@@ -43,22 +43,30 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 	priceStr := r.FormValue("price")
 	stockStr := r.FormValue("stock")
 
-	price, err := strconv.Atoi(priceStr)
-	if err != nil {
-		http.Error(w, "Invalid price format", http.StatusBadRequest)
+	// Validasi name
+	if product.Name == "" {
+		http.Error(w, "Product name cannot be empty", http.StatusBadRequest)
 		return
 	}
 
+	// Validasi harga
+	price, err := strconv.Atoi(priceStr)
+	if err != nil || price < 0 {
+		http.Error(w, "Invalid price format or value", http.StatusBadRequest)
+		return
+	}
+
+	// Validasi stok
 	stock, err := strconv.Atoi(stockStr)
-	if err != nil {
-		http.Error(w, "Invalid stock format", http.StatusBadRequest)
+	if err != nil || stock < 0 {
+		http.Error(w, "Invalid stock format or value", http.StatusBadRequest)
 		return
 	}
 
 	product.Price = price
 	product.Stock = stock
 
-
+	// Simpan ke database
 	res, err := database.DB.Exec("INSERT INTO products (name, price, stock) VALUES (?, ?, ?)", product.Name, product.Price, product.Stock)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -70,10 +78,10 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"message": "Product Created",
-		"product":    product,
+		"product": product,
 	})
-	
 }
+
 
 func GetProduct(w http.ResponseWriter, r *http.Request, id string){
 	if id == "" {
