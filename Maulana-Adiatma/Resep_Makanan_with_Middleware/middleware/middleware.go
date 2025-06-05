@@ -33,7 +33,6 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			http.Error(w, "Unauthorized: invalid token", http.StatusUnauthorized)
 			return
 		}
-
 		ctx := context.WithValue(r.Context(), ContextUser, user)
 		next(w, r.WithContext(ctx))
 	}
@@ -49,4 +48,3 @@ func AdminOnly(next http.HandlerFunc) http.HandlerFunc {
 		next(w, r)
 	}
 }
-
