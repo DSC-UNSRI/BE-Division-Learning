@@ -40,6 +40,14 @@ func SetupRoutes() {
 		}
 	})
 
+	http.HandleFunc("/my-resep", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		middleware.AuthMiddleware(controllers.GetMyResep)(w, r)
+	})
+
 	http.HandleFunc("/resep/", func(w http.ResponseWriter, r *http.Request) {
 		id := strings.TrimPrefix(r.URL.Path, "/resep/")
 		if id == "" {
