@@ -2,8 +2,10 @@ package routes
 
 import (
 	"net/http"
-	"resepku/controllers"
 	"strings"
+
+	"resepku/controllers"
+	"resepku/middleware"
 )
 
 func SetupRoutes() {
@@ -11,12 +13,28 @@ func SetupRoutes() {
 		w.Write([]byte("API Resep Makanan is running"))
 	})
 
+	http.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		controllers.Register(w, r)
+	})
+
+	http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		controllers.Login(w, r)
+	})
+
 	http.HandleFunc("/resep", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "GET":
 			controllers.GetAllResep(w, r)
 		case "POST":
-			controllers.CreateResep(w, r)
+			middleware.AuthMiddleware(middleware.AdminOnly(controllers.CreateResep))(w, r)
 		default:
 			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		}
