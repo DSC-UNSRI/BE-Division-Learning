@@ -1,16 +1,17 @@
 package controllers
 
 import (
-	"tugas5/database"
-	"tugas5/models"
 	"database/sql"
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"tugas5/database"
+	"tugas5/models"
+	"tugas5/utils"
 )
 
 func GetProducts(w http.ResponseWriter, r *http.Request) {
-	rows, err := database.DB.Query("SELECT id, name, price, stock FROM products WHERE deleted_at IS NULL")
+	rows, err := database.DB.Query("SELECT id, name, price, stock, store_id FROM products WHERE deleted_at IS NULL")
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -20,7 +21,7 @@ func GetProducts(w http.ResponseWriter, r *http.Request) {
 	products := []models.Product{}
 	for rows.Next() {
 		product := models.Product{}
-		rows.Scan(&product.ID, &product.Name, &product.Price, &product.Stock)
+		rows.Scan(&product.ID, &product.Name, &product.Price, &product.Stock, &product.StoreID)
 		products = append(products, product)
 	}
 
@@ -32,48 +33,81 @@ func GetProducts(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateProduct(w http.ResponseWriter, r *http.Request) {
-	product := models.Product{}
 	err := r.ParseForm()
+
 	if err != nil {
 		http.Error(w, "Failed to parse form data", http.StatusBadRequest)
 		return
 	}
 
-	product.Name = r.FormValue("name")
+	name := r.FormValue("name")
 	priceStr := r.FormValue("price")
 	stockStr := r.FormValue("stock")
 
-	// Validasi name
-	if product.Name == "" {
+	if name == "" {
 		http.Error(w, "Product name cannot be empty", http.StatusBadRequest)
 		return
 	}
 
-	// Validasi harga
+	var exists bool
+	
+	err = database.DB.QueryRow(`SELECT EXISTS(SELECT 1 FROM products WHERE name = ? AND deleted_at IS NULL)`,name).Scan(&exists)
+
+	if err != nil {
+		http.Error(w, "Error checking product name", http.StatusInternalServerError)
+		return
+	}
+
+	if exists {
+		http.Error(w, "Product name already exists", http.StatusBadRequest)
+		return
+	}
+
 	price, err := strconv.Atoi(priceStr)
 	if err != nil || price < 0 {
 		http.Error(w, "Invalid price format or value", http.StatusBadRequest)
 		return
 	}
 
-	// Validasi stok
 	stock, err := strconv.Atoi(stockStr)
 	if err != nil || stock < 0 {
 		http.Error(w, "Invalid stock format or value", http.StatusBadRequest)
 		return
 	}
 
-	product.Price = price
-	product.Stock = stock
+	storeIDCtx := r.Context().Value(utils.StoreIDKey)
+    if storeIDCtx == nil {
+        http.Error(w, "Unauthorized", http.StatusUnauthorized)
+        return
+    }
+	
+    storeIDstr, ok := storeIDCtx.(string)
+    if !ok {
+        http.Error(w, "Invalid store ID", http.StatusInternalServerError)
+        return
+    }
+
+	storeID, err := strconv.Atoi(storeIDstr)
+	if err != nil  {
+		http.Error(w, "Invalid store id format or value", http.StatusBadRequest)
+		return
+	}
 
 	// Simpan ke database
-	res, err := database.DB.Exec("INSERT INTO products (name, price, stock) VALUES (?, ?, ?)", product.Name, product.Price, product.Stock)
+	res, err := database.DB.Exec("INSERT INTO products (name, price, stock, store_id) VALUES (?, ?, ?, ?)", name, price, stock, storeID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	id, _ := res.LastInsertId()
-	product.ID = int(id)
+
+	product := models.Product{
+        ID:      int(id),
+        Name:    name,
+        Price:   price,
+        Stock:   stock,
+        StoreID: storeID,
+    }
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
@@ -89,10 +123,15 @@ func GetProduct(w http.ResponseWriter, r *http.Request, id string){
 		return
 	}
 
-	row := database.DB.QueryRow("SELECT id, name, price, stock FROM products WHERE id = ? AND deleted_at IS NULL", id)
+	storeID := r.Context().Value(utils.StoreIDKey)
+	if storeID == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 
 	var product models.Product
-	err := row.Scan(&product.ID, &product.Name, &product.Price, &product.Stock)
+
+	err := database.DB.QueryRow(`SELECT id, name, price, stock, store_id FROM products WHERE id = ? AND store_id = ? AND deleted_at IS NULL`,id, storeID).Scan(&product.ID, &product.Name, &product.Price, &product.Stock, &product.StoreID)
 	if err != nil {
 		http.Error(w, "Product not found", http.StatusNotFound)
 		return
@@ -111,8 +150,25 @@ func UpdateProduct(w http.ResponseWriter, r *http.Request, id string) {
 		return
 	}
 
-	product := models.Product{}
-	err := database.DB.QueryRow("SELECT id, name, price, stock FROM products WHERE id = ? AND deleted_at IS NULL", id).Scan(&product.ID, &product.Name, &product.Price, &product.Stock)
+	storeIDCtx := r.Context().Value(utils.StoreIDKey)
+    if storeIDCtx == nil {
+        http.Error(w, "Unauthorized", http.StatusUnauthorized)
+        return
+    }
+    storeID, ok := storeIDCtx.(string)
+    if !ok {
+        http.Error(w, "Invalid store ID", http.StatusInternalServerError)
+        return
+    }
+
+	var product models.Product
+	err := database.DB.QueryRow("SELECT id, name, price, stock, store_id FROM products WHERE id = ? AND deleted_at IS NULL", id).Scan(&product.ID, &product.Name, &product.Price, &product.Stock, &product.StoreID)
+
+	if strconv.Itoa(product.StoreID) != storeID {
+        http.Error(w, "Forbidden: You cannot update another store's product", http.StatusForbidden)
+        return
+    }
+
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, "Product not found", http.StatusNotFound)
