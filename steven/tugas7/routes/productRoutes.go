@@ -3,6 +3,7 @@ package routes
 import (
 	"tugas5/controllers"
 	"tugas5/utils"
+	"tugas5/middleware"
 	"net/http"
 )
 
@@ -11,12 +12,24 @@ func ProductsRoutes(){
 	http.HandleFunc("/products/", productsHandlerWithID)
 }
 
+func withAuth(handler http.HandlerFunc) http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        utils.ApplyMiddlewares(handler, middleware.AuthMiddleware).ServeHTTP(w, r)
+    }
+}
+
+func withAdminAuth(handler http.HandlerFunc) http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        utils.ApplyMiddlewares(handler, middleware.AuthMiddleware, middleware.AdminMiddleware).ServeHTTP(w, r)
+    }
+}
+
 func productsHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		controllers.GetProducts(w, r)
+		withAuth(controllers.GetProducts)(w, r)
 	case http.MethodPost:
-		controllers.CreateProduct(w, r)
+		withAdminAuth(controllers.CreateProduct)(w, r)
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
@@ -30,23 +43,20 @@ func productsHandlerWithID(w http.ResponseWriter, r *http.Request) {
 	id := parts[2]
 	switch r.Method {
 	case http.MethodGet:
-		controllers.GetProduct(w, r, id)
+		withAuth(func(w http.ResponseWriter, r *http.Request) {
+            controllers.GetProduct(w, r, id)
+        })(w, r)
 	case http.MethodPatch:
-		controllers.UpdateProduct(w, r, id)
+		withAdminAuth(func(w http.ResponseWriter, r *http.Request) {
+            controllers.UpdateProduct(w, r, id)
+        })(w, r)
 	case http.MethodDelete:
-		controllers.DeleteProduct(w, r, id)
+		withAdminAuth(func(w http.ResponseWriter, r *http.Request) {
+            controllers.DeleteProduct(w, r, id)
+        })(w, r)
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
 }
 
-func storeHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		controllers.GetStores(w, r)
-	case http.MethodPost:
-		controllers.CreateStore(w, r)
-	default:
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-	}
-}
+
