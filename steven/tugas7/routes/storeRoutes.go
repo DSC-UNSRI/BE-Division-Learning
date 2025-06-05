@@ -7,7 +7,6 @@ import (
 )
 
 func StoreRoutes(){
-	http.HandleFunc("/store", storeHandler)
 	http.HandleFunc("/store/", storeHandlerWithID)
 	http.HandleFunc("/login", controllers.Login)
     http.HandleFunc("/register", controllers.Register)
