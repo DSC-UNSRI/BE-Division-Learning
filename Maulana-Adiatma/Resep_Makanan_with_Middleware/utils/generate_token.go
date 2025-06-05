@@ -2,13 +2,11 @@ package utils
 
 import (
 	"crypto/rand"
-	"encoding/hex"
+	"encoding/base64"
 )
 
-func GenerateToken(n int) (string, error) {
-	bytes := make([]byte, n)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", err
-	}
-	return hex.EncodeToString(bytes), nil
+func GenerateToken(n int) string {
+	b := make([]byte, n)
+	rand.Read(b)
+	return base64.URLEncoding.EncodeToString(b)
 }
