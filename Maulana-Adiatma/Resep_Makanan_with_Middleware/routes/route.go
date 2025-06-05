@@ -32,9 +32,9 @@ func SetupRoutes() {
 	http.HandleFunc("/resep", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "GET":
-			controllers.GetAllResep(w, r)
+			middleware.Logger(controllers.GetAllResep)(w, r)
 		case "POST":
-			middleware.AuthMiddleware(middleware.AdminOnly(controllers.CreateResep))(w, r)
+			middleware.Logger(middleware.AuthMiddleware(middleware.AdminOnly(controllers.CreateResep)))(w, r)
 		default:
 			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		}
