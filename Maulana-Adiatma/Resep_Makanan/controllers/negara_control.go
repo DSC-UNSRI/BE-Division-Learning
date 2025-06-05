@@ -1,4 +1,4 @@
-vpackage controllers
+package controllers
 
 import (
 	"encoding/json"
