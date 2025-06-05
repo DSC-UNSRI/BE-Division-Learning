@@ -7,9 +7,19 @@ import (
 )
 
 func StoreRoutes(){
+	http.HandleFunc("/store", storeHandler)
 	http.HandleFunc("/store/", storeHandlerWithID)
 	http.HandleFunc("/login", controllers.Login)
     http.HandleFunc("/register", controllers.Register)
+}
+
+func storeHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		controllers.GetStores(w, r)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
 }
 
 func storeHandlerWithID(w http.ResponseWriter, r *http.Request) {
