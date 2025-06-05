@@ -25,9 +25,9 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 		var user models.Negara
 		err := database.DB.QueryRow(
-			"SELECT id, email_users, role_users FROM data_negara WHERE token_users = ?",
+			"SELECT id, email_users, role_users, kode_negara FROM data_negara WHERE token_users = ?",
 			token,
-		).Scan(&user.ID, &user.Email, &user.Role)
+		).Scan(&user.ID, &user.Email, &user.Role, &user.KodeNegara)
 
 		if err != nil {
 			http.Error(w, "Unauthorized: invalid token", http.StatusUnauthorized)

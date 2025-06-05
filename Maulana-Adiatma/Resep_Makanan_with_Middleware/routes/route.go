@@ -9,7 +9,7 @@ import (
 )
 
 func SetupRoutes() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("API Resep Makanan is running"))
 	})
 
