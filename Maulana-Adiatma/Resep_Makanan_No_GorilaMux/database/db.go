@@ -36,4 +36,5 @@ func InitDB() {
 	}
 
 	fmt.Println("Database connected")
+	fmt.Println("http://localhost:8080")
 }

@@ -11,7 +11,7 @@ import (
 
 func GetResepResultNegara(w http.ResponseWriter, r *http.Request) {
 	rows, err := database.DB.Query(`
-		SELECT data_resep.id, data_resep.nama_resep, data_resep.description,
+		SELECT data_resep.id, data_resep.nama_resep, data_resep.deskripsi_resep,
 		       data_resep.bahan_utama, data_resep.waktu_masak,
 		       data_negara.negara_asal
 		FROM data_resep
@@ -46,7 +46,7 @@ func GetResepByNegaraID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rows, err := database.DB.Query(`
-		SELECT data_resep.id, data_resep.nama_resep, data_resep.description,
+		SELECT data_resep.id, data_resep.nama_resep, data_resep.deskripsi_resep,
 		       data_resep.bahan_utama, data_resep.waktu_masak,
 		       data_negara.negara_asal
 		FROM data_resep
@@ -69,9 +69,10 @@ func GetResepByNegaraID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(results) == 0 {
-		http.Error(w, "No resep found for the given negara ID", http.StatusNotFound)
+		http.Error(w, "No resep found for negara ID", http.StatusNotFound)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(results)}
+	json.NewEncoder(w).Encode(results)
+}
