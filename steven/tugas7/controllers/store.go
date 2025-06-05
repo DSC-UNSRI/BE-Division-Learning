@@ -1,12 +1,76 @@
 package controllers
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http"
 	"tugas5/database"
 	"tugas5/models"
-	"database/sql"
+	"tugas5/utils"
+
+	"golang.org/x/crypto/bcrypt"
 )
+
+func Register(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	owner := r.FormValue("owner")
+	name := r.FormValue("name")
+	password := r.FormValue("password")
+
+	if(owner == "" || name == "" || password == ""){
+		http.Error(w, "owner, name, or password can not be empty", http.StatusInternalServerError)
+		return
+	}
+
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		http.Error(w, "Failed to hash password", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = database.DB.Exec("INSERT INTO stores (owner, password, name) VALUES (?, ?, ?)", owner, hash, name)
+	if err != nil {
+		http.Error(w, "Failed to register user", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]string{"message": "User registered"})
+}
+
+func Login(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	owner := r.FormValue("owner")
+	password := r.FormValue("password")
+
+	var store models.Store
+	err := database.DB.QueryRow("SELECT id, owner, password, token FROM stores WHERE owner = ? AND deleted_at IS NULL", owner).
+		Scan(&store.ID, &store.Owner, &store.Password, &store.Token)
+	if err != nil {
+		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		return
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(store.Password), []byte(password)); err != nil {
+		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		return
+	}
+
+	token := utils.GenerateToken(32)
+
+	_, err = database.DB.Exec("UPDATE stores SET token = ? WHERE owner = ? AND deleted_at IS NULL", token, owner)
+	if err != nil {
+		http.Error(w, "Failed to set token", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"token": token,
+	})
+}
+
 
 func AuthStore(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
@@ -39,7 +103,7 @@ func AuthStore(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetStores(w http.ResponseWriter, r *http.Request) {
-	rows, err := database.DB.Query("SELECT id, name, owner, password FROM stores WHERE deleted_at IS NULL")
+	rows, err := database.DB.Query("SELECT id, name, owner, password, token, role, deleted_at FROM stores WHERE deleted_at IS NULL")
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -49,16 +113,29 @@ func GetStores(w http.ResponseWriter, r *http.Request) {
 	stores := []models.Store{}
 	for rows.Next() {
 		store := models.Store{}
-		rows.Scan(&store.ID, &store.Name, &store.Owner, &store.Password)
+		err := rows.Scan(
+			&store.ID,
+			&store.Name,
+			&store.Owner,
+			&store.Password,
+			&store.Token,
+			&store.Role,
+			&store.DeletedAt,
+		)
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
 		stores = append(stores, store)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"message" : "Success",
-		"stores": stores,
+		"message": "Success",
+		"stores":  stores,
 	})
 }
+
 
 func CreateStore(w http.ResponseWriter, r *http.Request) {
 	store := models.Store{}
