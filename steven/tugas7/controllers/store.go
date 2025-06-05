@@ -137,35 +137,6 @@ func GetStores(w http.ResponseWriter, r *http.Request) {
 }
 
 
-func CreateStore(w http.ResponseWriter, r *http.Request) {
-	store := models.Store{}
-	err := r.ParseForm() 
-	if err != nil {
-		http.Error(w, "failed to parse form data", http.StatusBadRequest)
-		return
-	}
-
-	store.Name = r.FormValue("name")
-	store.Owner = r.FormValue("owner")
-	store.Password = r.FormValue("password")
-
-
-	res, err := database.DB.Exec("INSERT INTO stores (name, owner, password) VALUES (?, ?, ?)", store.Name, store.Owner, store.Password)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	id, _ := res.LastInsertId()
-	store.ID = int(id)
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"message": "Store Created",
-		"store":    store,
-	})
-	
-}
-
 func GetStore(w http.ResponseWriter, r *http.Request, id string){
 	if id == "" {
 		http.Error(w, "id is null", http.StatusBadRequest)
