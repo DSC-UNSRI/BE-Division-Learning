@@ -1,4 +1,4 @@
-package config
+package database
 
 import (
 	"database/sql"
