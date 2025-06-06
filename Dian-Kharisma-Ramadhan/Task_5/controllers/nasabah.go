@@ -1,104 +1,78 @@
 package controllers
 
 import (
-	"database/sql"
-	"encoding/json"
-	"net/http"
-	"strconv"
 	"Task_5/database"
 	"Task_5/models"
+	"Task_5/utils"
+	"encoding/json"
+	"net/http"
+	"fmt"
+	"golang.org/x/crypto/bcrypt"
 )
 
-func GetAllNasabah(w http.ResponseWriter, r *http.Request) {
-	rows, err := database.DB.Query("SELECT id, nama FROM nasabah")
+func RegisterNasabah(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Nama     string `json:"nama"`
+		Password string `json:"password"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-	defer rows.Close()
 
-	nasabahs := []models.Nasabah{}
-	for rows.Next() {
-		var n models.Nasabah
-		err := rows.Scan(&n.ID, &n.Nama)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		nasabahs = append(nasabahs, n)
-	}
-	json.NewEncoder(w).Encode(nasabahs)
-}
-
-func GetNasabahByID(w http.ResponseWriter, r *http.Request) {
-	idStr := r.URL.Query().Get("id")
-	id, _ := strconv.Atoi(idStr)
-
-	var n models.Nasabah
-	err := database.DB.QueryRow("SELECT id, nama FROM nasabah WHERE id = ?", id).Scan(&n.ID, &n.Nama)
-	if err == sql.ErrNoRows {
-		http.Error(w, "Nasabah not found", http.StatusNotFound)
-		return
-	} else if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	json.NewEncoder(w).Encode(n)
-}
-
-func CreateNasabah(w http.ResponseWriter, r *http.Request) {
-	var n models.Nasabah
-	json.NewDecoder(r.Body).Decode(&n)
-
-	_, err := database.DB.Exec("INSERT INTO nasabah(nama, password) VALUES (?, ?)", n.Nama, n.Password)
+	hash, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Failed to hash password", http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]string{"message": "Nasabah created"})
-}
 
-func UpdateNasabah(w http.ResponseWriter, r *http.Request) {
-	idStr := r.URL.Query().Get("id")
-	id, _ := strconv.Atoi(idStr)
+	token := utils.GenerateToken(32)
 
-	var n models.Nasabah
-	json.NewDecoder(r.Body).Decode(&n)
-
-	_, err := database.DB.Exec("UPDATE nasabah SET nama = ?, password = ? WHERE id = ?", n.Nama, n.Password, id)
+	result, err := database.DB.Exec("INSERT INTO nasabah (nama, password, token) VALUES (?, ?, ?)", input.Nama, hash, token)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println("Error insert nasabah:", err) // Print error ke console/server log
+		http.Error(w, fmt.Sprintf("Failed to register nasabah: %v", err), http.StatusInternalServerError)
 		return
 	}
-	json.NewEncoder(w).Encode(map[string]string{"message": "Nasabah updated"})
-}
 
-func DeleteNasabah(w http.ResponseWriter, r *http.Request) {
-	idStr := r.URL.Query().Get("id")
-	id, _ := strconv.Atoi(idStr)
-
-	_, err := database.DB.Exec("DELETE FROM nasabah WHERE id = ?", id)
+	id, err := result.LastInsertId()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		fmt.Println("Error getting last insert ID:", err)
 	}
-	json.NewEncoder(w).Encode(map[string]string{"message": "Nasabah deleted"})
+
+	response := map[string]interface{}{
+		"message": "Register nasabah success",
+		"id":      id,
+		"token":   token,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }
+
 
 func LoginNasabah(w http.ResponseWriter, r *http.Request) {
-	var n models.Nasabah
-	json.NewDecoder(r.Body).Decode(&n)
+	r.ParseForm()
+	nama := r.FormValue("nama")
+	password := r.FormValue("password")
 
-	var result models.Nasabah
-	err := database.DB.QueryRow("SELECT id, nama FROM nasabah WHERE nama = ? AND password = ?", n.Nama, n.Password).Scan(&result.ID, &result.Nama)
+	var n models.Nasabah
+	err := database.DB.QueryRow("SELECT id, nama, password, token FROM nasabah WHERE nama = ?", nama).
+		Scan(&n.ID, &n.Nama, &n.Password, &n.Token)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			http.Error(w, "Invalid credentials", http.StatusUnauthorized)
-			return
-		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 		return
 	}
-	json.NewEncoder(w).Encode(map[string]string{"message": "Nasabah login"})
+
+	if err := bcrypt.CompareHashAndPassword([]byte(n.Password), []byte(password)); err != nil {
+		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Nasabah login",
+		"token":   n.Token,
+	})
 }
