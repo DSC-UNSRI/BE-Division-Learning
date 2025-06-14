@@ -33,6 +33,31 @@ func (r *UserRepository) Create(user *models.User) error {
 	return nil
 }
 
+func (r *UserRepository) FindByEmail(email string) (*models.User, error) {
+
+	query := "SELECT id, name, email, password, created_at, deleted_at FROM users WHERE email = ? AND deleted_at IS NULL"
+
+	user := &models.User{}
+
+	err := r.db.QueryRow(query, email).Scan(
+		&user.ID,
+		&user.Name,
+		&user.Email,
+		&user.Password,
+		&user.CreatedAt,
+		&user.DeletedAt,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.New("user not found")
+		}
+		return nil, err
+	}
+
+	return user, nil
+}
+
 func (r *UserRepository) FindByID(id int) (*models.User, error) {
 	user := &models.User{}
 	err := r.db.QueryRow("SELECT id, name, email, created_at FROM users WHERE id = ? AND deleted_at IS NULL", id).

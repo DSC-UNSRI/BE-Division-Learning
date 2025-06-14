@@ -7,6 +7,7 @@ import (
 	"strings"
 	"tugas-5/models"
 	"tugas-5/services"
+	"tugas-5/utils"
 )
 
 type UserHandler struct {
@@ -15,6 +16,15 @@ type UserHandler struct {
 
 func NewUserHandler(service *services.UserService) *UserHandler {
 	return &UserHandler{service: service}
+}
+
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type LoginResponse struct {
+	Token string `json:"token"`
 }
 
 func (h *UserHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
@@ -160,4 +170,35 @@ func (h *UserHandler) FakeAuth(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Authentication successful"})
+}
+
+func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
+	var req LoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if req.Email == "" || req.Password == "" {
+		http.Error(w, "Missing email or password", http.StatusBadRequest)
+		return
+	}
+
+	user, err := h.service.LoginUser(req.Email, req.Password)
+	if err != nil {
+
+		http.Error(w, "Invalid email or password", http.StatusUnauthorized)
+		return
+	}
+
+	token, err := utils.GenerateJWT(user.ID)
+	if err != nil {
+		// Jika terjadi error saat membuat token
+		http.Error(w, "Could not generate token", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(LoginResponse{Token: token})
 }
