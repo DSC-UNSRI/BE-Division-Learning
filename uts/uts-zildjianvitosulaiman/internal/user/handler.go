@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"uts-zildjianvitosulaiman/domain"
+	"uts-zildjianvitosulaiman/internal/auth"
+	"uts-zildjianvitosulaiman/pkg/utils"
 )
 
 type RegisterRequest struct {
@@ -88,5 +90,30 @@ func (h *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 	response := LoginResponse{Token: token}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}
+
+func (h *UserHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
+	claims, ok := r.Context().Value(auth.ClaimsContextKey).(*utils.JWTClaims)
+	if !ok {
+		http.Error(w, "Could not retrieve user claims", http.StatusInternalServerError)
+		return
+	}
+
+	user, err := h.service.GetUserProfile(claims.UserID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	response := UserResponse{
+		ID:        user.ID,
+		Name:      user.Name,
+		Email:     user.Email,
+		Tier:      string(user.Tier),
+		CreatedAt: user.CreatedAt.Format("2006-01-02 15:04:05"),
+	}
+
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 }

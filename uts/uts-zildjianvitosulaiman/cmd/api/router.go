@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"net/http"
+	"uts-zildjianvitosulaiman/internal/auth"
 	"uts-zildjianvitosulaiman/internal/user"
 )
 
@@ -20,5 +21,8 @@ func RegisterRoutes(mux *http.ServeMux, db *sql.DB) http.Handler {
 	// --- User Routes ---
 	mux.HandleFunc("POST /register", userHandler.Register)
 	mux.HandleFunc("POST /login", userHandler.Login)
+
+	protectedUserRoutes := auth.AuthMiddleware(http.HandlerFunc(userHandler.GetMyProfile))
+	mux.Handle("GET /users/me", protectedUserRoutes)
 	return mux
 }
