@@ -18,7 +18,6 @@ CREATE TABLE `questions` (
     `user_id` INT NOT NULL,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
     FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 );
 
@@ -31,7 +30,6 @@ CREATE TABLE `answers` (
     `downvotes` INT NOT NULL DEFAULT 0,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
     FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`question_id`) REFERENCES `questions`(`id`) ON DELETE CASCADE
 );
@@ -42,9 +40,7 @@ CREATE TABLE `votes` (
     `answer_id` INT NOT NULL,
     `vote_type` TINYINT NOT NULL,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
     UNIQUE KEY `unique_user_answer_vote` (`user_id`, `answer_id`),
-
     FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
     FOREIGN KEY (`answer_id`) REFERENCES `answers`(`id`) ON DELETE CASCADE
 );

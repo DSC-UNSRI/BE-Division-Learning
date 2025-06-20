@@ -6,8 +6,7 @@ import (
 	"uts-zildjianvitosulaiman/internal/user"
 )
 
-func RegisterRoutes(db *sql.DB) http.Handler {
-	mux := http.NewServeMux()
+func RegisterRoutes(mux *http.ServeMux, db *sql.DB) http.Handler {
 
 	// --- User Dependencies ---
 	userRepo := user.NewUserRepository(db)

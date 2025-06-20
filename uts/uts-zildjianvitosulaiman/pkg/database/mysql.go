@@ -10,13 +10,18 @@ import (
 )
 
 func NewMySQLConnection() *sql.DB {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_PORT"),
-		os.Getenv("DB_NAME"),
-	)
+	dbUser := os.Getenv("DB_USER")
+	dbPass := os.Getenv("DB_PASSWORD")
+	dbHost := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
+	dbName := os.Getenv("DB_NAME")
+
+	var dsn string
+	if dbPass == "" {
+		dsn = fmt.Sprintf("%s@tcp(%s:%s)/%s?parseTime=true&multiStatements=true", dbUser, dbHost, dbPort, dbName)
+	} else {
+		dsn = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&multiStatements=true", dbUser, dbPass, dbHost, dbPort, dbName)
+	}
 
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
@@ -29,7 +34,6 @@ func NewMySQLConnection() *sql.DB {
 	}
 
 	log.Println("Successfully connected to the database!")
-
 	db.SetMaxOpenConns(25)
 	db.SetMaxIdleConns(25)
 
