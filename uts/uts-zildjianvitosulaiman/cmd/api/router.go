@@ -3,7 +3,7 @@ package main
 import (
 	"database/sql"
 	"net/http"
-	"uts-zildjianvitosulaiman/internal/user" // Sesuaikan nama modul
+	"uts-zildjianvitosulaiman/internal/user"
 )
 
 func RegisterRoutes(db *sql.DB) http.Handler {
