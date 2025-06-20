@@ -11,6 +11,7 @@ import (
 type UserService interface {
 	RegisterUser(user *domain.User) error
 	LoginUser(email, password string) (string, error)
+	GetUserProfile(userID int) (*domain.User, error)
 }
 
 type userService struct {
@@ -60,4 +61,11 @@ func (s *userService) LoginUser(email, password string) (string, error) {
 	}
 
 	return token, nil
+}
+
+func (s *userService) GetUserProfile(userID int) (*domain.User, error) {
+	if userID <= 0 {
+		return nil, errors.New("invalid user ID")
+	}
+	return s.repo.FindByID(userID)
 }

@@ -8,6 +8,7 @@ import (
 type UserRepository interface {
 	Create(user *domain.User) error
 	FindByEmail(email string) (*domain.User, error)
+	FindByID(id int) (*domain.User, error)
 }
 
 type userRepository struct {
@@ -61,5 +62,15 @@ func (r *userRepository) FindByEmail(email string) (*domain.User, error) {
 		return nil, err
 	}
 
+	return user, nil
+}
+
+func (r *userRepository) FindByID(id int) (*domain.User, error) {
+	query := `SELECT id, name, email, tier, created_at FROM users WHERE id = ? AND deleted_at IS NULL`
+	user := &domain.User{}
+	err := r.db.QueryRow(query, id).Scan(&user.ID, &user.Name, &user.Email, &user.Tier, &user.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
 	return user, nil
 }
