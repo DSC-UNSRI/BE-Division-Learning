@@ -19,6 +19,6 @@ func RegisterRoutes(mux *http.ServeMux, db *sql.DB) http.Handler {
 
 	// --- User Routes ---
 	mux.HandleFunc("POST /register", userHandler.Register)
-
+	mux.HandleFunc("POST /login", userHandler.Login)
 	return mux
 }

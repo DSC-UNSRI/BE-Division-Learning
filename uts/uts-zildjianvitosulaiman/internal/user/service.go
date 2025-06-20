@@ -2,13 +2,15 @@ package user
 
 import (
 	"errors"
-	"uts-zildjianvitosulaiman/domain" // Sesuaikan nama modul
+	"uts-zildjianvitosulaiman/domain"
+	"uts-zildjianvitosulaiman/pkg/utils"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService interface {
 	RegisterUser(user *domain.User) error
+	LoginUser(email, password string) (string, error)
 }
 
 type userService struct {
@@ -36,8 +38,26 @@ func (s *userService) RegisterUser(user *domain.User) error {
 	}
 	user.SecurityAnswer = string(hashedAnswer)
 
-	// 4. Set tier default
 	user.Tier = domain.TierFree
 
 	return s.repo.Create(user)
+}
+
+func (s *userService) LoginUser(email, password string) (string, error) {
+	user, err := s.repo.FindByEmail(email)
+	if err != nil {
+		return "", errors.New("invalid email or password")
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err != nil {
+		return "", errors.New("invalid email or password")
+	}
+
+	token, err := utils.GenerateJWT(user)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }
