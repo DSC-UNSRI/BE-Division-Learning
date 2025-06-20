@@ -9,6 +9,8 @@ type UserRepository interface {
 	Create(user *domain.User) error
 	FindByEmail(email string) (*domain.User, error)
 	FindByID(id int) (*domain.User, error)
+	FindSecurityQuestionByEmail(email string) (string, error)
+	ResetPassword(email, newPasswordHash string) error
 }
 
 type userRepository struct {
@@ -20,7 +22,7 @@ func NewUserRepository(db *sql.DB) UserRepository {
 }
 
 func (r *userRepository) Create(user *domain.User) error {
-	query := `INSERT INTO users (name, email, password, tier, security_question, security_answer) 
+	query := `INSERT INTO users (name, email, password, tier, security_question, security_answer)
 	          VALUES (?, ?, ?, ?, ?, ?)`
 
 	result, err := r.db.Exec(query,
@@ -45,7 +47,8 @@ func (r *userRepository) Create(user *domain.User) error {
 }
 
 func (r *userRepository) FindByEmail(email string) (*domain.User, error) {
-	query := `SELECT id, name, email, password, tier, created_at FROM users WHERE email = ? AND deleted_at IS NULL`
+	query := `SELECT id, name, email, password, tier, security_question, security_answer, created_at 
+	          FROM users WHERE email = ? AND deleted_at IS NULL`
 
 	user := &domain.User{}
 
@@ -55,6 +58,8 @@ func (r *userRepository) FindByEmail(email string) (*domain.User, error) {
 		&user.Email,
 		&user.Password,
 		&user.Tier,
+		&user.SecurityQuestion,
+		&user.SecurityAnswer,
 		&user.CreatedAt,
 	)
 
@@ -73,4 +78,20 @@ func (r *userRepository) FindByID(id int) (*domain.User, error) {
 		return nil, err
 	}
 	return user, nil
+}
+
+func (r *userRepository) FindSecurityQuestionByEmail(email string) (string, error) {
+	var question string
+	query := `SELECT security_question FROM users WHERE email = ? AND deleted_at IS NULL`
+	err := r.db.QueryRow(query, email).Scan(&question)
+	if err != nil {
+		return "", err
+	}
+	return question, nil
+}
+
+func (r *userRepository) ResetPassword(email, newPasswordHash string) error {
+	query := `UPDATE users SET password = ? WHERE email = ?`
+	_, err := r.db.Exec(query, newPasswordHash, email)
+	return err
 }
