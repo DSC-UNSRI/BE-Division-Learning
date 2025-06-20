@@ -11,6 +11,7 @@ type Repository interface {
 	FindByID(id int) (*domain.Question, error)
 	Update(question *domain.Question) error
 	Delete(id int) error
+	CountByUserIDAndDate(userID int) (int, error)
 }
 
 type repository struct {
@@ -71,4 +72,16 @@ func (r *repository) Delete(id int) error {
 	query := `DELETE FROM questions WHERE id = ?`
 	_, err := r.db.Exec(query, id)
 	return err
+}
+
+func (r *repository) CountByUserIDAndDate(userID int) (int, error) {
+	var count int
+
+	query := `SELECT COUNT(id) FROM questions WHERE user_id = ? AND DATE(created_at) = CURDATE()`
+
+	err := r.db.QueryRow(query, userID).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
 }

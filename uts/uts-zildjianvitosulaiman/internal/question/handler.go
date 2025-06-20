@@ -56,7 +56,11 @@ func (h *Handler) CreateQuestion(w http.ResponseWriter, r *http.Request) {
 		UserID: claims.UserID,
 	}
 
-	if err := h.service.CreateQuestion(q); err != nil {
+	if err := h.service.CreateQuestion(q, claims.Tier); err != nil {
+		if err.Error() == "free users can only create 5 questions per day. Upgrade to premium for unlimited access!" {
+			http.Error(w, err.Error(), http.StatusForbidden)
+			return
+		}
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -101,7 +105,12 @@ func (h *Handler) UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 		Body:  req.Body,
 	}
 
-	if err := h.service.UpdateQuestion(claims.UserID, id, q); err != nil {
+	if err := h.service.UpdateQuestion(claims.UserID, id, claims.Tier, q); err != nil {
+		if err.Error() == "free users can only edit questions within 5 minutes of posting" {
+			http.Error(w, err.Error(), http.StatusForbidden)
+			return
+		}
+
 		if err.Error() == "you are not authorized to update this question" {
 			http.Error(w, err.Error(), http.StatusForbidden)
 			return
