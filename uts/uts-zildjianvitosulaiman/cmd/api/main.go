@@ -16,7 +16,12 @@ func main() {
 	db := database.NewMySQLConnection()
 	defer db.Close()
 
+	mux := http.NewServeMux()
+	apiMux := http.NewServeMux()
+
 	router := RegisterRoutes(db)
+
+	mux.Handle("/api/", http.StripPrefix("/api", apiMux))
 
 	port := "8080"
 	log.Printf("Server starting on port %s...\n", port)
