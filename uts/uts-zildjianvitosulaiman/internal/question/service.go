@@ -3,7 +3,7 @@ package question
 import (
 	"errors"
 	"time"
-	"uts-zildjianvitosulaiman/domain" // Sesuaikan nama modul
+	"uts-zildjianvitosulaiman/domain"
 )
 
 type Service interface {
@@ -34,7 +34,7 @@ func (s *service) CreateQuestion(q *domain.Question, userTier domain.UserTier) e
 		}
 
 		if count >= 5 {
-			return errors.New("free users can only create 5 questions per day. Upgrade to premium for unlimited access!")
+			return errors.New("free users can only create 5 questions per day. Upgrade to premium for unlimited access")
 		}
 	}
 
@@ -60,7 +60,6 @@ func (s *service) UpdateQuestion(userID, questionID int, userTier domain.UserTie
 	}
 
 	if userTier == domain.TierFree {
-		// Cek apakah sudah lewat 5 menit sejak dibuat
 		if time.Since(q.CreatedAt) > 5*time.Minute {
 			return errors.New("free users can only edit questions within 5 minutes of posting")
 		}
