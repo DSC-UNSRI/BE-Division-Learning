@@ -1,32 +1,26 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
-	"tugas-5/config"
-	"tugas-5/database"
-	"tugas-5/routes"
+	"uts-zildjianvitosulaiman/pkg/database"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	config.ENVLoad()
-	// if err != nil {
-	// 	log.Fatalf("Error loading env: %v", err)
-	// }
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found")
+	}
 
-	database.InitDB()
-	defer database.DB.Close()
-	database.Migrate()
+	db := database.NewMySQLConnection()
+	defer db.Close()
 
-	mux := http.NewServeMux()
-	apiMux := http.NewServeMux()
+	router := RegisterRoutes(db)
 
-	db := database.DB
-	routes.RegisterRoutes(apiMux, db)
-
-	mux.Handle("/api/", http.StripPrefix("/api", apiMux))
-
-	fmt.Println("Server running at http://localhost:8080/")
-	log.Fatal(http.ListenAndServe(":8080", mux))
+	port := "8080"
+	log.Printf("Server starting on port %s...\n", port)
+	if err := http.ListenAndServe(":"+port, router); err != nil {
+		log.Fatalf("could not start server: %s\n", err)
+	}
 }
