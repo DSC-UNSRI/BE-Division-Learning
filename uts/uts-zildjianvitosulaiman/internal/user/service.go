@@ -2,6 +2,7 @@ package user
 
 import (
 	"errors"
+	"fmt"
 	"uts-zildjianvitosulaiman/domain"
 	"uts-zildjianvitosulaiman/pkg/utils"
 
@@ -12,6 +13,8 @@ type UserService interface {
 	RegisterUser(user *domain.User) error
 	LoginUser(email, password string) (string, error)
 	GetUserProfile(userID int) (*domain.User, error)
+	RequestPasswordReset(email string) (string, error)
+	VerifyAndResetPassword(email, answer, newPassword string) error
 }
 
 type userService struct {
@@ -68,4 +71,33 @@ func (s *userService) GetUserProfile(userID int) (*domain.User, error) {
 		return nil, errors.New("invalid user ID")
 	}
 	return s.repo.FindByID(userID)
+}
+
+func (s *userService) RequestPasswordReset(email string) (string, error) {
+	question, err := s.repo.FindSecurityQuestionByEmail(email)
+	if err != nil {
+		// Jangan beri tahu jika email tidak ada, untuk keamanan.
+		return "", errors.New("if email exists, security question will be retrieved")
+	}
+	return question, nil
+}
+
+func (s *userService) VerifyAndResetPassword(email, answer, newPassword string) error {
+	fmt.Println(email)
+	user, err := s.repo.FindByEmail(email)
+	if err != nil {
+		return errors.New("invalid email")
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.SecurityAnswer), []byte(answer))
+	if err != nil {
+		return errors.New("invalid answer")
+	}
+
+	newPasswordHash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	return s.repo.ResetPassword(email, string(newPasswordHash))
 }

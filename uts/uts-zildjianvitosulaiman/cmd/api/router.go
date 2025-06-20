@@ -25,6 +25,7 @@ func RegisterRoutes(mux *http.ServeMux, db *sql.DB) http.Handler {
 	answerRepo := answer.NewRepository(db)
 	answerService := answer.NewService(answerRepo)
 	answerHandler := answer.NewHandler(answerService)
+
 	// ===============================================
 	// ===              API ROUTES                 ===
 	// ===============================================
@@ -32,6 +33,9 @@ func RegisterRoutes(mux *http.ServeMux, db *sql.DB) http.Handler {
 	// --- User Routes ---
 	mux.HandleFunc("POST /register", userHandler.Register)
 	mux.HandleFunc("POST /login", userHandler.Login)
+
+	mux.HandleFunc("POST /forgot-password/request", userHandler.RequestPasswordReset)
+	mux.HandleFunc("POST /forgot-password/verify", userHandler.VerifyAndResetPassword)
 
 	protectedUserRoutes := auth.AuthMiddleware(http.HandlerFunc(userHandler.GetMyProfile))
 	mux.Handle("GET /users/me", protectedUserRoutes)
