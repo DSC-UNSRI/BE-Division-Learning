@@ -2,7 +2,6 @@ package user
 
 import (
 	"errors"
-	"fmt"
 	"uts-zildjianvitosulaiman/domain"
 	"uts-zildjianvitosulaiman/pkg/utils"
 
@@ -83,7 +82,6 @@ func (s *userService) RequestPasswordReset(email string) (string, error) {
 }
 
 func (s *userService) VerifyAndResetPassword(email, answer, newPassword string) error {
-	fmt.Println(email)
 	user, err := s.repo.FindByEmail(email)
 	if err != nil {
 		return errors.New("invalid email")
