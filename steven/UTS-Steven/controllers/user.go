@@ -20,7 +20,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	var user models.User
 	err := database.DB.QueryRow("SELECT email FROM users WHERE email = ? AND deleted_at IS NULL", email).
 		Scan(&user.Email)
-	if err != nil {
+	if err == nil {
 		http.Error(w, "Email used", http.StatusUnauthorized)
 		return
 	}
