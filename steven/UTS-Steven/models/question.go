@@ -7,7 +7,7 @@ type Question struct {
 	UserID    int			`json:"user_id"`
 	Title     string		`json:"title"`
 	Content   string		`json:"content"`
-	CreatedAt *time.Time	`json:"created_at"`
+	CreatedAt time.Time	`json:"created_at"`
 	DeletedAt *time.Time 	`json:"deleted_at"`
 }
 
@@ -17,7 +17,7 @@ var QuestionQuery = `
 		user_id INT NOT NULL,
 		title VARCHAR(255) NOT NULL,
 		content TEXT NOT NULL,
-		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		deleted_at TIMESTAMP NULL DEFAULT NULL,
 		FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 	);`
