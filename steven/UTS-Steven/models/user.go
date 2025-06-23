@@ -20,6 +20,7 @@ var UserQuery = `
 		name VARCHAR(100) NOT NULL,
 		email VARCHAR(100) NOT NULL UNIQUE,
 		password VARCHAR(100) NOT NULL,
+		token VARCHAR(255) NOT NULL,
 		role ENUM('free', 'premium') NOT NULL DEFAULT 'free',
 		reset_token VARCHAR(255) DEFAULT NULL,
 		reset_token_expire DATETIME DEFAULT NULL,
