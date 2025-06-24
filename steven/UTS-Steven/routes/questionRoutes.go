@@ -10,6 +10,7 @@ import (
 func QuestionRoutes(){
 	http.HandleFunc("/questions", questionHandler)
 	http.HandleFunc("/questions/", questionHandlerWithID)
+	http.HandleFunc("/questions/user", withPremiumAuth(controllers.GetQuestionsByUser))
 }
 
 func withAuth(handler http.HandlerFunc) http.HandlerFunc {
@@ -27,7 +28,7 @@ func withPremiumAuth(handler http.HandlerFunc) http.HandlerFunc {
 func questionHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		controllers.GetQuestions(w,r)
+		withAuth(controllers.GetQuestions)(w,r)
 	case http.MethodPost:
 		withPremiumAuth(controllers.CreateQuestions)(w,r)
 	default:
