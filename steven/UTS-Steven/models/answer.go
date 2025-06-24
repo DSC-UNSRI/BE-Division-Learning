@@ -11,6 +11,16 @@ type Answer struct {
 	DeletedAt 	*time.Time 	`json:"deleted_at"`
 }
 
+type AnswerWithUser struct {
+	ID         int       `json:"id"`
+	UserID     int       `json:"user_id"`
+	QuestionID int       `json:"question_id"`
+	UserName   string    `json:"user_name"`
+	Content    string    `json:"content"`
+	CreatedAt  time.Time `json:"created_at"`
+}
+
+
 var AnswerQuery = `
 	CREATE TABLE IF NOT EXISTS answers (
 		id INT AUTO_INCREMENT PRIMARY KEY,
