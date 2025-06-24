@@ -107,14 +107,26 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request, id string){
 		return
 	}
 
+	userIDCtx := r.Context().Value(utils.UserIDKey)
+	if userIDCtx == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	userID := userIDCtx.(int)
+
 	question := models.Question{}
-	err := database.DB.QueryRow("SELECT id, title, content FROM questions WHERE id = ? AND deleted_at IS NULL", id).Scan(&question.ID, &question.Title, &question.Content)
+	err := database.DB.QueryRow("SELECT id, user_id, title, content FROM questions WHERE id = ? AND deleted_at IS NULL", id).Scan(&question.ID, &question.UserID, &question.Title, &question.Content)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, "Question not found", http.StatusNotFound)
 		} else {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
+		return
+	}
+
+	if question.UserID != userID {
+		http.Error(w, "Forbidden - you can only update your own question", http.StatusForbidden)
 		return
 	}
 
@@ -157,8 +169,35 @@ func DeleteQuestion(w http.ResponseWriter, r *http.Request, id string){
 		return
 	}
 
+	userIDCtx := r.Context().Value(utils.UserIDKey)
+	if userIDCtx == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	userID := userIDCtx.(int)
+
+	var questionUserID int
+	err := database.DB.QueryRow(
+		"SELECT user_id FROM questions WHERE id = ? AND deleted_at IS NULL",
+		id,
+	).Scan(&questionUserID)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Question not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Database error", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if questionUserID != userID {
+		http.Error(w, "Forbidden - you can only delete your own question", http.StatusForbidden)
+		return
+	}
+
 	var exists bool
-	err := database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM questions WHERE id = ? AND deleted_at IS NULL)", id).Scan(&exists)
+	err = database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM questions WHERE id = ? AND deleted_at IS NULL)", id).Scan(&exists)
 	if err != nil {
 		http.Error(w, "database error", http.StatusInternalServerError)
 		return
@@ -179,5 +218,51 @@ func DeleteQuestion(w http.ResponseWriter, r *http.Request, id string){
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "Question deleted successfully",
 		"id":      id,
+	})
+}
+
+func GetQuestionsByUser(w http.ResponseWriter, r *http.Request) {
+	userIDCtx := r.Context().Value(utils.UserIDKey)
+	if userIDCtx == nil {
+        http.Error(w, "Unauthorized", http.StatusUnauthorized)
+        return	
+    }
+
+	userID := userIDCtx.(int)
+
+	rows, err := database.DB.Query(`
+		SELECT id, title, content, created_at
+		FROM questions
+		WHERE user_id = ? AND deleted_at IS NULL
+		ORDER BY created_at DESC
+	`, userID)
+
+	if err != nil {
+		http.Error(w, "Database error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	type QuestionResponse struct {
+		ID        int    `json:"id"`
+		Title     string `json:"title"`
+		Content   string `json:"content"`
+		CreatedAt string `json:"created_at"`
+	}
+
+	questions := []QuestionResponse{}
+	for rows.Next() {
+		question := QuestionResponse{}
+		if err := rows.Scan(&question.ID, &question.Title, &question.Content, &question.CreatedAt); err != nil {
+			http.Error(w, "Scan error: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		questions = append(questions, question)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message":   "Success Found",
+		"questions": questions,
 	})
 }
