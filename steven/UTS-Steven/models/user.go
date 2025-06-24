@@ -9,6 +9,7 @@ type User struct {
 	Password          	string		`json:"password"`
 	Role              	string 		`json:"role"`
 	Token				string     	`json:"token"`
+	TokenExpire 		*time.Time 	`json:"token_expire"`
 	ResetToken        	string		`json:"reset_token"`
 	ResetTokenExpire  	string		`json:"reset_token_expire"`
 	DeletedAt 			*time.Time 	`json:"deleted_at"`
