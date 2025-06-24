@@ -57,8 +57,7 @@ Divisi Backend bertanggung jawab dalam membangun pondasi logika dan infrastruktu
 
 ## 📫 Kontak
 
-- 🌐 [Website GDGoC UNSRI](https://gdsc.community.dev/universitas-sriwijaya/)
-- 📧 Email: gdgoc.unsri@gmail.com
+- 🌐 [Website GDGoC UNSRI](https://gdg.community.dev/gdg-on-campus-universitas-sriwijaya-palembang-indonesia/)
 - 📍 Universitas Sriwijaya, Palembang
 
 ---
