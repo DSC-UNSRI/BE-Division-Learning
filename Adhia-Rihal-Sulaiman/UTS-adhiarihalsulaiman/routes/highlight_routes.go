@@ -38,7 +38,10 @@ func highlightGenericHandlerWithID(w http.ResponseWriter, r *http.Request) {
 			controllers.GetHighlightByID(w, r, highlightID)
 		})(w, r)
 	case http.MethodDelete:
-		middlewares.WithOwnsHighlightAuth(controllers.DeleteHighlight, highlightID)(w, r)
+		middlewares.WithAdminOrPremiumAuth(func(w http.ResponseWriter, r *http.Request) {
+			controllers.DeleteHighlight(w, r, highlightID)
+		})(w, r)
+
 	default:
 		http.Error(w, "Method not allowed for /highlights/{id}", http.StatusMethodNotAllowed)
 	}
