@@ -11,14 +11,10 @@ import (
 )
 
 func main() {
-	// Load environment variables
 	config.ENVLoad()
-
-	// Init DB and migrate schema
 	database.InitDB()
 	database.Migrate()
 
-	// Register routes
 	routes.AuthRoutes()
 	routes.QuestionRoutes()
 	routes.AnswerRoutes()
