@@ -23,7 +23,7 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	secret := r.FormValue("secret_code")
 
-	if username == "" || password == ""  || secret == "" {
+	if username == "" || password == "" || secret == "" {
 		http.Error(w, "Missing field", http.StatusBadRequest)
 		return
 	}
@@ -36,9 +36,8 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 
 	token := utils.GenerateToken(32)
 
-	result, err := database.DB.Exec(`
-		INSERT INTO users (username, password, token, secret_code)
-		VALUES (?, ?, ?, ?, ?)`,
+	result, err := database.DB.Exec(
+		"INSERT INTO users (username, password, token, secret_code) VALUES (?, ?, ?, ?)",
 		username, hash, token, secret,
 	)
 	if err != nil {
@@ -59,13 +58,14 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func LoginUser(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
+	_ = r.ParseForm()
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 
 	var u models.User
-	err := database.DB.QueryRow(`SELECT id, username, password, FROM users WHERE username = ? AND deleted_at IS NULL`, username).
-		Scan(&u.ID, &u.Username, &u.Password)
+	err := database.DB.QueryRow(
+		"SELECT id, username, password FROM users WHERE username = ? AND deleted_at IS NULL", username,
+	).Scan(&u.ID, &u.Username, &u.Password)
 	if err != nil {
 		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 		return
@@ -77,7 +77,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newToken := utils.GenerateToken(32)
-	_, _ = database.DB.Exec(`UPDATE users SET token = ? WHERE id = ?`, newToken, u.ID)
+	_, _ = database.DB.Exec("UPDATE users SET token = ? WHERE id = ?", newToken, u.ID)
 
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"message": "Login successful",
@@ -103,11 +103,11 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 }
 
 func ForgotPassword(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
+	_ = r.ParseForm()
 	username := r.FormValue("username")
 
 	var userID int
-	err := database.DB.QueryRow(`SELECT id FROM users WHERE username = ?`, username).Scan(&userID)
+	err := database.DB.QueryRow("SELECT id FROM users WHERE username = ?", username).Scan(&userID)
 	if err != nil {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
@@ -116,7 +116,7 @@ func ForgotPassword(w http.ResponseWriter, r *http.Request) {
 	resetToken := utils.GenerateToken(32)
 	expiry := time.Now().Add(10 * time.Minute)
 
-	_, err = database.DB.Exec(`INSERT INTO forgot_password_tokens (user_id, token, expired_at) VALUES (?, ?, ?)`,
+	_, err = database.DB.Exec("INSERT INTO forgot_password_tokens (user_id, token, expired_at) VALUES (?, ?, ?)",
 		userID, resetToken, expiry)
 	if err != nil {
 		http.Error(w, "Failed to create reset token", http.StatusInternalServerError)
