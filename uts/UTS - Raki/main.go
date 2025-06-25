@@ -1,3 +1,4 @@
+// main.go
 package main
 
 import (
@@ -6,7 +7,7 @@ import (
 	"net/http"
 	"os"
 
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/go-sql-driver/mysql" // Blank import to register the MySQL driver
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 
@@ -17,22 +18,27 @@ import (
 )
 
 func main() {
+	// Load environment variables
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatalf("Error loading .env file: %s", err)
 	}
 
+	// Initialize database connection
 	utils.InitDB()
-	defer utils.CloseDB()
+	defer utils.CloseDB() // Ensure DB connection is closed when main exits
 
+	// Initialize repositories
 	userRepo := repository.NewUserRepository(utils.DB)
 	questionRepo := repository.NewQuestionRepository(utils.DB)
 	answerRepo := repository.NewAnswerRepository(utils.DB)
+	sessionRepo := repository.NewSessionRepository(utils.DB) // NEW: Initialize SessionRepository
 
-	authHandler := handlers.NewAuthHandler(userRepo)
+	// Initialize handlers
+	authHandler := handlers.NewAuthHandler(userRepo, sessionRepo)
 	userHandler := handlers.NewUserHandler(userRepo)
-	questionHandler := handlers.NewQuestionHandler(questionRepo, userRepo) 
-	answerHandler := handlers.NewAnswerHandler(answerRepo, questionRepo, userRepo) 
+	questionHandler := handlers.NewQuestionHandler(questionRepo, userRepo)
+	answerHandler := handlers.NewAnswerHandler(answerRepo, questionRepo, userRepo)
 
 	router := mux.NewRouter()
 
@@ -46,9 +52,11 @@ func main() {
 	router.HandleFunc("/api/questions/{question_id}/answers", answerHandler.GetAnswersByQuestionID).Methods("GET")
 
 
-	// --- Authenticated Routes (Requires JWT Token) ---
+	// --- Authenticated Routes (Requires Bearer Token) ---
 	authRouter := router.PathPrefix("/api").Subrouter()
-	authRouter.Use(middleware.AuthMiddleware)
+	authRouter.Use(func(next http.Handler) http.Handler {
+        return middleware.AuthMiddleware(sessionRepo, next)
+    })
 
 	// User Routes
 	authRouter.HandleFunc("/users/me", userHandler.GetMyProfile).Methods("GET")
@@ -65,13 +73,18 @@ func main() {
 	authRouter.HandleFunc("/questions/{question_id}/answers/{answer_id}", answerHandler.UpdateAnswer).Methods("PUT")
 	authRouter.HandleFunc("/questions/{question_id}/answers/{answer_id}", answerHandler.DeleteAnswer).Methods("DELETE")
 
+    // NEW: Logout Route
+    authRouter.HandleFunc("/logout", authHandler.LogoutUser).Methods("POST")
+
 
 	// --- Premium Only Routes (Requires Premium User Type) ---
 	premiumRouter := router.PathPrefix("/api").Subrouter()
-	premiumRouter.Use(middleware.AuthMiddleware)
-	premiumRouter.Use(middleware.AuthorizeMiddleware("premium")) // Only premium users can access these
+	premiumRouter.Use(func(next http.Handler) http.Handler {
+        return middleware.AuthMiddleware(sessionRepo, next)
+    })
+	premiumRouter.Use(middleware.AuthorizeMiddleware("premium"))
 
-	// New Premium Feature: Promote Question
+	// Premium Feature: Promote Question
 	premiumRouter.HandleFunc("/premium/questions/{id}/promote", questionHandler.PromoteQuestion).Methods("POST")
 
 
