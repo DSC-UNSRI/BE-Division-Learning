@@ -7,6 +7,7 @@ import (
 	"uts-zildjianvitosulaiman/internal/auth"
 	"uts-zildjianvitosulaiman/internal/question"
 	"uts-zildjianvitosulaiman/internal/user"
+	"uts-zildjianvitosulaiman/internal/vote"
 )
 
 func RegisterRoutes(mux *http.ServeMux, db *sql.DB) http.Handler {
@@ -26,6 +27,10 @@ func RegisterRoutes(mux *http.ServeMux, db *sql.DB) http.Handler {
 	answerService := answer.NewService(answerRepo)
 	answerHandler := answer.NewHandler(answerService)
 
+	// --- Vote Dependencies ---
+	voteRepo := vote.NewRepository(db)
+	voteService := vote.NewService(voteRepo, answerRepo)
+	voteHandler := vote.NewHandler(voteService)
 	// ===============================================
 	// ===              API ROUTES                 ===
 	// ===============================================
@@ -48,13 +53,15 @@ func RegisterRoutes(mux *http.ServeMux, db *sql.DB) http.Handler {
 	mux.Handle("DELETE /questions/{id}", auth.AuthMiddleware(http.HandlerFunc(questionHandler.DeleteQuestion)))
 
 	// --- Answer Routes ---
-
 	mux.Handle("POST /questions/{questionId}/answers", auth.AuthMiddleware(http.HandlerFunc(answerHandler.CreateAnswer)))
 	mux.Handle("GET /questions/{questionId}/answers", auth.AuthMiddleware(http.HandlerFunc(answerHandler.GetAnswersForQuestion)))
 
 	// Rute yang berhubungan dengan jawaban spesifik
 	mux.Handle("PUT /answers/{id}", auth.AuthMiddleware(http.HandlerFunc(answerHandler.UpdateAnswer)))
 	mux.Handle("DELETE /answers/{id}", auth.AuthMiddleware(http.HandlerFunc(answerHandler.DeleteAnswer)))
+
+	// --- Vote Route ---
+	mux.Handle("POST /answers/{id}/vote", auth.AuthMiddleware(http.HandlerFunc(voteHandler.Vote)))
 
 	return mux
 }
