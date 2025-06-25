@@ -64,16 +64,5 @@ func RegisterRoutes(mux *http.ServeMux, db *sql.DB) http.Handler {
 	// --- Vote Route ---
 	mux.Handle("POST /answers/{id}/vote", auth.AuthMiddleware(http.HandlerFunc(voteHandler.Vote)))
 
-	// --- Vote Route ---
-	mux.Handle("POST /answers/{id}/vote", auth.AuthMiddleware(http.HandlerFunc(voteHandler.Vote)))
-
-	// --- Vote Route ---
-	mux.Handle("POST /answers/{id}/vote", auth.AuthMiddleware(http.HandlerFunc(voteHandler.Vote)))
-
-	// --- Vote Route ---
-	mux.Handle("POST /answers/{id}/vote", auth.AuthMiddleware(http.HandlerFunc(voteHandler.Vote)))
-
-	// --- Vote Route ---
-	mux.Handle("POST /answers/{id}/vote", auth.AuthMiddleware(http.HandlerFunc(voteHandler.Vote)))
 	return mux
 }
