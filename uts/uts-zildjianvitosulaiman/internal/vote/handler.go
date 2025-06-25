@@ -23,7 +23,6 @@ func NewHandler(service Service) *Handler {
 	return &Handler{service: service}
 }
 
-// Helper
 func getClaims(r *http.Request) (*utils.JWTClaims, error) {
 	claims, ok := r.Context().Value(auth.ClaimsContextKey).(*utils.JWTClaims)
 	if !ok {

@@ -31,6 +31,7 @@ func RegisterRoutes(mux *http.ServeMux, db *sql.DB) http.Handler {
 	voteRepo := vote.NewRepository(db)
 	voteService := vote.NewService(voteRepo, answerRepo)
 	voteHandler := vote.NewHandler(voteService)
+
 	// ===============================================
 	// ===              API ROUTES                 ===
 	// ===============================================
@@ -59,6 +60,9 @@ func RegisterRoutes(mux *http.ServeMux, db *sql.DB) http.Handler {
 	// Rute yang berhubungan dengan jawaban spesifik
 	mux.Handle("PUT /answers/{id}", auth.AuthMiddleware(http.HandlerFunc(answerHandler.UpdateAnswer)))
 	mux.Handle("DELETE /answers/{id}", auth.AuthMiddleware(http.HandlerFunc(answerHandler.DeleteAnswer)))
+
+	// --- Vote Route ---
+	mux.Handle("POST /answers/{id}/vote", auth.AuthMiddleware(http.HandlerFunc(voteHandler.Vote)))
 
 	// --- Vote Route ---
 	mux.Handle("POST /answers/{id}/vote", auth.AuthMiddleware(http.HandlerFunc(voteHandler.Vote)))
