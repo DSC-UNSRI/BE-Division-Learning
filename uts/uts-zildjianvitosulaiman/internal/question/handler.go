@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"time"
 	"uts-zildjianvitosulaiman/domain"
 	"uts-zildjianvitosulaiman/internal/auth"
 	"uts-zildjianvitosulaiman/pkg/utils"
@@ -30,6 +31,25 @@ type Handler struct {
 
 func NewHandler(service Service) *Handler {
 	return &Handler{service: service}
+}
+
+func toQuestionResponse(q *domain.Question) QuestionResponse {
+	return QuestionResponse{
+		ID:        q.ID,
+		Title:     q.Title,
+		Body:      q.Body,
+		UserID:    q.UserID,
+		CreatedAt: q.CreatedAt.Format(time.RFC3339),
+		UpdatedAt: q.UpdatedAt.Format(time.RFC3339),
+	}
+}
+
+func toQuestionListResponse(questions []*domain.Question) []QuestionResponse {
+	responses := make([]QuestionResponse, len(questions))
+	for i, q := range questions {
+		responses[i] = toQuestionResponse(q)
+	}
+	return responses
 }
 
 func getClaims(r *http.Request) (*utils.JWTClaims, error) {
@@ -65,8 +85,10 @@ func (h *Handler) CreateQuestion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	response := toQuestionResponse(q)
+
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(q)
+	json.NewEncoder(w).Encode(response)
 }
 
 func (h *Handler) GetAllQuestions(w http.ResponseWriter, r *http.Request) {
@@ -75,17 +97,23 @@ func (h *Handler) GetAllQuestions(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	json.NewEncoder(w).Encode(questions)
+
+	responses := toQuestionListResponse(questions)
+
+	json.NewEncoder(w).Encode(responses)
 }
 
 func (h *Handler) GetQuestionByID(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(r.PathValue("id"))
 	question, err := h.service.GetQuestionByID(id)
+
 	if err != nil {
 		http.Error(w, "Question not found", http.StatusNotFound)
 		return
 	}
-	json.NewEncoder(w).Encode(question)
+
+	response := toQuestionResponse(question)
+	json.NewEncoder(w).Encode(response)
 }
 
 func (h *Handler) UpdateQuestion(w http.ResponseWriter, r *http.Request) {

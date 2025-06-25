@@ -11,6 +11,7 @@ type Repository interface {
 	FindByID(id int) (*domain.Answer, error)
 	Update(answer *domain.Answer) error
 	Delete(id int) error
+	UpdateVoteCounts(answerID, upvotes, downvotes int) error
 }
 
 type repository struct {
@@ -73,5 +74,11 @@ func (r *repository) Update(a *domain.Answer) error {
 func (r *repository) Delete(id int) error {
 	query := `DELETE FROM answers WHERE id = ?`
 	_, err := r.db.Exec(query, id)
+	return err
+}
+
+func (r *repository) UpdateVoteCounts(answerID, upvotes, downvotes int) error {
+	query := `UPDATE answers SET upvotes = ?, downvotes = ? WHERE id = ?`
+	_, err := r.db.Exec(query, upvotes, downvotes, answerID)
 	return err
 }
