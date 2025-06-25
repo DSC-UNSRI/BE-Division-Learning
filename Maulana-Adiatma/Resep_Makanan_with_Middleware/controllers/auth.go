@@ -48,7 +48,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		input.Email, string(hashedPassword), input.NegaraAsal, input.KodeNegara)
 
 	if err != nil {
-		log.Println("Insert error:", err) // 🟢 Tambah log ini!
+		log.Println("Insert error:", err) 
 		http.Error(w, "Registration failed", http.StatusInternalServerError)
 		return
 	}
