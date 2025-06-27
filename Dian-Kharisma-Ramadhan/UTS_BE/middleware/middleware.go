@@ -4,8 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"net/http"
-	"UTS_BE/database"
 	"strings"
+	"time"
+	"UTS_BE/database"
 )
 
 type contextKey string
@@ -33,15 +34,25 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 		var userID int
 		var role string
+		var tokenExpiredAt time.Time
 
-		err := database.DB.QueryRow("SELECT id, role FROM users WHERE token = ? AND deleted_at IS NULL", token).
-			Scan(&userID, &role)
+		err := database.DB.QueryRow(`
+			SELECT id, role, token_expired_at 
+			FROM users 
+			WHERE token = ? AND deleted_at IS NULL
+		`, token).Scan(&userID, &role, &tokenExpiredAt)
+
 		if err != nil {
 			if err == sql.ErrNoRows {
 				http.Error(w, "Unauthorized - invalid token", http.StatusUnauthorized)
 			} else {
 				http.Error(w, "Database error", http.StatusInternalServerError)
 			}
+			return
+		}
+
+		if time.Now().After(tokenExpiredAt) {
+			http.Error(w, "Token expired. Please login again", http.StatusUnauthorized)
 			return
 		}
 
