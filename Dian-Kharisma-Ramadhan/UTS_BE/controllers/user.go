@@ -35,17 +35,11 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	secretCodeHash, err := bcrypt.GenerateFromPassword([]byte(secretCode), bcrypt.DefaultCost)
-	if err != nil {
-		http.Error(w, "Failed to hash secret code", http.StatusInternalServerError)
-		return
-	}
-
 	token := utils.GenerateToken(32)
 
 	result, err := database.DB.Exec(
 		"INSERT INTO users (username, password, token, secret_code, secret_hint) VALUES (?, ?, ?, ?, ?)",
-		username, passwordHash, token, secretCodeHash,secretHint,
+		username, passwordHash, token, secretCode,secretHint,
 	)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to register: %v", err), http.StatusInternalServerError)
@@ -84,7 +78,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newToken := utils.GenerateToken(32)
-	expiredAt := time.Now().Add(10 * time.Minute)
+	expiredAt := time.Now().Add(30 * time.Minute)
 
 	_, err = database.DB.Exec("UPDATE users SET token = ?, token_expired_at = ? WHERE id = ?", newToken, expiredAt, u.ID)
 	if err != nil {
