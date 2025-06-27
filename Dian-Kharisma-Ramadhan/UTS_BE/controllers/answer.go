@@ -106,7 +106,6 @@ func UpdateAnswer(w http.ResponseWriter, r *http.Request, idStr string) {
 		return
 	}
 
-	// Cek apakah user adalah pemilik jawaban
 	var ownerID int
 	err = database.DB.QueryRow("SELECT user_id FROM answers WHERE id = ? AND deleted_at IS NULL", id).Scan(&ownerID)
 	if err != nil {

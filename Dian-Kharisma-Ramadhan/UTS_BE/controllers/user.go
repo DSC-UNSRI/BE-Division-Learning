@@ -21,24 +21,31 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 
 	username := r.FormValue("username")
 	password := r.FormValue("password")
-	secret := r.FormValue("secret_code")
+	secretCode := r.FormValue("secret_code")
+	secretHint := r.FormValue("secret_hint")
 
-	if username == "" || password == "" || secret == "" {
+	if username == "" || password == "" || secretCode == "" || secretHint == "" {
 		http.Error(w, "Missing field", http.StatusBadRequest)
 		return
 	}
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		http.Error(w, "Failed to hash password", http.StatusInternalServerError)
+		return
+	}
+
+	secretCodeHash, err := bcrypt.GenerateFromPassword([]byte(secretCode), bcrypt.DefaultCost)
+	if err != nil {
+		http.Error(w, "Failed to hash secret code", http.StatusInternalServerError)
 		return
 	}
 
 	token := utils.GenerateToken(32)
 
 	result, err := database.DB.Exec(
-		"INSERT INTO users (username, password, token, secret_code) VALUES (?, ?, ?, ?)",
-		username, hash, token, secret,
+		"INSERT INTO users (username, password, token, secret_code, secret_hint) VALUES (?, ?, ?, ?, ?)",
+		username, passwordHash, token, secretCodeHash,secretHint,
 	)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to register: %v", err), http.StatusInternalServerError)
@@ -77,11 +84,32 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newToken := utils.GenerateToken(32)
-	_, _ = database.DB.Exec("UPDATE users SET token = ? WHERE id = ?", newToken, u.ID)
+	expiredAt := time.Now().Add(10 * time.Minute)
+
+	_, err = database.DB.Exec("UPDATE users SET token = ?, token_expired_at = ? WHERE id = ?", newToken, expiredAt, u.ID)
+	if err != nil {
+		http.Error(w, "Failed to update token", http.StatusInternalServerError)
+		return
+	}
 
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"message": "Login successful",
-		"token":   newToken,
+		"message":   "Login successful",
+		"token":     newToken,
+		"expiresAt": expiredAt.Format(time.RFC3339),
+	})
+}
+
+func LogoutUser(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(middleware.UserIDKey).(int)
+
+	_, err := database.DB.Exec("UPDATE users SET token = NULL, token_expired_at = NULL WHERE id = ?", userID)
+	if err != nil {
+		http.Error(w, "Failed to logout", http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Logout successful",
 	})
 }
 
@@ -99,32 +127,5 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"username": username,
 		"role":     role,
-	})
-}
-
-func ForgotPassword(w http.ResponseWriter, r *http.Request) {
-	_ = r.ParseForm()
-	username := r.FormValue("username")
-
-	var userID int
-	err := database.DB.QueryRow("SELECT id FROM users WHERE username = ?", username).Scan(&userID)
-	if err != nil {
-		http.Error(w, "User not found", http.StatusNotFound)
-		return
-	}
-
-	resetToken := utils.GenerateToken(32)
-	expiry := time.Now().Add(10 * time.Minute)
-
-	_, err = database.DB.Exec("INSERT INTO forgot_password_tokens (user_id, token, expired_at) VALUES (?, ?, ?)",
-		userID, resetToken, expiry)
-	if err != nil {
-		http.Error(w, "Failed to create reset token", http.StatusInternalServerError)
-		return
-	}
-
-	json.NewEncoder(w).Encode(map[string]string{
-		"message":     "Reset token generated",
-		"reset_token": resetToken,
 	})
 }
