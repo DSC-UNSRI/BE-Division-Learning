@@ -22,7 +22,6 @@ func CreateQuestion(w http.ResponseWriter, r *http.Request) {
 	userID := userIDCtx.(int)
 	role := roleCtx.(string)
 
-	// Hitung jumlah pertanyaan hari ini untuk user free
 	if role == "free" {
 		var count int
 		err := database.DB.QueryRow(`
@@ -51,14 +50,16 @@ func CreateQuestion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	highlight := false
-	if role == "premium" && highlightStr == "true" {
-		highlight = true
+	highlightInt := 0
+	highlightMessage := ""
+	if role == "premium" && highlightStr == "iya" {
+		highlightInt = 1
+		highlightMessage = " (highlighted)"
 	}
 
 	_, err := database.DB.Exec(
 		"INSERT INTO questions (user_id, title, content, highlight) VALUES (?, ?, ?, ?)",
-		userID, title, content, highlight,
+		userID, title, content, highlightInt,
 	)
 	if err != nil {
 		http.Error(w, "Failed to create question", http.StatusInternalServerError)
@@ -66,7 +67,7 @@ func CreateQuestion(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(map[string]string{
-		"message": "Question created",
+		"message": "Question created" + highlightMessage,
 	})
 }
 
@@ -162,9 +163,9 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request, idStr string) {
 		return
 	}
 
-	// Cek apakah user adalah pemilik question
-	var ownerID int
-	err = database.DB.QueryRow("SELECT user_id FROM questions WHERE id = ? AND deleted_at IS NULL", id).Scan(&ownerID)
+	var ownerID, updatedCount int
+	err = database.DB.QueryRow("SELECT user_id, updated_count FROM questions WHERE id = ? AND deleted_at IS NULL", id).
+		Scan(&ownerID, &updatedCount)
 	if err != nil {
 		http.Error(w, "Question not found", http.StatusNotFound)
 		return
@@ -175,7 +176,11 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request, idStr string) {
 		return
 	}
 
-	// Ambil data dari form
+	if updatedCount >= 2 {
+		http.Error(w, "You can only update a question once", http.StatusForbidden)
+		return
+	}
+
 	r.ParseForm()
 	title := r.FormValue("title")
 	content := r.FormValue("content")
@@ -186,29 +191,29 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request, idStr string) {
 		return
 	}
 
-	// Cek apakah user bisa update highlight
-	highlight := false
-	if role == "premium" && highlightStr == "true" {
-		highlight = true
+	highlightInt := 0
+	highlightMessage := ""
+	if role == "premium" && highlightStr == "iya" {
+		highlightInt = 1
+		highlightMessage = " (highlighted)"
 	}
 
 	_, err = database.DB.Exec(`
 		UPDATE questions 
-		SET title = ?, content = ?, highlight = ? 
-		WHERE id = ?`, title, content, highlight, id)
+		SET title = ?, content = ?, highlight = ?, updated_count = updated_count + 2 
+		WHERE id = ?`, title, content, highlightInt, id)
 	if err != nil {
 		http.Error(w, "Failed to update question", http.StatusInternalServerError)
 		return
 	}
 
 	json.NewEncoder(w).Encode(map[string]string{
-		"message": "Question updated successfully",
+		"message": "Question updated successfully" + highlightMessage,
 	})
 }
 
 func DeleteQuestion(w http.ResponseWriter, r *http.Request, idStr string) {
 	userID := r.Context().Value(middleware.UserIDKey).(int)
-	// role := r.Context().Value(middleware.RoleKey).(string)
 
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
