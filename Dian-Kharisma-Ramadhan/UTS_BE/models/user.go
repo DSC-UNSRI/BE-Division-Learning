@@ -9,6 +9,7 @@ type User struct {
 	Role       string     `json:"role"`
 	Token      string     `json:"token"`
 	SecretCode string     `json:"secret_code"`
+	SecretHint string	  `json:"secret_hint"`
 	DeletedAt  *time.Time `json:"deleted_at,omitempty"`
 }
 
@@ -20,6 +21,7 @@ CREATE TABLE IF NOT EXISTS users (
 	role ENUM('free','premium') DEFAULT 'free',
 	token VARCHAR(255) UNIQUE,
 	secret_code VARCHAR(255) NOT NULL,
+	secret_hint VARCHAR(255) NOT NULL,
 	deleted_at TIMESTAMP NULL DEFAULT NULL
 );
 `
