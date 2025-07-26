@@ -2,14 +2,16 @@ package middleware
 
 import (
 	"context"
+	"database/sql"
 	"net/http"
 	"strings"
+	"time"
 
-	"github.com/artichys/uts-raki/utils" 
+	"github.com/artichys/uts-raki/repository" 
+	"github.com/artichys/uts-raki/utils"     
 )
 
-
-func AuthMiddleware(next http.Handler) http.Handler {
+func AuthMiddleware(sessionRepo *repository.SessionRepository, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
@@ -24,15 +26,29 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		tokenString := parts[1]
-		claims, err := utils.ValidateToken(tokenString)
+
+		session, err := sessionRepo.GetSessionByToken(tokenString)
 		if err != nil {
-			utils.ErrorResponse(w, http.StatusUnauthorized, "Invalid or expired token: "+err.Error())
+			if err == sql.ErrNoRows {
+				utils.ErrorResponse(w, http.StatusUnauthorized, "Invalid or expired token.")
+				return
+			}
+			utils.ErrorResponse(w, http.StatusInternalServerError, "Database error checking token: "+err.Error())
+			return
+		}
+		if session == nil {
+			utils.ErrorResponse(w, http.StatusUnauthorized, "Invalid token.")
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "userID", claims.UserID)
-		ctx = context.WithValue(ctx, "username", claims.Username)
-		ctx = context.WithValue(ctx, "userType", claims.UserType)
+		if time.Now().After(session.ExpiresAt) {
+			_ = sessionRepo.DeleteSessionByToken(session.Token)
+			utils.ErrorResponse(w, http.StatusUnauthorized, "Token has expired.")
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), "userID", session.UserID)
+		ctx = context.WithValue(ctx, "userType", session.UserType)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

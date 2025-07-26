@@ -1,26 +1,30 @@
+// handlers/auth_handler.go
 package handlers
 
 import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
+	"strings" // Added for parsing Authorization header
 	"time"
 
-	"github.com/artichys/uts-raki/models"   
-	"github.com/artichys/uts-raki/repository" 
-	"github.com/artichys/uts-raki/utils"    
+	"github.com/google/uuid"
 
-	"github.com/google/uuid" 
+	"github.com/artichys/uts-raki/models"
+	"github.com/artichys/uts-raki/repository"
+	"github.com/artichys/uts-raki/utils"
 )
 
 type AuthHandler struct {
-	userRepo *repository.UserRepository
+	userRepo    *repository.UserRepository
+	sessionRepo *repository.SessionRepository
 }
 
-func NewAuthHandler(userRepo *repository.UserRepository) *AuthHandler {
-	return &AuthHandler{userRepo: userRepo}
+func NewAuthHandler(userRepo *repository.UserRepository, sessionRepo *repository.SessionRepository) *AuthHandler {
+	return &AuthHandler{userRepo: userRepo, sessionRepo: sessionRepo}
 }
 
+// RegisterUser handles user registration (remains the same)
 func (h *AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	var req models.UserRegistrationRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -41,10 +45,9 @@ func (h *AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	existingUser, err := h.userRepo.GetUserByUsername(req.Username)
 	if err != nil && err != sql.ErrNoRows {
-		utils.ErrorResponse(w, http.StatusInternalServerError, "Database error: "+err.Error())
+		utils.ErrorResponse(w, http.StatusInternalServerError, "Database error: " + err.Error())
 		return
 	}
 	if existingUser != nil {
@@ -68,17 +71,19 @@ func (h *AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		Username:     req.Username,
 		Email:        req.Email,
 		PasswordHash: hashedPassword,
-		UserType:     "free", 
+		UserType:     "free",
 	}
-	user.RecoveryCode = &hashedRecoveryCode 
+	user.RecoveryCode = &hashedRecoveryCode
+
 	if err := h.userRepo.CreateUser(user); err != nil {
-		utils.ErrorResponse(w, http.StatusInternalServerError, "Failed to register user: "+err.Error())
+		utils.ErrorResponse(w, http.StatusInternalServerError, "Failed to register user: " + err.Error())
 		return
 	}
 
 	utils.JSONResponse(w, http.StatusCreated, map[string]string{"message": "User registered successfully"})
 }
 
+// LoginUser handles user login, generates and stores an opaque bearer token (remains the same)
 func (h *AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	var req models.UserLoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -93,7 +98,7 @@ func (h *AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.userRepo.GetUserByUsername(req.Username)
 	if err != nil {
-		utils.ErrorResponse(w, http.StatusInternalServerError, "Database error: "+err.Error())
+		utils.ErrorResponse(w, http.StatusInternalServerError, "Database error: " + err.Error())
 		return
 	}
 	if user == nil || !utils.CheckPasswordHash(req.Password, user.PasswordHash) {
@@ -101,15 +106,25 @@ func (h *AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := utils.GenerateToken(user.ID, user.Username, user.UserType)
-	if err != nil {
-		utils.ErrorResponse(w, http.StatusInternalServerError, "Failed to generate token")
+	tokenString := utils.GenerateOpaqueToken()
+	expirationTime := utils.GetTokenExpiration()
+
+	session := &models.Session{
+		Token:     tokenString,
+		UserID:    user.ID,
+		UserType:  user.UserType,
+		ExpiresAt: expirationTime,
+	}
+
+	if err := h.sessionRepo.CreateSession(session); err != nil {
+		utils.ErrorResponse(w, http.StatusInternalServerError, "Failed to create session token: " + err.Error())
 		return
 	}
 
-	utils.JSONResponse(w, http.StatusOK, map[string]string{"token": token, "user_type": user.UserType})
+	utils.JSONResponse(w, http.StatusOK, map[string]string{"token": tokenString, "user_type": user.UserType})
 }
 
+// InitiatePasswordReset (remains the same)
 func (h *AuthHandler) InitiatePasswordReset(w http.ResponseWriter, r *http.Request) {
 	var req models.ForgotPasswordRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -124,7 +139,7 @@ func (h *AuthHandler) InitiatePasswordReset(w http.ResponseWriter, r *http.Reque
 
 	user, err := h.userRepo.GetUserByUsername(req.Username)
 	if err != nil {
-		utils.ErrorResponse(w, http.StatusInternalServerError, "Database error: "+err.Error())
+		utils.ErrorResponse(w, http.StatusInternalServerError, "Database error: " + err.Error())
 		return
 	}
 	if user == nil {
@@ -153,11 +168,12 @@ func (h *AuthHandler) InitiatePasswordReset(w http.ResponseWriter, r *http.Reque
 
 	utils.JSONResponse(w, http.StatusOK, map[string]string{
 		"message":          "Temporary recovery code generated. Use it to reset your password.",
-		"temp_recovery_code": tempRecoveryCode, 
+		"temp_recovery_code": tempRecoveryCode,
 		"expires_at":       expiresAt.Format(time.RFC3339),
 	})
 }
 
+// ResetPassword (remains the same)
 func (h *AuthHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 	var req models.ResetPasswordRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -176,7 +192,7 @@ func (h *AuthHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.userRepo.GetUserByUsername(req.Username)
 	if err != nil {
-		utils.ErrorResponse(w, http.StatusInternalServerError, "Database error: "+err.Error())
+		utils.ErrorResponse(w, http.StatusInternalServerError, "Database error: " + err.Error())
 		return
 	}
 	if user == nil {
@@ -206,12 +222,41 @@ func (h *AuthHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.userRepo.UpdateUserPassword(user.ID, hashedNewPassword); err != nil {
-		utils.ErrorResponse(w, http.StatusInternalServerError, "Failed to update password: "+err.Error())
+		utils.ErrorResponse(w, http.StatusInternalServerError, "Failed to update password: " + err.Error())
 		return
 	}
 
 	if err := h.userRepo.UpdateUserRecoveryCode(user.ID, nil, nil); err != nil {
+		// Log this error, but don't prevent the user from being informed of success
 	}
 
 	utils.JSONResponse(w, http.StatusOK, map[string]string{"message": "Password reset successfully."})
+}
+
+// LogoutUser handles invalidating the current session token
+func (h *AuthHandler) LogoutUser(w http.ResponseWriter, r *http.Request) {
+    authHeader := r.Header.Get("Authorization")
+    if authHeader == "" {
+        utils.ErrorResponse(w, http.StatusBadRequest, "Authorization header missing")
+        return
+    }
+
+    parts := strings.Split(authHeader, " ")
+    if len(parts) != 2 || parts[0] != "Bearer" {
+        utils.ErrorResponse(w, http.StatusBadRequest, "Invalid Authorization header format")
+        return
+    }
+
+    tokenString := parts[1]
+
+    if err := h.sessionRepo.DeleteSessionByToken(tokenString); err != nil {
+        if err == sql.ErrNoRows {
+            utils.JSONResponse(w, http.StatusOK, map[string]string{"message": "Already logged out or session not found."})
+            return
+        }
+        utils.ErrorResponse(w, http.StatusInternalServerError, "Failed to logout: " + err.Error())
+        return
+    }
+
+    utils.JSONResponse(w, http.StatusOK, map[string]string{"message": "Successfully logged out."})
 }
