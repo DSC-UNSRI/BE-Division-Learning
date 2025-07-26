@@ -75,7 +75,6 @@ func (s *userService) GetUserProfile(userID int) (*domain.User, error) {
 func (s *userService) RequestPasswordReset(email string) (string, error) {
 	question, err := s.repo.FindSecurityQuestionByEmail(email)
 	if err != nil {
-		// Jangan beri tahu jika email tidak ada, untuk keamanan.
 		return "", errors.New("if email exists, security question will be retrieved")
 	}
 	return question, nil
