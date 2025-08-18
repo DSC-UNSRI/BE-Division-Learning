@@ -37,7 +37,7 @@ func GetAllProjects(c *fiber.Ctx) error {
 
 func GetAllMembers(c *fiber.Ctx) error {
 	var members []models.Member
-	query := database.DB.Preload("Division").Preload("Project")
+	query := database.DB.Preload("Division")
 	if gender := c.Query("gender"); gender != "" {
 		query = query.Where("gender = ?", gender)
 	}
