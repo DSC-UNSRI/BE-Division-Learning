@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"time"
 	"uts-zildjianvitosulaiman/domain"
 	"uts-zildjianvitosulaiman/internal/auth"
 	"uts-zildjianvitosulaiman/pkg/utils"
@@ -14,12 +15,44 @@ type CreateAnswerRequest struct {
 	Body string `json:"body"`
 }
 
+type AnswerResponse struct {
+	ID         int    `json:"id"`
+	Body       string `json:"body"`
+	UserID     int    `json:"user_id"`
+	QuestionID int    `json:"question_id"`
+	Upvotes    int    `json:"upvotes"`
+	Downvotes  int    `json:"downvotes"`
+	CreatedAt  string `json:"created_at"`
+	UpdatedAt  string `json:"updated_at"`
+}
+
 type Handler struct {
 	service Service
 }
 
 func NewHandler(service Service) *Handler {
 	return &Handler{service: service}
+}
+
+func toAnswerResponse(a *domain.Answer) AnswerResponse {
+	return AnswerResponse{
+		ID:         a.ID,
+		Body:       a.Body,
+		UserID:     a.UserID,
+		QuestionID: a.QuestionID,
+		Upvotes:    a.Upvotes,
+		Downvotes:  a.Downvotes,
+		CreatedAt:  a.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:  a.UpdatedAt.Format(time.RFC3339),
+	}
+}
+
+func toAnswerListResponse(answers []*domain.Answer) []AnswerResponse {
+	responses := make([]AnswerResponse, len(answers))
+	for i, a := range answers {
+		responses[i] = toAnswerResponse(a)
+	}
+	return responses
 }
 
 func getClaims(r *http.Request) (*utils.JWTClaims, error) {
@@ -53,18 +86,24 @@ func (h *Handler) CreateAnswer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	response := toAnswerResponse(a)
+
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(a)
+	json.NewEncoder(w).Encode(response)
 }
 
 func (h *Handler) GetAnswersForQuestion(w http.ResponseWriter, r *http.Request) {
 	questionID, _ := strconv.Atoi(r.PathValue("questionId"))
 	answers, err := h.service.GetAnswersForQuestion(questionID)
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	json.NewEncoder(w).Encode(answers)
+
+	responses := toAnswerListResponse(answers)
+
+	json.NewEncoder(w).Encode(responses)
 }
 
 func (h *Handler) UpdateAnswer(w http.ResponseWriter, r *http.Request) {
