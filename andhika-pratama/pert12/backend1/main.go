@@ -12,6 +12,7 @@ import (
 func main() {
 	config.ENVLoad()
 	database.DBLoad()
+	database.DBMigrate()
 
 	app := fiber.New()
 	app.Use(cors.New(cors.Config{
