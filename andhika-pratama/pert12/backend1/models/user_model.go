@@ -17,3 +17,7 @@ type UserLogin struct {
 	gorm.Model
 	Role           string `json:"role" gorm:"type:varchar(10);default:'user';not null"`
 }
+
+func (User) TableName() string {
+    return "user"
+}

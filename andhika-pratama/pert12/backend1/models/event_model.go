@@ -12,3 +12,7 @@ type Event struct {
 	Start time.Time `json:"start" gorm:"not null"`
 	Cover string `json:"cover"`
 }
+
+func (Event) TableName() string {
+    return "event"
+}
