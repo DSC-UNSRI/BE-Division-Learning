@@ -16,10 +16,48 @@ func GetEvents(w http.ResponseWriter, r *http.Request) {
 	var events []models.Event
 	database.DB.Find(&events)
 
-	// DEBUGGING: Cetak slice events ke terminal
 	log.Println("Data Events yang diambil dari database:", events)
 
 	json.NewEncoder(w).Encode(events)
+}
+
+type EventDetailResponse struct {
+	models.Event
+	SeatData []map[string]interface{} `json:"seat_data"`
+}
+
+func GetEventDetail(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	var event models.Event
+	if err := database.DB.First(&event, id).Error; err != nil {
+		http.Error(w, "Event not found", http.StatusNotFound)
+		return
+	}
+
+	// Data kursi contoh, di aplikasi nyata data ini dari database juga
+	seatData := []map[string]interface{}{
+		{"id": "A1", "label": "A1", "booked": false},
+		{"id": "A2", "label": "A2", "booked": false},
+		{"id": "A3", "label": "A3", "booked": true},
+		{"id": "A4", "label": "A4", "booked": false},
+		{"id": "B1", "label": "B1", "booked": false},
+		{"id": "B2", "label": "B2", "booked": true},
+		{"id": "B3", "label": "B3", "booked": false},
+		{"id": "B4", "label": "B4", "booked": false},
+		{"id": "C1", "label": "C1", "booked": false},
+		{"id": "C2", "label": "C2", "booked": false},
+		{"id": "C3", "label": "C3", "booked": false},
+		{"id": "C4", "label": "C4", "booked": true},
+	}
+	
+	response := EventDetailResponse{
+		Event: event,
+		SeatData: seatData,
+	}
+
+	json.NewEncoder(w).Encode(response)
 }
 
 func CreateEvent(w http.ResponseWriter, r *http.Request) {

@@ -1,6 +1,6 @@
-import { deleteEvent, getEvent, postEvent, updateEvent } from "../services/event";
-import type { Event } from "../types/event";
 import { useState, useEffect } from "react";
+import { getEvent, postEvent, updateEvent, deleteEvent } from "../services/event";
+import type { Event } from "../types/event";
 import { isAxiosError } from "../utils/axios";
 
 export function useGetEvent() {

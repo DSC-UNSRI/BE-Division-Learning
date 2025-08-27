@@ -26,6 +26,7 @@ func main() {
 	r.HandleFunc("/api/login", handlers.Login).Methods("POST")
 	r.HandleFunc("/api/logout", handlers.Logout).Methods("POST")
 	r.HandleFunc("/api/event", handlers.GetEvents).Methods("GET")
+	r.HandleFunc("/api/event/{id}", handlers.GetEventDetail).Methods("GET") 
 	
 	protectedRoutes := r.PathPrefix("/api").Subrouter()
 	protectedRoutes.Use(middleware.JwtAuth)

@@ -3,7 +3,12 @@ import api from "./api";
 
 export async function getEvent(): Promise<Event[]> {
   const res = await api.get<EventResponse>("/event");
-  return res.data.events;
+  
+  // Log untuk debugging, Anda akan melihat array data di sini
+  console.log("Respon API di services:", res.data);
+  
+  // Perbaiki: Kembalikan res.data secara langsung
+  return res.data;
 }
 
 export async function postEvent(
