@@ -10,5 +10,5 @@ type Event struct {
 	gorm.Model
 	Location string `json:"location" gorm:"not null"`
 	Start time.Time `json:"start" gorm:"not null"`
-	Cover string `json:"cover"`
+	Cover string `json:"cover" gorm:"default:'/assets/covers/hinamizawa.jpg'"`
 }

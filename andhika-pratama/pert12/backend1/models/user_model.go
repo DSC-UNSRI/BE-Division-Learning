@@ -8,7 +8,7 @@ type User struct {
 	gorm.Model
 	Name           string `json:"name" gorm:"not null"`
 	Password       string `json:"passsword" gorm:"not null"`
-	ProfilePicture string `json:"profile_picture"`
+	ProfilePicture string `json:"profile_picture" gorm:"default:'/assets/profile_pictures/auby.jpeg'"`
 	Email          string `json:"email" gorm:"unique;not null"`
 	Role           string `json:"role" gorm:"type:varchar(10);default:'user';not null"`
 }
