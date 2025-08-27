@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"github.com/gorilla/mux"
+	cors "github.com/gorilla/handlers"
 	"backend/database"
 	"backend/handlers"
 	"backend/middleware"
@@ -12,7 +13,12 @@ import (
 func main() {
 	database.Init()
 
+
 	r := mux.NewRouter()
+
+	allowedOrigins := cors.AllowedOrigins([]string{"http://localhost:5173"})
+	allowedMethods := cors.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"})
+	allowedHeaders := cors.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 
@@ -31,5 +37,5 @@ func main() {
 	protectedRoutes.HandleFunc("/event/{id}", handlers.DeleteEvent).Methods("DELETE")
 
 	log.Println("Server running on :8080")
-	http.ListenAndServe(":8080", r)
+	http.ListenAndServe(":8080", cors.CORS(allowedOrigins, allowedMethods, allowedHeaders)(r))
 }

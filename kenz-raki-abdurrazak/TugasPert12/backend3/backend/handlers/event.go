@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"log"
 	"path/filepath"
 	"github.com/gorilla/mux"
 	"backend/database"
@@ -14,6 +15,10 @@ import (
 func GetEvents(w http.ResponseWriter, r *http.Request) {
 	var events []models.Event
 	database.DB.Find(&events)
+
+	// DEBUGGING: Cetak slice events ke terminal
+	log.Println("Data Events yang diambil dari database:", events)
+
 	json.NewEncoder(w).Encode(events)
 }
 
