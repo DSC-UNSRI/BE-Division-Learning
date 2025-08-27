@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"log"
 	"strconv"
 	"github.com/gorilla/mux"
 	"backend/database"
@@ -13,19 +14,24 @@ import (
 )
 
 func GetMe(w http.ResponseWriter, r *http.Request) {
-	userID, ok := r.Context().Value("userID").(float64)
+	// ID user didapat dari JWT di middleware
+	userID, ok := r.Context().Value("userID").(uint) // <-- Perbaiki di sini, gunakan 'uint'
 	if !ok {
+		log.Println("GetMe: User ID tidak ditemukan atau tidak valid") // Log 5
 		http.Error(w, "User ID not found in context", http.StatusInternalServerError)
 		return
 	}
+	log.Println("GetMe: Mencari data user dengan ID:", userID) // Log 6
 
 	var user models.User
-	if err := database.DB.First(&user, uint(userID)).Error; err != nil {
+	if err := database.DB.First(&user, userID).Error; err != nil {
+		log.Println("GetMe: Gagal menemukan user:", err) // Log 7
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
 	
-	user.Password = ""
+	user.Password = "" // Jangan kirim password ke frontend
+	log.Println("GetMe: Berhasil mengambil data user:", user.Email) // Log 8
 	json.NewEncoder(w).Encode(user)
 }
 

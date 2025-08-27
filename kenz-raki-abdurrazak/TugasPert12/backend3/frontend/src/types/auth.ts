@@ -2,6 +2,7 @@ import type { User } from "./user";
 
 export type LoginResponse = {
   message: string;
+  token: string;
   user: {
     id: number;
     role: "user" | "admin";

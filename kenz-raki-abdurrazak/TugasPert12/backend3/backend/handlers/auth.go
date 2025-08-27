@@ -1,20 +1,33 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
+	"github.com/dgrijalva/jwt-go"
+	"golang.org/x/crypto/bcrypt"
 	"backend/database"
 	"backend/models"
-	"golang.org/x/crypto/bcrypt"
-	"github.com/dgrijalva/jwt-go"
+	"log"
 )
 
 var jwtKey = []byte("supersecretkey")
 
 type Claims struct {
+	Id uint `json:"id"`
 	Email string `json:"email"`
 	jwt.StandardClaims
+}
+
+type LoginResponse struct {
+	Message string `json:"message"`
+	Token   string `json:"token"`
+	User    struct {
+		ID   uint   `json:"id"`
+		Role string `json:"role"`
+	} `json:"user"`
 }
 
 func Register(w http.ResponseWriter, r *http.Request) {
@@ -65,6 +78,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	expirationTime := time.Now().Add(5 * time.Minute)
 	claims := &Claims{
+		Id:    user.ID,
 		Email: user.Email,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
@@ -77,9 +91,46 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(map[string]string{"token": tokenString})
+	var loginResponse LoginResponse
+	loginResponse.Message = "Login successful"
+	loginResponse.Token = tokenString
+	loginResponse.User.ID = user.ID
+	loginResponse.User.Role = user.Role
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(loginResponse)
 }
 
 func Logout(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"message": "Logged out successfully"})
+}
+
+func JwtAuth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authHeader := r.Header.Get("Authorization")
+		log.Println("Middleware JWT: Menerima request ke:", r.URL.Path)
+
+		if authHeader == "" {
+			log.Println("Middleware JWT: Header Authorization kosong")
+			http.Error(w, "Unauthorized: Token not provided", http.StatusUnauthorized)
+			return
+		}
+		
+		tokenString := strings.Split(authHeader, " ")[1]
+
+		claims := &Claims{}
+		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+			return jwtKey, nil
+		})
+		
+		if err != nil || !token.Valid {
+			log.Println("Middleware JWT: Token tidak valid")
+			http.Error(w, "Unauthorized: Invalid token", http.StatusUnauthorized)
+			return
+		}
+
+		log.Println("Middleware JWT: Token valid, User ID:", claims.Id)
+		ctx := context.WithValue(r.Context(), "userID", claims.Id)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }

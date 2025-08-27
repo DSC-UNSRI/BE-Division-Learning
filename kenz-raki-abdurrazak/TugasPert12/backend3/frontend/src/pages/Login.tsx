@@ -14,12 +14,20 @@ export default function Login() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await doLogin(email, password);
+      const response = await doLogin(email, password);
+      
+      if (response && response.token) {
+        localStorage.setItem('authToken', response.token);
+        
+        navigate('/');
+      }
+
       setShowSuccessNotification(true);
     } catch {
       setShowErrorNotification(true);
     }
   };
+
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
