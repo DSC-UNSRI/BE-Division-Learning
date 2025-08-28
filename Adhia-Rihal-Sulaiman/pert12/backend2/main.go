@@ -1,9 +1,9 @@
 package main
 
 import (
-	"redesign_kel3/config"
-	"redesign_kel3/database"
-	"redesign_kel3/routes"
+	"backend2/config"
+	"backend2/database"
+	"backend2/routes"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
