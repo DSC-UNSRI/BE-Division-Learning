@@ -49,8 +49,15 @@ func SignUp(c *fiber.Ctx) error {
 		ProfilePicture: "https://i.pravatar.cc/150",
 	}
 
+	if err := database.DB.Create(&user).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+
 	user.Password = ""
-	return c.Status(201).JSON(user)
+	return c.Status(201).JSON(fiber.Map{
+		"message": "Register success",
+		"user":    user,
+	})
 }
 
 func Login(c *fiber.Ctx) error{
