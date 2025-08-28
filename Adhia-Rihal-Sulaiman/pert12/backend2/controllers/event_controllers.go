@@ -3,203 +3,108 @@ package controllers
 import (
 	"backend2/database"
 	"backend2/models"
-	"backend2/utils"
-	"strconv"
+	"fmt"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-// GetProgramStudi handles fetching a list of program studi
-func GetProgramStudi(c *fiber.Ctx) error {
-	jurusanQuery := c.Query("jurusan")
-	limit := c.Query("limit")
-
-	cacheKey := "programstudi_all"
-	if jurusanQuery != "" {
-		cacheKey += "_" + jurusanQuery
+func GetEvent(c *fiber.Ctx) error {
+	var events []models.Event
+	if err := database.DB.Find(&events).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"message": "Failed to fetch events"})
 	}
-	if limit != "" {
-		cacheKey += "_" + limit
-	}
-
-	// Anda perlu menyesuaikan metode cache di sini
-	if cached, found := cache.GetProgramStudiCache(cacheKey); found {
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"programstudi": cached,
-			"cache":        true,
-		})
-	}
-
-	var programStudi []models.ProgramStudi
-	query := database.DB.Model(&models.ProgramStudi{}).Where("posted_at <= ?", time.Now()).Order("posted_at DESC")
-
-	if jurusanQuery != "" {
-		query = query.Where("jurusan ILIKE ?", "%"+jurusanQuery+"%")
-	}
-
-	if limit != "" {
-		if limitInt, err := strconv.Atoi(limit); err == nil {
-			query = query.Limit(limitInt)
-		}
-	}
-
-	if err := query.Find(&programStudi).Error; err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "Program studi not found",
-		})
-	}
-
-	// Anda perlu menyesuaikan metode cache di sini
-	cache.SetProgramStudiCache(cacheKey, programStudi)
-
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"programstudi": programStudi,
-		"cache":        false,
-	})
+	return c.Status(200).JSON(fiber.Map{"events": events})
 }
 
-// CreateProgramStudi handles creating a new program studi
-func CreateProgramStudi(c *fiber.Ctx) error {
-	var programStudi models.ProgramStudi
+func PostEvent(c *fiber.Ctx) error {
+	location := c.FormValue("location")
+	start := c.FormValue("start")
 
-	jurusan := c.FormValue("jurusan")
-	deskripsi := c.FormValue("deskripsi")
-	akreditasi := c.FormValue("akreditasi")
-	jenjang := c.FormValue("jenjang")
+	if location == "" {
+		return c.Status(400).JSON(fiber.Map{"message": "Location is required"})
+	}
+	if start == "" {
+		return c.Status(400).JSON(fiber.Map{"message": "Start time is required"})
+	}
 
-	// **PERBAIKAN DI SINI:** Menambahkan argumen boolean keempat (isCover)
-	// true for isProgramStudi, true for isCover (as it's a logo for programstudi)
-	logo, err := utils.SaveFile(c, "logo", true, true)
+	startTime, err := time.Parse(time.RFC3339, start)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": err,
-		})
+		return c.Status(400).JSON(fiber.Map{"message": "Invalid start time format"})
 	}
 
-	if jurusan == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Jurusan is required",
-		})
-	}
-
-	if postedAtStr := c.FormValue("posted_at"); postedAtStr != "" {
-		t, err := time.Parse(time.RFC3339, postedAtStr)
-		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Invalid posted_at format. Use ISO 8601 (RFC3339)",
-			})
+	var coverPath string
+	file, err := c.FormFile("cover")
+	if err == nil {
+		coverPath = fmt.Sprintf("uploads/%d_%s", time.Now().Unix(), file.Filename)
+		if err := c.SaveFile(file, coverPath); err != nil {
+			return c.Status(500).JSON(fiber.Map{"message": "Failed to save cover"})
 		}
-		programStudi.PostedAt = t
-	} else {
-		programStudi.PostedAt = time.Now()
 	}
 
-	programStudi.Jurusan = jurusan
-	programStudi.Deskripsi = deskripsi
-	programStudi.Akreditasi = akreditasi
-	programStudi.Jenjang = jenjang
-	programStudi.Logo = logo
-
-	if err := database.DB.Create(&programStudi).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to save program studi",
-		})
+	event := models.Event{
+		Location: location,
+		Start:    startTime,
+		Cover:    coverPath,
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"message":      "Program studi created successfully",
-		"programstudi": programStudi,
-	})
+	if err := database.DB.Create(&event).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"message": "Failed to create event"})
+	}
+
+	return c.Status(201).JSON(fiber.Map{"message": "Event created successfully"})
 }
 
-// UpdateProgramStudi handles updating an existing program studi
-func UpdateProgramStudi(c *fiber.Ctx) error {
+func UpdateEvent(c *fiber.Ctx) error {
 	id := c.Params("id")
-	if id == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "ID program studi is required",
-		})
-	}
-	var programStudi models.ProgramStudi
+	var event models.Event
 
-	if err := database.DB.Where("id =?", id).First(&programStudi).Error; err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "Program studi not found",
-		})
+	if err := database.DB.First(&event, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"message": "Event not found"})
 	}
 
-	if jurusan := c.FormValue("jurusan"); jurusan != "" {
-		programStudi.Jurusan = jurusan
-	}
-	if deskripsi := c.FormValue("deskripsi"); deskripsi != "" {
-		programStudi.Deskripsi = deskripsi
-	}
-	if akreditasi := c.FormValue("akreditasi"); akreditasi != "" {
-		programStudi.Akreditasi = akreditasi
-	}
-	if jenjang := c.FormValue("jenjang"); jenjang != "" {
-		programStudi.Jenjang = jenjang
+	location := c.FormValue("location")
+	start := c.FormValue("start")
+
+	if location != "" {
+		event.Location = location
 	}
 
-	if _, err := c.FormFile("logo"); err == nil {
-		// **PERBAIKAN DI SINI:** Menambahkan argumen boolean keempat (isCover)
-		// true for isProgramStudi, true for isCover (as it's a logo for programstudi)
-		logo, err := utils.SaveFile(c, "logo", true, true)
+	if start != "" {
+		startTime, err := time.Parse(time.RFC3339, start)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": err,
-			})
+			return c.Status(400).JSON(fiber.Map{"message": "Invalid start time format"})
 		}
-		programStudi.Logo = logo
+		event.Start = startTime
 	}
 
-	if postedAtStr := c.FormValue("posted_at"); postedAtStr != "" {
-		t, err := time.Parse(time.RFC3339, postedAtStr)
-		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Invalid posted_at format. Use ISO 8601 (RFC3339)",
-			})
+	file, err := c.FormFile("cover")
+	if err == nil {
+		coverPath := fmt.Sprintf("uploads/%d_%s", time.Now().Unix(), file.Filename)
+		if err := c.SaveFile(file, coverPath); err != nil {
+			return c.Status(500).JSON(fiber.Map{"message": "Failed to save new cover"})
 		}
-		programStudi.PostedAt = t
+		event.Cover = coverPath
 	}
 
-	if err := database.DB.Save(&programStudi).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to update program studi",
-		})
+	if err := database.DB.Save(&event).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"message": "Failed to update event"})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message":      "Program studi updated successfully",
-		"programstudi": programStudi,
-	})
+	return c.Status(200).JSON(fiber.Map{"message": "Event updated successfully"})
 }
 
-// DeleteProgramStudi handles deleting a program studi
-func DeleteProgramStudi(c *fiber.Ctx) error {
+func DeleteEvent(c *fiber.Ctx) error {
 	id := c.Params("id")
-	if id == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "ID program studi is required",
-		})
-	}
-	var programStudi models.ProgramStudi
+	var event models.Event
 
-	if err := database.DB.Where("id =?", id).First(&programStudi).Error; err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "Program studi not found",
-		})
+	if err := database.DB.First(&event, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"message": "Event not found"})
 	}
 
-	if err := database.DB.Delete(&programStudi).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to delete program studi",
-		})
+	if err := database.DB.Delete(&event).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"message": "Failed to delete event"})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message":      "Program studi deleted successfully",
-		"programstudi": programStudi,
-	})
+	return c.Status(200).JSON(fiber.Map{"message": "Event deleted successfully"})
 }

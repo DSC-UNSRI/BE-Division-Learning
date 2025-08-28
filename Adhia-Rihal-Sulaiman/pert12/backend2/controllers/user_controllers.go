@@ -1,146 +1,134 @@
 package controllers
 
 import (
-	"crypto/rand"
-	"encoding/hex"
 	"backend2/database"
 	"backend2/models"
+	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func SignUp(c *fiber.Ctx) error {
-	var admin models.Admin
-	username := c.FormValue("username")
-	if username == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Username is required",
-		})
-	}
+	var existingUser models.User
+
+	name := c.FormValue("name")
+	email := c.FormValue("email")
 	password := c.FormValue("password")
+	role := c.FormValue("role")
+	profilePicture := c.FormValue("profile_picture")
+
+	if name == "" {
+		return c.Status(400).JSON(fiber.Map{"message": "Name is required"})
+	}
+	if email == "" {
+		return c.Status(400).JSON(fiber.Map{"message": "Email is required"})
+	}
 	if password == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Password is required",
-		})
+		return c.Status(400).JSON(fiber.Map{"message": "Password is required"})
+	}
+	if role == "" {
+		role = "user"
+	}
+	if role != "user" && role != "admin" {
+		return c.Status(400).JSON(fiber.Map{"message": "Role must be user or admin"})
+	}
+	if profilePicture == "" {
+		profilePicture = "default.png"
+	}
+
+	if err := database.DB.Where("email = ?", email).First(&existingUser).Error; err == nil {
+		return c.Status(409).JSON(fiber.Map{"message": "Email is already taken"})
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to hash password",
-		})
+		return c.Status(500).JSON(fiber.Map{"message": "Failed to hash password"})
 	}
 
-	admin.Username = username
-	admin.Password = string(hashedPassword)
-
-	if err := database.DB.Create(&admin).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to create admin",
-		})
+	newUser := models.User{
+		Name:           name,
+		Email:          email,
+		Password:       string(hashedPassword),
+		Role:           role,
+		ProfilePicture: profilePicture,
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"message": "Admin created successfully",
+	if err := database.DB.Create(&newUser).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"message": "Failed to create user"})
+	}
+
+	return c.Status(201).JSON(fiber.Map{
+		"message": "User created successfully",
+		"user": fiber.Map{
+			"id":              newUser.ID,
+			"name":            newUser.Name,
+			"email":           newUser.Email,
+			"role":            newUser.Role,
+			"profile_picture": newUser.ProfilePicture,
+		},
 	})
 }
 
 func Login(c *fiber.Ctx) error {
-	var admin models.Admin
-	username := c.FormValue("username")
+	var user models.User
+
+	email := c.FormValue("email")
 	password := c.FormValue("password")
-	if username == "" || password == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Username and Password is required",
-		})
+
+	if email == "" || password == "" {
+		return c.Status(400).JSON(fiber.Map{"message": "Email and password are required"})
 	}
 
-	if err := database.DB.Where("username = ?", username).First(&admin).Error; err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Wrong Credential",
-		})
+	if err := database.DB.Where("email = ?", email).First(&user).Error; err != nil {
+		return c.Status(400).JSON(fiber.Map{"message": "Invalid email or password"})
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(admin.Password), []byte(password)); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Wrong Credential",
-		})
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		return c.Status(400).JSON(fiber.Map{"message": "Invalid email or password"})
 	}
 
-	bytes := make([]byte, 32)
-	if _, err := rand.Read(bytes); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to generate token",
-		})
+	claims := jwt.MapClaims{
+		"user_id": user.ID,
+		"role":    user.Role,
+		"exp":     time.Now().Add(3 * time.Hour).Unix(),
 	}
-	token := hex.EncodeToString(bytes)
-	admin.Token = token
-	admin.TokenExp = time.Now().Add(1 * time.Hour)
-
-	if err := database.DB.Save(&admin).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to save admin token",
-		})
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET_KEY")))
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"message": "Failed to create token"})
 	}
 
 	c.Cookie(&fiber.Cookie{
-		Name:     "admin_token",
-		Value:    token,
-		Expires:  time.Now().Add(1 * time.Hour),
+		Name:     "token",
+		Value:    tokenString,
+		Expires:  time.Now().Add(3 * time.Hour),
 		HTTPOnly: true,
 		Secure:   true,
 		SameSite: "Strict",
 	})
 
+	userLogin := models.UserLogin{Role: user.Role}
+	userLogin.ID = user.ID
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "Login Successfully",
-		"token": token,
+	return c.Status(200).JSON(fiber.Map{
+		"message": "Login successful",
+		"user":    userLogin,
+		"token":   tokenString,
 	})
 }
 
 func Logout(c *fiber.Ctx) error {
-	var admin models.Admin
-	cookieToken := c.Cookies("admin_token")
-	if err := database.DB.Where("token =? AND token_exp >= ?", cookieToken, time.Now()).First(&admin).Error; err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Token is invalid",
-		})
-	}
-
-	admin.Token = ""
-	admin.TokenExp = time.Now()
-
-	if err := database.DB.Save(&admin).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to save admin token",
-		})
-	}
-
 	c.Cookie(&fiber.Cookie{
-		Name:    "admin_token",
-		Value:   "",
-		Expires: time.Now().Add(-1 * time.Hour),
+		Name:     "token",
+		Value:    "",
+		Expires:  time.Now().Add(-1 * time.Hour),
+		HTTPOnly: true,
+		Secure:   true,
+		SameSite: "Strict",
 	})
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "Logout Successfully",
-	})
-}
-
-func SyncProgramStudiCache(c *fiber.Ctx) error {
-	var all []models.ProgramStudi
-	if err := database.DB.Model(&models.ProgramStudi{}).Where("posted_at <= ?", time.Now()).Find(&all).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Gagal ambil semua program studi",
-		})
-	}
-
-	cache.SetProgramStudiCache("programstudi_all", all)
-
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "Cache berita berhasil disinkronisasi ulang",
-	})
+	return c.Status(200).JSON(fiber.Map{"message": "Logout successful"})
 }
