@@ -18,8 +18,8 @@ func Register(c *fiber.Ctx) error {
 	}
 
 	// Generate a random profile picture URL
-	rand.Seed(time.Now().UnixNano())
-	randomID := rand.Intn(1000) // Random ID for picsum.photos
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+	randomID := rng.Intn(1000) // Random ID for picsum.photos
 	user.ProfilePicture = fmt.Sprintf("https://picsum.photos/200/200?random=%d", randomID)
 
 	config.DB.Create(&user)
