@@ -1,7 +1,13 @@
 package routes
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"backend/middleware"
+	"backend/controllers"
 
-func UserRoutes(api fiber.Router){
-	// api.Get("/", controllers.GetAllUser)
+	"github.com/gofiber/fiber/v2"
+)
+
+func UserRoutes(api fiber.Router) {
+	api.Get("/me", middleware.Protected(), controllers.GetMe)
+	api.Patch("/profile", middleware.Protected(), controllers.UpdateProfile)
 }
