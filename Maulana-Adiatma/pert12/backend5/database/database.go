@@ -31,7 +31,7 @@ func DBInit() {
 }
 
 func DBMigrate(){	
-	err := DB.AutoMigrate(&models.User{})
+	err := DB.AutoMigrate(&models.User{}, &models.Event{})
 
 	if err != nil{
 		panic("Database Migration Failed")
