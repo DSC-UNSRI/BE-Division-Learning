@@ -10,6 +10,6 @@ import (
 func EventRoutes(api fiber.Router) {
 	api.Get("/event", controllers.GetEvents)
 	api.Post("/event", middlewares.AuthMiddleware(), middlewares.AdminMiddleware, controllers.CreateEvent)
-	// api.Patch("/event/:id", middlewares.AdminAuth, controllers.UpdateEvent)
+	api.Patch("/event/:id", middlewares.AuthMiddleware(), middlewares.AdminMiddleware, controllers.UpdateEvent)
 	api.Delete("/event/:id", middlewares.AuthMiddleware(), middlewares.AdminMiddleware, controllers.DeleteEvent)
 }
