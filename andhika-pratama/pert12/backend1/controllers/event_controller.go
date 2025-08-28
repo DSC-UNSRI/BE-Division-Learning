@@ -46,3 +46,29 @@ func CreateEvent(c *fiber.Ctx) error {
 		"message": "Event created successfully",
 	})
 }
+
+func DeleteEvent(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "ID event is required",
+		})
+	}
+
+	var event models.Event
+	if err := database.DB.Where("id =?", id).First(&event).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{
+			"message": "Event not found",
+		})
+	}
+
+	if err := database.DB.Delete(&event).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"message": "Failed to delete event",
+		})
+	}
+
+	return c.Status(200).JSON(fiber.Map{
+		"message": "Event deleted successfully",
+	})
+}
