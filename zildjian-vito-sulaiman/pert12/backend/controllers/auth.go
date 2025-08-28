@@ -3,6 +3,9 @@ package controllers
 import (
 	"backend/config"
 	"backend/models"
+	"fmt"
+	"math/rand"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
@@ -13,6 +16,11 @@ func Register(c *fiber.Ctx) error {
 	if err := c.BodyParser(user); err != nil {
 		return c.Status(400).JSON(fiber.Map{"message": "Invalid request"})
 	}
+
+	// Generate a random profile picture URL
+	rand.Seed(time.Now().UnixNano())
+	randomID := rand.Intn(1000) // Random ID for picsum.photos
+	user.ProfilePicture = fmt.Sprintf("https://picsum.photos/200/200?random=%d", randomID)
 
 	config.DB.Create(&user)
 
