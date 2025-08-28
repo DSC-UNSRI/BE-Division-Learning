@@ -7,4 +7,6 @@ import (
 
 func Login(app *fiber.App) {
 	app.Post("/login", controllers.Login)
+	app.Post("/register", controllers.SignUp)
+	app.Post("/logout", controllers.Logout)
 }
