@@ -4,6 +4,7 @@ import (
 	"pert12/database"
 	"pert12/models"
 	"pert12/utils"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
@@ -22,12 +23,28 @@ func GetMe(c *fiber.Ctx) error {
 
 func UpdateProfile(c *fiber.Ctx) error {
 	var user models.User 
-	userID := c.Locals("user_id").(int)
 
-	if err := database.DB.First(&user, userID).Error; err != nil {
-		return c.Status(404).JSON(fiber.Map{"message": "User not found"})
+	tokenUserID := c.Locals("user_id").(int)
+	paramID := c.Params("id")
+	userID, err := strconv.Atoi(paramID)
+
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Invalid user ID",
+		})
 	}
 
+	if tokenUserID != userID {
+		return c.Status(403).JSON(fiber.Map{
+			"message": "Forbidden - you can only change your own profile",
+		})
+	}
+
+	if err := database.DB.First(&user, userID).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{
+			"message": "User not found",
+		})
+	}
 	updates := make(map[string]interface{})
 
 	name := c.FormValue("name")
@@ -39,7 +56,9 @@ func UpdateProfile(c *fiber.Ctx) error {
 	if password != "" {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 		if err != nil {
-			return c.Status(500).JSON(fiber.Map{"message": "Failed to hash password"})
+			return c.Status(500).JSON(fiber.Map{
+				"message": "Failed to hash password",
+			})
 		}
 		updates["password"] = string(hashedPassword)
 	}
@@ -47,14 +66,18 @@ func UpdateProfile(c *fiber.Ctx) error {
 	if _, err := c.FormFile("profile_picture"); err == nil {
 		filePath, err := utils.SaveFile(c, "profile_picture", "profile")
 		if err != nil {
-			return c.Status(400).JSON(fiber.Map{"message": err.Error()})
+			return c.Status(400).JSON(fiber.Map{
+				"message": err.Error(),
+			})
 		}
 		updates["profile_picture"] = filePath
 	}
 
 	if len(updates) > 0 {
 		if err := database.DB.Model(&user).Updates(updates).Error; err != nil {
-			return c.Status(500).JSON(fiber.Map{"message": "Could not update profile"})
+			return c.Status(500).JSON(fiber.Map{
+				"message": "Could not update profile",
+			})
 		}
 	}	
 
