@@ -8,6 +8,6 @@ import (
 
 func AuthRoutes(api fiber.Router) {
 	api.Post("/register", controllers.Signup)
-	// api.Post("/login", controllers.Login)
+	api.Post("/login", controllers.Login)
 	// api.Post("/logout", controllers.Logout)
 }

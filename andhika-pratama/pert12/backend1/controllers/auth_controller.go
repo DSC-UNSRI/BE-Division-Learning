@@ -4,7 +4,11 @@ import (
 	"pert12/database"
 	"pert12/models"
 
+	"os"
+	"time"
+	
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -72,5 +76,67 @@ func Signup(c *fiber.Ctx) error {
 	return c.Status(201).JSON(fiber.Map{
 		"message": "User created successfully",
 		"user": newUser,
+	})
+}
+
+func Login(c *fiber.Ctx) error {
+	var user models.User
+
+	email := c.FormValue("email")
+	if email == "" {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Email is required",
+		})
+	}
+
+	password := c.FormValue("password")
+	if password == "" {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Password is required",
+		})
+	}
+
+	if err := database.DB.Where("email = ?", email).First(&user).Error; err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Wrong Credential",
+		})
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Wrong Credential",
+		})
+	}
+
+	claims := jwt.MapClaims{
+		"user_id": user.ID,
+		"role": user.Role,
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET_KEY")))
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"message": "Could not create token",
+		})
+	}
+
+	c.Cookie(&fiber.Cookie{
+		Name:     "token",
+		Value:    tokenString,
+		Expires:  time.Now().Add(3 * time.Hour),
+		HTTPOnly: true,
+		Secure:   true,
+		SameSite: "Strict", 
+	})
+
+	userLogin := models.UserLogin{
+		Role: user.Role,
+	}
+	userLogin.ID = user.ID
+
+	return c.Status(200).JSON(fiber.Map{
+		"message": "login Successful",
+		"user":    userLogin,
 	})
 }
