@@ -5,7 +5,7 @@ import (
 )
 
 type User struct {
-	gorm.Model
+	Id             uint   `json:"id" gorm:"primarykey"`
 	Name           string `json:"name" gorm:"not null"`
 	Password       string `json:"passsword" gorm:"not null"`
 	ProfilePicture string `json:"profile_picture" gorm:"not null"`
