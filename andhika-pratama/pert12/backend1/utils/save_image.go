@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -47,5 +48,8 @@ func SaveFile(c *fiber.Ctx, fieldName string, fileType string) (string, error) {
 		return "", err
 	}
 
-	return filepath.Join(publicPath, newFilename), nil
+	baseURL := os.Getenv("BASE_URL")
+	fullURL := fmt.Sprintf("%s%s%s", baseURL, publicPath, newFilename)
+
+	return fullURL, nil
 }
