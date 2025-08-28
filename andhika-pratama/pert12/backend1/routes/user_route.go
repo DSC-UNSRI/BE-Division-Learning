@@ -8,6 +8,6 @@ import (
 )
 
 func UserRoutes(api fiber.Router) {
-	// api.Get("/me", middlewares.Auth, controllers.GetMe)
-	// api.Patch("/profile/:id", middlewares.Auth, controllers.UpdateProfile)
+	// api.Get("/me", middlewares.AuthMiddleware, controllers.GetMe)
+	// api.Patch("/profile/:id", middlewares.AuthMiddleware, controllers.UpdateProfile)
 }
