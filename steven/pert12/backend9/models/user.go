@@ -5,9 +5,9 @@ type User struct {
 	Name       		string    	`json:"name" gorm:"type:varchar(100)"`
 	Email     		string   	`json:"email"`
 	Password   		string    	`json:"-" gorm:"type:varchar(100)"`
-	Role			string		`json:"role" gorm:"type:enum('admin','user')"`
-	ProfilePicture	string		`json:"profile_picture" gorm:"type:varchar(100)"`
-	Status			bool 		`json:"status" gorm:"type:boolean"`
+	Role			string		`json:"role" gorm:"type:enum('admin','user')default:'user'"`
+	ProfilePicture	string		`json:"profile_picture" gorm:"type:varchar(100)default:'https://i.pravatar.cc/150'"`
+	Status			*bool 		`json:"status" gorm:"type:tinyint(1)default:null"`
 }
 
 func (*User) TableName() string {
