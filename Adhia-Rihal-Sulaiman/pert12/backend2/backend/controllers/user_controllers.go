@@ -23,9 +23,7 @@ func GetMe(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"message": "User not found"})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"user": user,
-	})
+	return c.Status(200).JSON(user)
 }
 
 func UpdateProfile(c *fiber.Ctx) error {
@@ -66,7 +64,7 @@ func UpdateProfile(c *fiber.Ctx) error {
 	}
 
 	if _, err := c.FormFile("profile_picture"); err == nil {
-		filePath, err := utils.SaveFile(c, "profile_picture", "profile")
+		filePath, err := utils.SaveFile(c, "profile_picture", "profile_pictures")
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
 		}

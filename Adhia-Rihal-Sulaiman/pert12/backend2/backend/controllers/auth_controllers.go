@@ -18,7 +18,7 @@ func SignUp(c *fiber.Ctx) error {
 	email := c.FormValue("email")
 	password := c.FormValue("password")
 	role := c.FormValue("role")
-	profilePicture := c.FormValue("profile_picture")
+
 
 	if name == "" {
 		return c.Status(400).JSON(fiber.Map{"message": "Name is required"})
@@ -35,9 +35,6 @@ func SignUp(c *fiber.Ctx) error {
 	if role != "user" && role != "admin" {
 		return c.Status(400).JSON(fiber.Map{"message": "Role must be user or admin"})
 	}
-	if profilePicture == "" {
-		profilePicture = "default.png"
-	}
 
 	if err := database.DB.Where("email = ?", email).First(&existingUser).Error; err == nil {
 		return c.Status(409).JSON(fiber.Map{"message": "Email is already taken"})
@@ -53,7 +50,6 @@ func SignUp(c *fiber.Ctx) error {
 		Email:          email,
 		Password:       string(hashedPassword),
 		Role:           role,
-		ProfilePicture: profilePicture,
 	}
 
 	if err := database.DB.Create(&newUser).Error; err != nil {

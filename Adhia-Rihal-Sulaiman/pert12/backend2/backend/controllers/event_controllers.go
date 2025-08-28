@@ -3,7 +3,7 @@ package controllers
 import (
 	"backend2/database"
 	"backend2/models"
-	"fmt"
+	"backend2/utils"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -18,41 +18,29 @@ func GetEvent(c *fiber.Ctx) error {
 }
 
 func PostEvent(c *fiber.Ctx) error {
-	location := c.FormValue("location")
-	start := c.FormValue("start")
+    var event models.Event
 
-	if location == "" {
-		return c.Status(400).JSON(fiber.Map{"message": "Location is required"})
-	}
-	if start == "" {
-		return c.Status(400).JSON(fiber.Map{"message": "Start time is required"})
-	}
+    if err := c.BodyParser(&event); err != nil {
+        return c.Status(400).JSON(fiber.Map{
+            "message": "Invalid request body",
+        })
+    }
 
-	startTime, err := time.Parse(time.RFC3339, start)
-	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"message": "Invalid start time format"})
-	}
+    if event.Location == "" {
+        return c.Status(400).JSON(fiber.Map{
+            "message": "Location is required",
+        })
+    }
 
-	var coverPath string
-	file, err := c.FormFile("cover")
-	if err == nil {
-		coverPath = fmt.Sprintf("uploads/%d_%s", time.Now().Unix(), file.Filename)
-		if err := c.SaveFile(file, coverPath); err != nil {
-			return c.Status(500).JSON(fiber.Map{"message": "Failed to save cover"})
-		}
-	}
+    if err := database.DB.Create(&event).Error; err != nil {
+        return c.Status(500).JSON(fiber.Map{
+            "message": "Failed to create event",
+        })
+    }
 
-	event := models.Event{
-		Location: location,
-		Start:    startTime,
-		Cover:    coverPath,
-	}
-
-	if err := database.DB.Create(&event).Error; err != nil {
-		return c.Status(500).JSON(fiber.Map{"message": "Failed to create event"})
-	}
-
-	return c.Status(201).JSON(fiber.Map{"message": "Event created successfully"})
+    return c.Status(201).JSON(fiber.Map{
+        "message": "Event created successfully",
+    })
 }
 
 func UpdateEvent(c *fiber.Ctx) error {
@@ -64,28 +52,32 @@ func UpdateEvent(c *fiber.Ctx) error {
 	}
 
 	location := c.FormValue("location")
-	start := c.FormValue("start")
 
 	if location != "" {
 		event.Location = location
 	}
 
-	if start != "" {
-		startTime, err := time.Parse(time.RFC3339, start)
+	dateStr := c.FormValue("start")
+	if dateStr != "" {
+		layout := "2006-01-02"
+		parsedDate, err := time.Parse(layout, dateStr)
 		if err != nil {
-			return c.Status(400).JSON(fiber.Map{"message": "Invalid start time format"})
+			return c.Status(400).JSON(fiber.Map{
+				"message": "Invalid date format. Please use YYYY-MM-DD.",
+			})
 		}
-		event.Start = startTime
+		event.Start = parsedDate
 	}
-
-	file, err := c.FormFile("cover")
-	if err == nil {
-		coverPath := fmt.Sprintf("uploads/%d_%s", time.Now().Unix(), file.Filename)
-		if err := c.SaveFile(file, coverPath); err != nil {
-			return c.Status(500).JSON(fiber.Map{"message": "Failed to save new cover"})
-		}
-		event.Cover = coverPath
-	}
+	
+	if _, err := c.FormFile("cover"); err == nil {
+        filePath, err := utils.SaveFile(c, "cover", "true")
+        if err != nil {
+            return c.Status(400).JSON(fiber.Map{
+                "message": err.Error(),
+            })
+        }
+        event.Cover = filePath
+    }
 
 	if err := database.DB.Save(&event).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"message": "Failed to update event"})
