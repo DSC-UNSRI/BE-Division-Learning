@@ -8,7 +8,7 @@ import (
 )
 
 func userRoutes(api fiber.Router) {
-	user := api.Group("/")
+	user := api.Group("/user")
 	user.Post("/signup", controllers.SignUp)
 	user.Post("/login", controllers.Login)
 	user.Post("/logout", middlewares.Auth, controllers.Logout)
