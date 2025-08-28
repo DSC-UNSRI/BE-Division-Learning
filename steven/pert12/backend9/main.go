@@ -20,7 +20,8 @@ func main() {
 		AllowHeaders: "Origin, Content-Type, Accept",
 	}))
 
-	routes.Login(app)
+	app.Static("/assets", "./assets")
+
 	routes.Routes(app)
 
 	app.Listen(":3000")

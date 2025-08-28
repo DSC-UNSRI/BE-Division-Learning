@@ -5,8 +5,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func Login(app *fiber.App) {
-	app.Post("/login", controllers.Login)
-	app.Post("/register", controllers.SignUp)
-	app.Post("/logout", controllers.Logout)
+func AuthRoutes(api fiber.Router) {
+	api.Post("/login", controllers.Login)
+	api.Post("/register", controllers.SignUp)
+	api.Post("/logout", controllers.Logout)
 }

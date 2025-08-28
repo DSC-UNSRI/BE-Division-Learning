@@ -9,5 +9,5 @@ import (
 
 func UserRoutes(api fiber.Router) {
 	api.Get("/me", middleware.Protected(), controllers.GetMe)
-	api.Patch("/profile", middleware.Protected(), controllers.UpdateProfile)
+	api.Patch("/profile/:id",  middleware.Protected(), controllers.UpdateProfile)
 }

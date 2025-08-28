@@ -15,19 +15,13 @@ func SignUp(c *fiber.Ctx) error {
 	name := c.FormValue("name")
 	email := c.FormValue("email")
     password := c.FormValue("password")
-	confirmPassword := c.FormValue("confirmPassword")
+	role := c.FormValue("role")
 
-	if name == "" || email == "" || password == "" || confirmPassword == "" {
+	if name == "" || email == "" || password == "" || role == "" {
         return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
             "error": "name, email, password, and confirm password are required",
         })
     }
-
-	if password != confirmPassword {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "password and confirm password do not match",
-		})
-	}
 
 	var existingUser models.User
 	if err := database.DB.Where("email = ?", email).First(&existingUser).Error; err == nil {

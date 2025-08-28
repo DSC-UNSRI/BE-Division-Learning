@@ -13,14 +13,6 @@ func Protected() fiber.Handler {
 		SigningKey:   []byte(os.Getenv("JWT_SECRET")),
 		TokenLookup:  "cookie:token",
 		ErrorHandler: jwtError,
-		SuccessHandler: func(c *fiber.Ctx) error {
-			userToken := c.Locals("user").(*jwt.Token)
-			claims := userToken.Claims.(jwt.MapClaims)
-
-			c.Locals("id", claims["id"])
-
-			return c.Next()
-		},
 	})
 }
 

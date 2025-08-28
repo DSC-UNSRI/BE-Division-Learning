@@ -17,7 +17,9 @@ func GetAllEvents(c *fiber.Ctx) error {
 	if err := database.DB.Find(&events).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
-	return c.JSON(events)
+	return c.JSON(fiber.Map{
+        "events": events,
+    })
 }
 
 func CreateEvent(c *fiber.Ctx) error {
@@ -64,12 +66,29 @@ func UpdateEvent(c *fiber.Ctx) error {
     }
 
     if start != "" {
-        parsedTime, err := time.Parse("2006-01-02T15:04:05", start)
-        if err != nil {
-            return c.Status(400).JSON(fiber.Map{"error": "Invalid start format"})
-        }
-        event.Start = parsedTime
-    }
+		var parsedTime time.Time
+		var parseErr error
+
+		layouts := []string{
+		"2006-01-02", 
+		time.RFC3339,
+		"2006-01-02T15:04:05-07:00",
+		"2006-01-02T15:04:05Z07:00",
+		"2006-01-02T15:04",
+		}
+
+		for _, layout := range layouts {
+			parsedTime, parseErr = time.Parse(layout, start)
+			if parseErr == nil {
+				event.Start = parsedTime
+				break
+			}
+		}
+
+		if parseErr != nil {
+			return c.Status(400).JSON(fiber.Map{"error": "Invalid start format"})
+		}
+	}
 
     if err == nil && file != nil {
 		if file.Size > 1*1024*1024 {
@@ -108,9 +127,9 @@ func UpdateEvent(c *fiber.Ctx) error {
 	})
 }
 
-func DeleteEvent(c *fiber.Ctx) error {
-	id := c.Params("id")
-    var event models.Event
+	func DeleteEvent(c *fiber.Ctx) error {
+		id := c.Params("id")
+		var event models.Event
 
     if err := database.DB.First(&event, id).Error; err != nil {
         return c.Status(404).JSON(fiber.Map{"error": "Event not found"})
