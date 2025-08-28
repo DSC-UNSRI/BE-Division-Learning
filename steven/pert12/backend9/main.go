@@ -6,6 +6,7 @@ import (
 	"backend/routes"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
 func main() {
@@ -14,8 +15,13 @@ func main() {
 	database.Migrate()
 	app := fiber.New()
 
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "http://localhost:3000, http://localhost:5000, http://127.0.0.1:3000",
+		AllowHeaders: "Origin, Content-Type, Accept",
+	}))
+
 	routes.Login(app)
 	routes.Routes(app)
 
-	app.Listen(":3306")
+	app.Listen(":3000")
 }
