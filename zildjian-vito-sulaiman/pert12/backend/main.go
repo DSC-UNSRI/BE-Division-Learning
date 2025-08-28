@@ -5,12 +5,19 @@ import (
 	"backend/config"
 	"backend/models"
 	"log"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	app := fiber.New()
 
 	config.ConnectDatabase()
@@ -26,5 +33,10 @@ func main() {
 
 	api.SetupRoutes(app)
 
-	log.Fatal(app.Listen(":3000"))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "3000" // Default port if not specified in .env
+	}
+
+	log.Fatal(app.Listen(":" + port))
 }
