@@ -7,7 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func userRoutes(api fiber.Router) {
+func eventRoutes(api fiber.Router) {
 	api.Get("/event", controllers.GetEvent)
 	api.Post("/event", controllers.PostEvent, middlewares.AdminMiddleware(), middlewares.AuthMiddleware())
 	api.Patch("/event/:id", controllers.PostEvent, middlewares.AdminMiddleware(), middlewares.AuthMiddleware())

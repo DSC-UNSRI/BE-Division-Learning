@@ -1,9 +1,5 @@
 package models
 
-import (
-	"gorm.io/gorm"
-)
-
 type User struct {
 	ID             uint   `json:"id" gorm:"primarykey"`
 	Name           string `json:"name" gorm:"not null"`
@@ -14,7 +10,7 @@ type User struct {
 }
 
 type UserLogin struct {
-	gorm.Model
+	ID   uint   `json:"id" gorm:"primarykey"`
 	Role string `json:"role" gorm:"type:varchar(10);default:'user';not null"`
 }
 

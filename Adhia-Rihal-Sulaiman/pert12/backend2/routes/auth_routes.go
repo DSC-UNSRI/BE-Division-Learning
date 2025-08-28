@@ -6,9 +6,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func userRoutes(api fiber.Router) {
-	user := api.Group("/user")
-	user.Post("/signup", controllers.SignUp)
-	user.Post("/login", controllers.Login)
-	user.Post("/logout", controllers.Logout)
+func authRoutes(api fiber.Router) {
+	api.Post("/register", controllers.SignUp)
+	api.Post("/login", controllers.Login)
+	api.Post("/logout", controllers.Logout)
 }
