@@ -10,5 +10,5 @@ type Event struct {
 }
 
 func (*Event) TableName() string {
-	return "event"
+	return "events"
 }
