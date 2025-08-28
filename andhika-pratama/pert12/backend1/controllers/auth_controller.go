@@ -98,19 +98,20 @@ func Login(c *fiber.Ctx) error {
 
 	if err := database.DB.Where("email = ?", email).First(&user).Error; err != nil {
 		return c.Status(400).JSON(fiber.Map{
-			"message": "Wrong Credential",
+			"message": "Wrong credential",
 		})
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
 		return c.Status(400).JSON(fiber.Map{
-			"message": "Wrong Credential",
+			"message": "Wrong credential",
 		})
 	}
 
 	claims := jwt.MapClaims{
 		"user_id": user.ID,
 		"role": user.Role,
+		"exp": time.Now().Add(3 * time.Hour).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -136,7 +137,22 @@ func Login(c *fiber.Ctx) error {
 	userLogin.ID = user.ID
 
 	return c.Status(200).JSON(fiber.Map{
-		"message": "login Successful",
+		"message": "login successful",
 		"user":    userLogin,
+	})
+}
+
+func Logout(c *fiber.Ctx) error {
+	c.Cookie(&fiber.Cookie{
+		Name:     "token",
+		Value:    "",
+		Expires:  time.Now().Add(-1 * time.Hour),
+		HTTPOnly: true,
+		Secure:   true,
+		SameSite: "Strict",
+	})
+
+	return c.Status(200).JSON(fiber.Map{
+		"message": "Logout successful",
 	})
 }
