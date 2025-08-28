@@ -5,7 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	jwtware "github.com/gofiber/jwt/v3"
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 func Protected() fiber.Handler {
@@ -13,6 +13,14 @@ func Protected() fiber.Handler {
 		SigningKey:   []byte(os.Getenv("JWT_SECRET")),
 		TokenLookup:  "cookie:token",
 		ErrorHandler: jwtError,
+		SuccessHandler: func(c *fiber.Ctx) error {
+			userToken := c.Locals("user").(*jwt.Token)
+			claims := userToken.Claims.(jwt.MapClaims)
+
+			c.Locals("id", claims["id"])
+
+			return c.Next()
+		},
 	})
 }
 
@@ -26,9 +34,11 @@ func IsAdmin() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		userToken := c.Locals("user").(*jwt.Token)
 		claims := userToken.Claims.(jwt.MapClaims)
-		divisonID := claims["role"]
+		role := claims["role"]
 
-		if divisonID != "admin" {
+		c.Locals("role", role)
+
+		if role != "admin" {
 			return c.Status(403).JSON(fiber.Map{"error": "Forbidden: Division access denied"})
 		}
 

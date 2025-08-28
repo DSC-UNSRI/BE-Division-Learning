@@ -1,7 +1,16 @@
 package routes
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"backend/controllers"
+	"backend/middleware"
 
-func EventRoutes(api fiber.Router) {
-	// api.Get("/", controllers.GetAllEvents)
+	"github.com/gofiber/fiber/v2"
+)
+
+func EventRoutes(api fiber.Router){
+	event := api.Group("/event")
+	event.Get("/", controllers.GetAllEvents)
+	event.Post("/", middleware.IsAdmin(), controllers.CreateEvent)
+	event.Patch("/:id",middleware.IsAdmin(), controllers.UpdateEvent)
+	event.Delete("/:id",middleware.IsAdmin(), controllers.DeleteEvent)
 }
