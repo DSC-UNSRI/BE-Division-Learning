@@ -1,20 +1,37 @@
 package middlewares
 
 import (
-	"backend2/database"
-	"backend2/models"
-	"time"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
+	jwtware "github.com/gofiber/jwt/v3"
+	"github.com/golang-jwt/jwt/v4"
 )
 
-func Auth(c *fiber.Ctx) error {
-	var admin models.User
-	cookieToken := c.Cookies("admin_token")
-	if err := database.DB.Where("token =? AND token_exp >= ?", cookieToken, time.Now()).First(&admin).Error; err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Token is invalid",
-		})
-	}
-	return c.Next()
+func AuthMiddleware() fiber.Handler {
+	return jwtware.New(jwtware.Config{
+		SigningKey:   []byte(os.Getenv("JWT_SECRET_KEY")),
+		TokenLookup:  "cookie:token",
+		ContextKey:   "jwt", // simpan token di ctx.Locals("jwt")
+		ErrorHandler: jwtError,
+		SuccessHandler: func(c *fiber.Ctx) error {
+			if token, ok := c.Locals("jwt").(*jwt.Token); ok {
+				if claims, ok := token.Claims.(jwt.MapClaims); ok {
+					if idFloat, ok := claims["user_id"].(float64); ok {
+						c.Locals("user_id", int(idFloat))
+					}
+					if role, ok := claims["role"].(string); ok {
+						c.Locals("role", role)
+					}
+				}
+			}
+			return c.Next()
+		},
+	})
+}
+
+func jwtError(c *fiber.Ctx, err error) error {
+	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+		"message": "Unauthorized",
+	})
 }
