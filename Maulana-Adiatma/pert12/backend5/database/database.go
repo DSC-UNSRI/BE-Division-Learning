@@ -3,6 +3,7 @@ package database
 import (
 	"fmt"
 	"os"
+	"pert12/models"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -27,4 +28,13 @@ func DBInit() {
   }
   fmt.Println("Database succes to connect")
   DB = db
+}
+
+func DBMigrate(){	
+	err := DB.AutoMigrate(&models.User{})
+
+	if err != nil{
+		panic("Database Migration Failed")
+	}
+	fmt.Println("Database succes to migrate")
 }
