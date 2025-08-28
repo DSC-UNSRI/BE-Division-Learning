@@ -9,7 +9,7 @@ import (
 type User struct {
 	ID             int            `json:"id" gorm:"primarykey"`
 	Name           string         `json:"name" gorm:"not null"`
-	Password       string         `json:"passsword" gorm:"not null"`
+	Password       string         `json:"-" gorm:"not null"`
 	ProfilePicture string         `json:"profile_picture" gorm:"default:'http://127.0.0.1:3000/assets/profile_pictures/auby.jpeg'"`
 	Email          string         `json:"email" gorm:"unique;not null"`
 	Role           string         `json:"role" gorm:"type:varchar(10);default:'user';not null"`

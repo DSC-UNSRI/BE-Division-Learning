@@ -17,8 +17,8 @@ func AuthMiddleware() fiber.Handler {
             user := c.Locals("user").(*jwt.Token)
             claims := user.Claims.(jwt.MapClaims)
 
-            if idFloat, ok := claims["id"].(float64); ok {
-                c.Locals("id", int(idFloat))
+            if idFloat, ok := claims["user_id"].(float64); ok {
+                c.Locals("user_id", int(idFloat))
             }
 			  if role, ok := claims["role"].(string); ok {
 				c.Locals("role", role)
