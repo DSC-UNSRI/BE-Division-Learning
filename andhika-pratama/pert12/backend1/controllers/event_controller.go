@@ -20,3 +20,29 @@ func GetEvents(c *fiber.Ctx) error {
 		"events": events,
 	})
 }
+
+func CreateEvent(c *fiber.Ctx) error {
+	var event models.Event
+
+	if err := c.BodyParser(&event); err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Invalid request body",
+		})
+	}
+
+	if event.Location == "" {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Location is required",
+		})
+	}
+
+	if err := database.DB.Create(&event).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"message": "Failed to create event",
+		})
+	}
+
+	return c.Status(201).JSON(fiber.Map{
+		"message": "Event created successfully",
+	})
+}
