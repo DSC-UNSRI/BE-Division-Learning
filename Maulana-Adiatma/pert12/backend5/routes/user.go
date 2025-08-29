@@ -8,7 +8,7 @@ import (
 )
 
 func routeUser(api fiber.Router) {
-	user := api.Group("/user")
-	user.Get("/:id", middleware.JWTToken(), controllers.GetMeByID)
-	user.Put("/:id", middleware.JWTToken(), controllers.UpdateProfile)
+    user := api.Group("/user")
+    user.Get("/me", middleware.JWTToken(), controllers.GetMe)
+    user.Put("/:id", middleware.JWTToken(), controllers.UpdateProfile)
 }

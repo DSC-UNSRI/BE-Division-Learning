@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"pert12/database"
 	"pert12/models"
 	"pert12/utils"
@@ -13,22 +14,27 @@ import (
 func PostEvent(c *fiber.Ctx) error {
 	var event models.Event
 
-	cover, err := utils.SaveFile(c, "cover", true)
+	cover, err := utils.SaveFile(c, "cover", false)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Failed to save cover image",
 		})
 	}
-	location := c.FormValue("location")
 
-	event.Cover = cover
+	location := c.FormValue("location")
+	if location == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Location is required",
+		})
+	}
 
 	event.Location = location
+	event.Cover = cover
 
 	if startPostStr := c.FormValue("startpost"); startPostStr != "" {
 		t, err := time.Parse(time.RFC3339Nano, startPostStr)
 		if err != nil {
-			return c.Status(400).JSON(fiber.Map{
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": "Invalid startpost format. Use ISO 8601 (RFC3339Nano)",
 			})
 		}
@@ -36,13 +42,14 @@ func PostEvent(c *fiber.Ctx) error {
 	}
 
 	if err := database.DB.Create(&event).Error; err != nil {
-		return c.Status(500).JSON(fiber.Map{
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to post event",
 		})
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "Success to post event",
+		"event":   event,
 	})
 }
 
@@ -65,15 +72,16 @@ func GetEvent(c *fiber.Ctx) error {
 	}
 
 	return c.Status(200).JSON(fiber.Map{
-		"event": event,
+		"events": event, // <- plural
 	})
 }
 
 func UpdateEvent(c *fiber.Ctx) error {
 	id := c.Params("id")
+	fmt.Println("UpdateEvent ID param:", id)
 	var event models.Event
 
-	if err := database.DB.First(&event, id).Error; err != nil {
+	if err := database.DB.First(&event, "id = ?", id).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{
 			"error": "event not found",
 		})
@@ -111,7 +119,7 @@ func UpdateEvent(c *fiber.Ctx) error {
 
 	return c.Status(200).JSON(fiber.Map{
 		"message": "event updated successfully",
-		"event":  event,
+		"event":   event,
 	})
 }
 

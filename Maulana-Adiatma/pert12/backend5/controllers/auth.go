@@ -100,6 +100,13 @@ func Login(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "Login successful",
 		"token":   t,
+		"user": fiber.Map{
+			"id":         user.ID,
+			"role":       user.Role,
+			"profilePic": user.ProfilePic,
+			"name":       user.Name,
+			"email":      user.Email,
+		},
 	})
 }
 

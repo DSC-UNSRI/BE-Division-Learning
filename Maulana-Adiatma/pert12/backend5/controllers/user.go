@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"pert12/database"
 	"pert12/models"
 	"pert12/utils"
@@ -9,31 +10,33 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func GetMeByID(c *fiber.Ctx) error {
-	id := c.Params("id")
+func GetMe(c *fiber.Ctx) error {
+	userID := c.Locals("user_id") // di-set oleh JWT middleware
 	var user models.User
 
-	if err := database.DB.First(&user, id).Error; err != nil {
-		return c.Status(404).JSON(fiber.Map{
-			"error": "user not found",
-		})
+	if err := database.DB.First(&user, userID).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"error": "User not found"})
 	}
 
-	res := models.User{
-		Name:       user.Name,
-		Email:      user.Email,
-		Role:       user.Role,
-		ProfilePic: user.ProfilePic,
-	}
-
-	return c.Status(200).JSON(fiber.Map{
-		"user": res,
+	return c.JSON(fiber.Map{
+		"user": fiber.Map{
+			"id":         user.ID,
+			"name":       user.Name,
+			"email":      user.Email,
+			"role":       user.Role,
+			"profilePic": user.ProfilePic,
+		},
 	})
 }
 
 func UpdateProfile(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var user models.User
+
+	userID := c.Locals("user_id")
+	if fmt.Sprint(userID) != c.Params("id") {
+		return c.Status(403).JSON(fiber.Map{"error": "Forbidden"})
+	}
 
 	if err := database.DB.First(&user, id).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{
@@ -75,5 +78,12 @@ func UpdateProfile(c *fiber.Ctx) error {
 
 	return c.Status(200).JSON(fiber.Map{
 		"message": "User Profile updated successfully",
+		"user": fiber.Map{
+			"id":         user.ID,
+			"name":       user.Name,
+			"email":      user.Email,
+			"role":       user.Role,
+			"profilePic": user.ProfilePic,
+		},
 	})
 }

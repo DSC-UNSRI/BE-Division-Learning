@@ -10,10 +10,14 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func SaveFile(c *fiber.Ctx, fieldName string, isCover bool) (string, error) {
+func SaveFile(c *fiber.Ctx, fieldName string, required bool) (string, error) {
 	file, err := c.FormFile(fieldName)
 	if err != nil {
-		return "", err
+		if required {
+			return "", err
+		}
+		// kalau nggak required → return kosong tanpa error
+		return "", nil
 	}
 
 	ext := strings.ToLower(filepath.Ext(file.Filename))
@@ -22,7 +26,7 @@ func SaveFile(c *fiber.Ctx, fieldName string, isCover bool) (string, error) {
 		".jpg":  true,
 		".jpeg": true,
 	}
-	if !isCover {
+	if !required { // kalau bukan cover (misal lampiran dokumen) boleh pdf
 		allowedExt[".pdf"] = true
 	}
 
@@ -34,7 +38,7 @@ func SaveFile(c *fiber.Ctx, fieldName string, isCover bool) (string, error) {
 
 	saveDir := "./assets/profile/"
 	publicPath := "/assets/profile/"
-	if isCover {
+	if required {
 		saveDir = "./assets/cover/"
 		publicPath = "/assets/cover/"
 	}
