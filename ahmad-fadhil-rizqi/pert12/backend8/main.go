@@ -10,8 +10,9 @@ import (
 )
 
 func main() {
-	cfg := config.Load()
-	database.Init(cfg)
+	config.ENVLoad()
+	database.DBLoad()
+	database.DBMigrate()
 
 	app := fiber.New()
 	app.Use(cors.New(cors.Config{
@@ -21,6 +22,6 @@ func main() {
 
 	app.Static("/uploads", "uploads")
 
-	routes.Register(app, cfg)
+	routes.Register(app)
 	app.Listen(":3000")
 }
