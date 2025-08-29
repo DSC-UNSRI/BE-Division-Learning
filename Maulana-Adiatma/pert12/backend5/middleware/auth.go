@@ -44,7 +44,7 @@ func AdminOnly() fiber.Handler {
 		role := c.Locals("userRole")
 		if role != "admin" {
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-				"error": "Admin only: forbidden",
+				"error": "Admin only forbidden",
 			})
 		}
 		return c.Next()
