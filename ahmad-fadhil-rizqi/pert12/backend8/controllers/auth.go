@@ -4,10 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"os"
 	"strings"
 	"time"
 
-	"backend8/config"
 	"backend8/database"
 	"backend8/models"
 	"backend8/utils"
@@ -17,9 +17,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type AuthController struct {
-	Cfg config.Config
-}
+type AuthController struct{}
 
 func (a AuthController) Register(c *fiber.Ctx) error {
 	name := c.FormValue("name")
@@ -73,7 +71,7 @@ func (a AuthController) Login(c *fiber.Ctx) error {
 	if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "invalid credentials"})
 	}
-	token, err := utils.GenerateJWT(a.Cfg.JWTSecret, user.ID, user.Role)
+	token, err := utils.GenerateJWT(os.Getenv("JWT_SECRET"), user.ID, user.Role)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "failed"})
 	}
