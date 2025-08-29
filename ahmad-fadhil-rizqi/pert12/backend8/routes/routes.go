@@ -1,15 +1,14 @@
 package routes
 
 import (
-	"backend8/config"
 	"backend8/controllers"
 	"backend8/middlewares"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-func Register(app *fiber.App, cfg config.Config) {
-	auth := controllers.AuthController{Cfg: cfg}
+func Register(app *fiber.App) {
+	auth := controllers.AuthController{}
 	event := controllers.EventController{}
 	user := controllers.UserController{}
 
@@ -19,10 +18,10 @@ func Register(app *fiber.App, cfg config.Config) {
 	r.Post("/logout", auth.Logout)
 
 	r.Get("/event", event.List)
-	r.Post("/event", middlewares.AuthRequired(cfg), middlewares.AdminOnly(), event.Create)
-	r.Patch("/event/:id", middlewares.AuthRequired(cfg), middlewares.AdminOnly(), event.Update)
-	r.Delete("/event/:id", middlewares.AuthRequired(cfg), middlewares.AdminOnly(), event.Delete)
+	r.Post("/event", middlewares.AuthRequired(), middlewares.AdminOnly(), event.Create)
+	r.Patch("/event/:id", middlewares.AuthRequired(), middlewares.AdminOnly(), event.Update)
+	r.Delete("/event/:id", middlewares.AuthRequired(), middlewares.AdminOnly(), event.Delete)
 
-	r.Get("/me", middlewares.AuthRequired(cfg), auth.Me)
-	r.Patch("/profile/:id", middlewares.AuthRequired(cfg), user.UpdateProfile)
+	r.Get("/me", middlewares.AuthRequired(), auth.Me)
+	r.Patch("/profile/:id", middlewares.AuthRequired(), user.UpdateProfile)
 }
