@@ -1,19 +1,19 @@
 package middlewares
 
 import (
-	"backend8/config"
 	"backend8/utils"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-func AuthRequired(cfg config.Config) fiber.Handler {
+func AuthRequired() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		token := c.Cookies("token")
 		if token == "" {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "unauthorized"})
 		}
-		claims, err := utils.ParseJWT(token, cfg.JWTSecret)
+		claims, err := utils.ParseJWT(token, os.Getenv("JWT_SECRET"))
 		if err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"message": "unauthorized"})
 		}
