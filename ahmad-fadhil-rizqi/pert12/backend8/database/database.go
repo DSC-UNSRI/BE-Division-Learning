@@ -2,33 +2,35 @@ package database
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"gorm.io/gorm/schema"
 
-	"backend8/config"
 	"backend8/models"
 )
 
 var DB *gorm.DB
 
-func Init(cfg config.Config) {
+func DBLoad() {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName)
-
-	var err error
-	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
-		NamingStrategy: schema.NamingStrategy{SingularTable: true},
-	})
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_NAME"),
+	)
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatalf("failed to connect database: %v", err)
+		panic("Failed to connect to database")
 	}
+	fmt.Println("Database connection successful")
+	DB = db
+}
 
-	if os.Getenv("AUTO_MIGRATE") == "true" {
-  	if err := DB.AutoMigrate(&models.User{}, &models.Event{}); err != nil {
-    log.Fatalf("migrate failed: %v", err)
-  	}}
+func DBMigrate() {
+	if err := DB.Debug().AutoMigrate(&models.User{}, &models.Event{}); err != nil {
+		panic("Failed to migrate database")
+	}
+	fmt.Println("Database migration completed")
 }
