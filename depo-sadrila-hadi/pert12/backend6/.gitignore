@@ -1,0 +1,4 @@
+nobar.db
+/assets/*
+!/assets/default.png
+.env
