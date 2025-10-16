@@ -9,26 +9,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func CreateEvent(c *fiber.Ctx) error {
-	var event models.Event
-
-	if err := c.BodyParser(&event); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "harap masukan lokasi dengan tepat",
-		})
-	}
-
-	if err := database.DB.Create(&event).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "gagal membuat event",
-		})
-	}
-
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"message": "event berhasil dibuat",
-	})
-}
-
 func UpdateEvent(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var event models.Event
